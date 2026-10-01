@@ -366,7 +366,8 @@ export async function renderPage(req: Request, env: Env): Promise<Response> {
   return new Response(res.body, { status: html.status, headers });
 }
 
-/** XML sitemap of public community builds (the static sitemaps cover everything else). */
+/** XML sitemap of public community builds (the static sitemaps cover everything else). It always lists
+ * the builds overview too, so it's never an empty <urlset> (which the sitemap schema doesn't allow). */
 export async function buildsSitemap(env: Env, req: Request): Promise<Response> {
   const origin = env.APP_URL ? new URL(env.APP_URL).origin : new URL(req.url).origin;
   const { results } = await env.DB.prepare(
@@ -374,6 +375,7 @@ export async function buildsSitemap(env: Env, req: Request): Promise<Response> {
   ).all<{ id: string; updated_at: number }>();
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>${origin}/builds</loc></url>
 ${results.map((r) => `  <url><loc>${origin}/builds/${r.id}</loc><lastmod>${new Date(r.updated_at).toISOString().slice(0, 10)}</lastmod></url>`).join("\n")}
 </urlset>
 `;
