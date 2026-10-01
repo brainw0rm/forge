@@ -20,6 +20,7 @@ import { navigate } from "../router";
 import { currentUser, loginUrl } from "../session";
 import { checkDescription, checkTitle, LIMITS } from "../../shared/validate";
 import { watchButtonHtml, wireWatchButton } from "../watch";
+import { openShare, type ShareInfo } from "../share";
 import { copy, diffWords, esc, gameText, setTitle, toast } from "../ui";
 
 const STEP = 64; // grid units per tier/column (48px cell + 16px gap)
@@ -130,7 +131,7 @@ export async function renderTalents(root: HTMLElement, slug: string, code: strin
             ).join("")}
           </div>
           <button class="btn primary" id="save">${state.editing ? "Update build" : "Save build"}</button>
-          <button class="btn" id="copy-link">Copy link</button>
+          <button class="btn" id="share">Share</button>
           ${watchButtonHtml(`Watch ${cls.name}`)}
           <details class="more-menu">
             <summary class="btn">More</summary>
@@ -192,7 +193,7 @@ export async function renderTalents(root: HTMLElement, slug: string, code: strin
     );
   }
   root.querySelector("#reset")!.addEventListener("click", () => update(new Build(idx, cls.trees.length)));
-  root.querySelector("#copy-link")!.addEventListener("click", () => copy(shareUrl(state), "Link copied"));
+  root.querySelector("#share")!.addEventListener("click", () => openShare(shareInfo(state)));
   root.querySelector("#copy-text")!.addEventListener("click", () => copy(asText(state), "Build copied as text"));
   root.querySelector("#save")!.addEventListener("click", () => saveBuild(state, meta.build));
   root.querySelector("#leveling")!.addEventListener("click", () =>
@@ -827,6 +828,17 @@ function syncUrl(s: State) {
 
 function shareUrl(s: State) {
   return `${location.origin}${path(s)}${s.build.spent ? `?b=${buildNumber(s.cls.build)}` : ""}`;
+}
+
+function shareInfo(s: State): ShareInfo {
+  const url = shareUrl(s);
+  if (!s.build.spent) return { url, text: `${s.cls.name} talent calculator for WoW Forever` };
+  const code = encode(s.build.order);
+  return {
+    url,
+    text: `${defaultTitle(s)} talent build for WoW Forever`,
+    image: `/og/talents/${s.cls.slug}/${code}.png?b=${buildNumber(s.cls.build)}`,
+  };
 }
 
 function asText(s: State) {

@@ -7,7 +7,8 @@ import { Build, compareBuilds, decode, indexClass, split, type Index } from "../
 import { classColor, getClass, getMeta, type ClassData } from "../data";
 import { navigate } from "../router";
 import { currentUser } from "../session";
-import { copy, diffWords, esc, gameText, setTitle, toast } from "../ui";
+import { openShare } from "../share";
+import { diffWords, esc, gameText, setTitle, toast } from "../ui";
 import { treeGridHtml } from "./talents";
 
 interface Side {
@@ -76,7 +77,7 @@ export async function renderCompare(root: HTMLElement, parts: string[], params: 
         </div>
         <div class="build-head-actions">
           <button class="btn" id="swap">Swap A ↔ B</button>
-          <button class="btn" id="share">Copy link</button>
+          <button class="btn" id="share">Share</button>
         </div>
       </header>
       <nav class="class-tabs">
@@ -120,7 +121,10 @@ export async function renderCompare(root: HTMLElement, parts: string[], params: 
   };
   root.querySelector("#swap")!.addEventListener("click", () => go([current(sides[1]), current(sides[0])]));
   root.querySelector("#share")!.addEventListener("click", () =>
-    copy(`${location.origin}/compare/${slug}/${sides[0].code || "-"}/${sides[1].code || "-"}`, "Link copied"),
+    openShare({
+      url: `${location.origin}/compare/${slug}/${sides[0].code || "-"}/${sides[1].code || "-"}`,
+      text: `Two ${cls.name} talent builds for WoW Forever, side by side`,
+    }),
   );
   root.querySelectorAll<HTMLFormElement>(".cmp-pick").forEach((form) => {
     const load = async () => {

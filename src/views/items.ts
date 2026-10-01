@@ -7,7 +7,8 @@ import {
   BIND_TEXT, coins, GEAR_SLOT, getItem, getItemDbMeta, getItemIndex, PRIMARY_STATS, QUALITY_NAME, SLOT_NAME,
   STAT_NAME, statLine, type ItemDetail, type ItemNumbers, type ItemRow, type ItemSpell,
 } from "../itemdb";
-import { copy, diffWords, esc, gameText, setTitle } from "../ui";
+import { openShare } from "../share";
+import { diffWords, esc, gameText, setTitle } from "../ui";
 
 const PAGE = 100;
 /** One in-list ad per this many result rows. */
@@ -371,7 +372,7 @@ export async function renderItem(root: HTMLElement, id: number) {
         <div class="item-main">
           ${tooltip(d, typeName, classNames)}
           <div class="item-actions">
-            <button class="btn small" id="copy-item">Copy link</button>
+            <button class="btn small" id="copy-item">Share</button>
             ${gearSlot ? `<a class="btn small" href="/gear?i=${gearSlot}:${d.id}" data-link>Try in gear sandbox</a>` : ""}
           </div>
           <dl class="item-facts">
@@ -391,6 +392,8 @@ export async function renderItem(root: HTMLElement, id: number) {
         </div>
       </div>
     </section>`;
-  root.querySelector("#copy-item")!.addEventListener("click", () => copy(location.href, "Link copied"));
+  root.querySelector("#copy-item")!.addEventListener("click", () =>
+    openShare({ url: `${location.origin}/items/${d.id}`, text: `${d.name} in WoW Forever` }),
+  );
   fillAds(root);
 }

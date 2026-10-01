@@ -936,6 +936,20 @@ textarea { resize: vertical; min-height: 100px; }
 .formula-results li.err { border-color: color-mix(in srgb, var(--red) 50%, transparent); }
 .formula-results li.err span { color: var(--red); font-weight: 500; }
 .modal.wide { width: min(720px, calc(100vw - 32px)); }
+.share { display: grid; gap: 14px; }
+.share-preview { margin: 0; display: grid; gap: 6px; }
+.share-preview img { width: 100%; height: auto; aspect-ratio: 1200 / 630; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface); }
+.share-preview figcaption { color: var(--muted); font-size: 12.5px; }
+.share-link { display: flex; gap: 8px; }
+.share-link input { flex: 1; min-width: 0; font-size: 13.5px; }
+.share-post { display: flex; gap: 12px; align-items: center; justify-content: space-between; padding: 10px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.share-post p { margin: 0; font-size: 13.5px; color: var(--muted); min-width: 0; overflow-wrap: anywhere; }
+.share-post .btn { flex: none; }
+.share-targets { display: grid; grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); gap: 8px; }
+@media (max-width: 480px) {
+  .share-link, .share-post { flex-direction: column; align-items: stretch; }
+  .share-link input { font-size: 16px; } /* no iOS zoom on focus */
+}
 .picker { display: grid; gap: 10px; }
 .picker .check-pill { justify-self: start; }
 .picker-list { list-style: none; margin: 0; padding: 0; max-height: 55vh; overflow: auto; display: grid; gap: 4px; }

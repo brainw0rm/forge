@@ -6,7 +6,8 @@ import { busy, formError, openModal } from "../modal";
 import { navigate } from "../router";
 import { currentUser, loginUrl } from "../session";
 import { LIMITS, REPORT_REASON_LABEL, REPORT_REASONS } from "../../shared/validate";
-import { copy, esc, setTitle, toast } from "../ui";
+import { openShare } from "../share";
+import { esc, setTitle, toast } from "../ui";
 import { watchButtonHtml, wireWatchButton } from "../watch";
 import { describeChange, staticTreesHtml } from "./talents";
 
@@ -176,7 +177,7 @@ export async function renderBuildDetail(root: HTMLElement, id: string) {
           </div>
           <div class="build-head-actions">
             <a class="btn primary" href="${calcUrl}" data-link>Open in calculator</a>
-            <button class="btn" id="share">Copy link</button>
+            <button class="btn" id="share">Share</button>
             <a class="btn" href="/compare?a=${build.id}" data-link>Compare</a>
             ${build.isPublic || build.mine ? watchButtonHtml("Watch") : ""}
             ${
@@ -256,7 +257,13 @@ export async function renderBuildDetail(root: HTMLElement, id: string) {
   };
 
   const wire = () => {
-    root.querySelector("#share")!.addEventListener("click", () => copy(`${location.origin}/builds/${build.id}`, "Link copied"));
+    root.querySelector("#share")!.addEventListener("click", () =>
+      openShare({
+        url: `${location.origin}/builds/${build.id}`,
+        text: `${build.title} (${cls.name} ${build.split}) by ${build.author}, a WoW Forever talent build`,
+        image: `/og/build/${build.id}.png?v=${build.updatedAt}`,
+      }),
+    );
     wireWatchButton(root.querySelector("[data-watch]"), "build", build.id, "Watch");
     root.querySelectorAll<HTMLButtonElement>("[data-stars]").forEach((btn) =>
       btn.addEventListener("click", async () => {

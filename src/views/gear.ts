@@ -7,7 +7,8 @@ import { adSlot, fillAds } from "../ads";
 import { classColor, getItems, getMeta, iconUrl, QUALITY_COLOR, type Item } from "../data";
 import { runSheet } from "../formula";
 import { openModal } from "../modal";
-import { copy, esc, setTitle } from "../ui";
+import { openShare } from "../share";
+import { esc, setTitle } from "../ui";
 
 interface Slot {
   key: string;
@@ -161,7 +162,7 @@ export async function renderGear(root: HTMLElement, slugPart: string, params: UR
             of thumb, so change them however you like. Heads up: the client has plenty of items that may never be obtainable in Forever.</p>
         </div>
         <div class="build-head-actions">
-          <button class="btn" id="share">Copy link</button>
+          <button class="btn" id="share">Share</button>
           <button class="btn ghost" id="clear">Unequip all</button>
         </div>
       </header>
@@ -302,7 +303,9 @@ export async function renderGear(root: HTMLElement, slugPart: string, params: UR
     equipped.clear();
     update();
   });
-  root.querySelector("#share")!.addEventListener("click", () => copy(location.href, "Link copied"));
+  root.querySelector("#share")!.addEventListener("click", () =>
+    openShare({ url: location.href, text: `My ${clsName} gear setup for WoW Forever` }),
+  );
   update();
   fillAds(root);
 }

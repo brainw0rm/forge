@@ -4,7 +4,8 @@ import { adSlot, fillAds } from "../ads";
 import { decode, encode } from "../build";
 import { getLegacy, iconUrl, type LegacyData, type LegacyNode } from "../data";
 import { LegacyPlan } from "../legacy";
-import { copy, esc, gameText, setTitle } from "../ui";
+import { openShare } from "../share";
+import { esc, gameText, setTitle } from "../ui";
 
 const COLS = 4;
 const ROWS = 4;
@@ -26,7 +27,7 @@ export async function renderLegacy(root: HTMLElement, code: string) {
             You can spend up to <b>${data.cap}</b> points.</p>
         </div>
         <div class="build-head-actions">
-          <button class="btn" id="copy">Copy link</button>
+          <button class="btn" id="copy">Share</button>
           <button class="btn ghost" id="reset">Reset</button>
         </div>
       </header>
@@ -92,7 +93,9 @@ export async function renderLegacy(root: HTMLElement, code: string) {
       ${blocker && blocker !== "Max rank" && !node.placeholder ? `<p class="req">${esc(blocker)}</p>` : ""}`;
   };
 
-  root.querySelector("#copy")!.addEventListener("click", () => copy(location.href, "Link copied"));
+  root.querySelector("#copy")!.addEventListener("click", () =>
+    openShare({ url: location.href, text: "My Legacy point plan for WoW Forever" }),
+  );
   root.querySelector("#reset")!.addEventListener("click", () => {
     plan = new LegacyPlan(data);
     draw();
