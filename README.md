@@ -109,6 +109,16 @@ The site follows the WoW Forever beta now and switches to the live game by itsel
 - **Override:** if wago.tools names the live product unexpectedly, set the repository variable `FOREVER_PHASE=live` (or `beta`) for the data job.
 - **Saved builds and share links:** they remember the build they were made on, so after launch they flag any talent that changed at release.
 
+## Search engines
+
+The app is a single-page app, so `functions/_middleware.ts` sends every page address through `server/pages.ts` before it reaches the browser:
+- **Status codes:** real 404s for unknown pages and missing items or builds, and 301s to the canonical address (for example `/talents` → `/talents/warrior`). `www.` and the old `pages.dev` address redirect to the domain.
+- **Head tags:** a search-friendly title (the same one the app sets in the browser), description, canonical link, social preview tags and JSON-LD (site info, breadcrumbs).
+- **Private pages:** account, sign-in, admin and similar get `noindex`, as do preview deployments.
+- **Pre-rendered content:** item pages (tooltip text), class pages (all talents with tooltips), build pages, the builds list and the Classic comparison carry their main content as plain HTML. The app replaces it as soon as it starts.
+- **Sitemaps:** `sitemap.xml` is an index of `sitemap-pages.xml` and `sitemap-items.xml`, both written at build time from the game data by a Vite plugin (`VITE_SITE_URL`), and `sitemap-builds.xml`, served live from the database.
+- **robots.txt:** `public/robots.txt` keeps crawlers out of private pages, endless per-build addresses and query-string variants, and lets the AdSense crawler see everything. Cloudflare's managed robots.txt (AI crawl control) is added in front of it on the domain. It blocks AI training crawlers and doesn't affect search.
+
 ## Bug reports
 
 The "Report a bug" button opens a short form, which sends the message, the page address, browser, screen size and the game build shown:
