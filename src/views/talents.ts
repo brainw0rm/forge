@@ -96,7 +96,7 @@ export async function renderTalents(root: HTMLElement, slug: string, code: strin
     state.stale = { since: String(madeOn), changes };
   }
 
-  setTitle(`${cls.name} talent calculator`, `Plan a ${cls.name} build for World of Warcraft: Forever with live game data.`);
+  setTitle(`${cls.name} Talent Calculator for WoW Forever`, `Plan a ${cls.name} build for World of Warcraft: Forever with live game data.`);
   // Say so when a shared link didn't fully load (wrong class, typo, or talents removed since).
   const dropped = (code && !wanted.length ? 1 : 0) || wanted.length - build.spent;
   if (dropped > 0) {

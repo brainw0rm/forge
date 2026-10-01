@@ -83,6 +83,6 @@ export async function copy(text: string, message = "Copied") {
 }
 
 export function setTitle(title: string, description?: string) {
-  document.title = title ? `${title} · Forever Forge` : "Forever Forge · WoW Forever theorycrafting";
+  document.title = title ? `${title} · Forever Forge` : "Forever Forge · WoW Forever talent calculator, builds and item database";
   if (description) document.querySelector('meta[name="description"]')?.setAttribute("content", description);
 }

@@ -67,7 +67,7 @@ export function headlineHtml(h: Headline, source: NewsSourceInfo | undefined, na
 export async function renderNews(root: HTMLElement, params: URLSearchParams) {
   const lang = ["en", "de"].includes(params.get("lang") ?? "") ? params.get("lang")! : "";
   const source = params.get("source") ?? "";
-  setTitle("WoW Forever news", "Headlines about World of Warcraft: Forever from Wowhead, MMO-Champion, Blizzard Watch and more, linking to the original articles.");
+  setTitle("WoW Forever News", "Headlines about World of Warcraft: Forever from Wowhead, MMO-Champion, Blizzard Watch and more, linking to the original articles.");
   const [meta, user, first] = await Promise.all([getMeta(), currentUser(), api.news({ lang, source })]);
   const names = new Map(meta.classes.map((c) => [c.slug, c.name]));
   const admin = user?.role === "admin";

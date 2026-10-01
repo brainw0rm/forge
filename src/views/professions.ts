@@ -7,7 +7,7 @@ import { esc, setTitle } from "../ui";
 export async function renderProfessions(root: HTMLElement, slug: string, params: URLSearchParams) {
   const list = await getProfessions();
   if (!slug) {
-    setTitle("Professions", "Every World of Warcraft: Forever profession recipe, with the ones new in Forever marked.");
+    setTitle("WoW Forever Professions & Recipes", "Every World of Warcraft: Forever profession recipe, with the ones new in Forever marked.");
     const card = (p: (typeof list)[number]) => `<a class="prof-card" href="/professions/${p.slug}" data-link>
         <img src="${iconUrl(p.icon)}" alt="" loading="lazy" />
         <div><h3>${esc(p.name)}</h3><p class="muted small">${p.recipes} recipes${p.new ? ` · <span class="new-count">${p.new} new in Forever</span>` : ""}</p></div>
@@ -35,7 +35,7 @@ export async function renderProfessions(root: HTMLElement, slug: string, params:
     return;
   }
   const prof = await getProfession(slug);
-  setTitle(`${prof.name} recipes`, `All ${prof.recipes.length} ${prof.name} recipes in World of Warcraft: Forever.`);
+  setTitle(`${prof.name} Recipes in WoW Forever`, `All ${prof.recipes.length} ${prof.name} recipes in World of Warcraft: Forever.`);
   const state = { q: params.get("q") ?? "", onlyNew: params.get("new") === "1" };
 
   root.innerHTML = `

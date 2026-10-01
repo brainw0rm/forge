@@ -37,7 +37,7 @@ export async function renderCompare(root: HTMLElement, parts: string[], params: 
   const cls = await getClass(slug);
   const idx = indexClass(cls);
   const [a, b] = sides.map((s) => new Build(idx, cls.trees.length, decode(s.code)));
-  setTitle(`Compare ${cls.name} builds`, `Compare two ${cls.name} talent builds for World of Warcraft: Forever.`);
+  setTitle(`Compare ${cls.name} Builds for WoW Forever`, `Compare two ${cls.name} talent builds for World of Warcraft: Forever.`);
 
   const diff = compareBuilds(a, b);
   const user = await currentUser();

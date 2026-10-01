@@ -133,7 +133,7 @@ export async function renderGear(root: HTMLElement, slugPart: string, params: UR
   const meta = await getMeta();
   const slug = meta.classes.some((c) => c.slug === slugPart) ? slugPart : meta.classes[0].slug;
   const clsName = meta.classes.find((c) => c.slug === slug)!.name;
-  setTitle(`${clsName} gear sandbox`, "Try World of Warcraft: Forever items from the game client and see your totals.");
+  setTitle(`${clsName} Gear Sandbox for WoW Forever`, "Try World of Warcraft: Forever items from the game client and see your totals.");
 
   // Equipped items from the URL: ?i=head:12640,mh:12784
   const equipped = new Map<string, Item>();

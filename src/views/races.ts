@@ -4,7 +4,7 @@ import { esc, setTitle } from "../ui";
 
 export async function renderRaces(root: HTMLElement) {
   const [meta, races] = await Promise.all([getMeta(), getRaces()]);
-  setTitle("Race & class combinations", "Every race/class combination in World of Warcraft: Forever, with the new ones highlighted.");
+  setTitle("WoW Forever Race & Class Combinations", "Every race/class combination in World of Warcraft: Forever, with the new ones highlighted.");
   const classes = meta.classes;
   const fresh = races.reduce((n, r) => n + r.classes.filter((c) => c.status === "new").length, 0);
   const faction = (f: "alliance" | "horde", label: string) => `

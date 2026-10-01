@@ -1,0 +1,26 @@
+# Forever Forge: https://wow-forever-forge.com
+User-agent: *
+Allow: /
+# Private and per-user pages (also marked noindex)
+Disallow: /api/
+Disallow: /account
+Disallow: /admin
+Disallow: /login
+Disallow: /signup
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
+Disallow: /unsubscribe
+# Endless per-build addresses: the class pages are the ones to index
+Disallow: /talents/*/*
+Disallow: /leveling/*/*
+Disallow: /legacy/*
+Disallow: /compare/
+# Filtered and sorted views of the same pages
+Disallow: /*?
+
+# The AdSense crawler needs to see every page an ad can appear on.
+User-agent: Mediapartners-Google
+Allow: /
+
+Sitemap: https://wow-forever-forge.com/sitemap.xml

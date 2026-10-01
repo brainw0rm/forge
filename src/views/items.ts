@@ -50,7 +50,7 @@ function readState(params: URLSearchParams): ListState {
 }
 
 export async function renderItemList(root: HTMLElement, params: URLSearchParams) {
-  setTitle("Item database", "Every item in World of Warcraft: Forever, with stats, effects and what changed since Classic Era.");
+  setTitle("WoW Forever Item Database", "Every item in World of Warcraft: Forever, with stats, effects and what changed since Classic Era.");
   const [{ rows, build, classicBuild }, meta, siteMeta] = await Promise.all([getItemIndex(), getItemDbMeta(), getMeta()]);
   const state = readState(params);
   const className = new Map(meta.classes.map((c) => [c.id, c.name]));
@@ -348,7 +348,7 @@ export async function renderItem(root: HTMLElement, id: number) {
   const cls = meta.classes.find((c) => c.id === d.cls);
   const typeName = cls?.subs.find((s) => s.id === d.sub)?.name ?? cls?.name ?? "";
   const classNames = new Map(siteMeta.classes.map((c) => [c.slug, c.name]));
-  setTitle(d.name, `${d.name}: ${QUALITY_NAME[d.q]} ${typeName.toLowerCase()} in WoW Forever${d.status === "changed" ? ", changed since Classic Era" : d.status === "new" ? ", new in Forever" : ""}.`);
+  setTitle(`${d.name} (WoW Forever item)`, `${d.name}: ${QUALITY_NAME[d.q]} ${typeName.toLowerCase()} in WoW Forever${d.status === "changed" ? ", changed since Classic Era" : d.status === "new" ? ", new in Forever" : ""}.`);
   const gearSlot = GEAR_SLOT[d.slot];
 
   const status =

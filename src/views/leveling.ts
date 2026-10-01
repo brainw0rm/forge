@@ -24,7 +24,7 @@ export async function renderLeveling(root: HTMLElement, parts: string[]) {
   const [cls, { abilities }, { dungeons, source }] = await Promise.all([getClass(slug), getLeveling(slug), getDungeons()]);
   const idx = indexClass(cls);
   const build = new Build(idx, cls.trees.length, decode(code));
-  setTitle(`${cls.name} leveling planner`, `Level-by-level ${cls.name} plan for World of Warcraft: Forever: talents, trainer abilities and dungeons.`);
+  setTitle(`${cls.name} Leveling Planner for WoW Forever`, `Level-by-level ${cls.name} plan for World of Warcraft: Forever: talents, trainer abilities and dungeons.`);
 
   const user = await currentUser();
   const [mine, top] = await Promise.all([

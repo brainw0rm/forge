@@ -13,7 +13,7 @@ const CELL = 48;
 
 export async function renderLegacy(root: HTMLElement, code: string) {
   const data = await getLegacy();
-  setTitle("Legacy planner", "Plan your account-wide Legacy points in World of Warcraft: Forever.");
+  setTitle("WoW Forever Legacy Planner", "Plan your account-wide Legacy points in World of Warcraft: Forever.");
   let plan = new LegacyPlan(data, decode(code));
   let focus: number | null = null;
 

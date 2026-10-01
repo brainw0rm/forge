@@ -48,7 +48,7 @@ export async function renderBuildList(root: HTMLElement, params: URLSearchParams
   const sort = params.get("sort") === "new" ? "new" : "top";
   const q = params.get("q") ?? "";
   const names = new Map(meta.classes.map((c) => [c.slug, c.name]));
-  setTitle("Community builds", "Top-rated World of Warcraft: Forever talent builds from the community.");
+  setTitle("WoW Forever Community Builds", "Top-rated World of Warcraft: Forever talent builds from the community.");
 
   root.innerHTML = `
     <section class="page">
@@ -155,7 +155,7 @@ export async function renderBuildDetail(root: HTMLElement, id: string) {
   }
   const [cls, user, log] = await Promise.all([getClass(build.class), currentUser(), getChangelog()]);
   const isAdmin = user?.role === "admin";
-  setTitle(build.title, `${cls.name} ${build.split} build by ${build.author} for World of Warcraft: Forever.`);
+  setTitle(`${build.title}: ${cls.name} ${build.split} build for WoW Forever`, `${cls.name} ${build.split} build by ${build.author} for World of Warcraft: Forever.`);
   const order = decode(build.code);
   const calcUrl = `/talents/${build.class}/${build.code}?b=${build.gameBuild}`;
   const changes = log

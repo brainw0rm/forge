@@ -15,7 +15,7 @@ export async function renderChanges(root: HTMLElement, mode: string, slug: strin
     </nav>`;
   if (mode === "classic") return renderClassicDiff(root, tabs, active);
 
-  setTitle("Build changelog", "Talent changes between World of Warcraft: Forever game builds, from the beta to the live game.");
+  setTitle("WoW Forever Talent Changes by Build", "Talent changes between World of Warcraft: Forever game builds, from the beta to the live game.");
   const log = await getChangelog();
   const byClass = new Map(meta.classes.map((c) => [c.slug, c]));
   root.innerHTML = `
@@ -61,7 +61,7 @@ export async function renderChanges(root: HTMLElement, mode: string, slug: strin
 
 async function renderClassicDiff(root: HTMLElement, tabs: string, slug: string) {
   const [meta, cls] = await Promise.all([getMeta(), getClass(slug)]);
-  setTitle(`${cls.name}: Classic vs Forever`, `Every ${cls.name} talent that changed between Classic Era and WoW Forever.`);
+  setTitle(`${cls.name} Talent Changes: Classic vs WoW Forever`, `Every ${cls.name} talent that changed between Classic Era and WoW Forever.`);
   const groups: { title: string; filter: (t: Talent) => boolean }[] = [
     { title: "New talents", filter: (t) => t.status === "new" },
     { title: "Reworked", filter: (t) => t.status === "reworked" },
