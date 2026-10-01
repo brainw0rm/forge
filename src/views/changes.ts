@@ -22,7 +22,7 @@ export async function renderChanges(root: HTMLElement, mode: string, slug: strin
     <section class="page">
       <h1>What changed</h1>
       ${tabs}
-      <p class="lede">Each game build's talent data is diffed against the previous one, from the beta through the live game. Builds with no talent changes are listed too, so you know they were checked.</p>
+      <p class="lede">Whenever a new game build comes out, we compare its talents with the one before. Builds that changed nothing are listed too, so you can see we checked.</p>
       ${adSlot("leaderboard", "narrow-only")}
       ${withRail(`<div class="changelog">
         ${log
@@ -85,7 +85,7 @@ async function renderClassicDiff(root: HTMLElement, tabs: string, slug: string) 
           )
           .join("")}
       </nav>
-      <p class="lede">Rank 1 compared word by word. Classic Era ${esc(cls.classicBuild)} vs Forever ${esc(buildLabel(meta, cls.build))}.
+      <p class="lede">Rank 1 of each talent, Classic Era ${esc(cls.classicBuild)} next to Forever ${esc(buildLabel(meta, cls.build))}, with the changed words marked.
         <a href="/talents/${slug}?lens=1" data-link>See it in the calculator →</a></p>
       ${adSlot("leaderboard", "narrow-only")}
       ${withRail(`${withListAds(

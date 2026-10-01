@@ -55,7 +55,7 @@ export async function renderBuildList(root: HTMLElement, params: URLSearchParams
       <header class="page-head">
         <div>
           <h1>Community builds</h1>
-          <p class="lede">Builds saved and shared by players. Rate the ones that work for you.</p>
+          <p class="lede">Builds other players saved and shared. Found a good one? Give it some stars.</p>
         </div>
         <a class="btn primary" href="/talents/${cls || "warrior"}" data-link>Create a build</a>
       </header>
@@ -211,7 +211,7 @@ export async function renderBuildDetail(root: HTMLElement, id: string) {
         ${
           changes.length
             ? `<div class="banner warn"><div><strong>${changes.length} talent${changes.length > 1 ? "s" : ""} in this build changed since it was saved</strong>
-                <ul>${changes.map((c) => `<li><b>${esc(c.name)}</b> — ${esc(describeChange(c))}</li>`).join("")}</ul></div></div>`
+                <ul>${changes.map((c) => `<li><b>${esc(c.name)}</b>: ${esc(describeChange(c))}</li>`).join("")}</ul></div></div>`
             : ""
         }
         <div class="with-rail">

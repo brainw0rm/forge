@@ -72,7 +72,7 @@ export async function renderLeveling(root: HTMLElement, parts: string[]) {
       <header class="page-head">
         <div>
           <h1>${esc(cls.name)} leveling planner</h1>
-          <p class="lede">Every level from 1 to 60: the talent point your build spends, what your trainer teaches, and which dungeons open up.</p>
+          <p class="lede">Level 1 to 60 for your class: when each talent point goes in, what the trainer teaches you, and when dungeons open up.</p>
         </div>
         <div class="build-head-actions">
           <a class="btn" href="/talents/${slug}/${code}" data-link>${build.spent ? "Edit build in calculator" : "Plan talents in calculator"}</a>

@@ -87,7 +87,7 @@ export async function renderNews(root: HTMLElement, params: URLSearchParams) {
       <header class="page-head">
         <div>
           <h1>News</h1>
-          <p class="lede">Headlines about WoW Forever from the big WoW sites. Every headline links to the original article on the publisher's site.</p>
+          <p class="lede">WoW Forever news from the big WoW sites. Click a headline to read the article over there.</p>
         </div>
         ${first.updatedAt ? `<p class="muted small">Checked every 2 hours · last update ${esc(timeAgo(first.updatedAt))}</p>` : ""}
       </header>
@@ -110,9 +110,9 @@ export async function renderNews(root: HTMLElement, params: URLSearchParams) {
         <aside class="rail">
           <section class="panel news-about">
             <h2>About these headlines</h2>
-            <p>We read the public news feeds these publishers offer and keep only the headline, the publisher's name and the time. No article text, no images. To read an article, open it on the publisher's site.</p>
-            <p>Topic tags and class links are added by Forever Forge.</p>
-            <p class="small muted">Publisher and want your headlines removed? <a href="/imprint" data-link>Contact us</a> and we'll take them down.</p>
+            <p>We pick these up from the sites' public RSS feeds and only keep the headline, the site name and the time. The articles stay on their sites.</p>
+            <p>The little topic tags and class links are ours.</p>
+            <p class="small muted">Run one of these sites and want out? <a href="/imprint" data-link>Let us know</a> and we'll remove you.</p>
           </section>
           <section class="panel">
             <h2>Sources</h2>

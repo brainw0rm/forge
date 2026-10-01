@@ -22,8 +22,8 @@ export async function renderLegacy(root: HTMLElement, code: string) {
       <header class="page-head">
         <div>
           <h1>Legacy planner</h1>
-          <p class="lede">Legacy points are earned once per account and spent on bonuses that apply to every character.
-            The client caps spending at <b>${data.cap}</b> points.</p>
+          <p class="lede">You earn Legacy points once per account, and the bonuses apply to all your characters.
+            You can spend up to <b>${data.cap}</b> points.</p>
         </div>
         <div class="build-head-actions">
           <button class="btn" id="copy">Copy link</button>

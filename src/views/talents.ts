@@ -157,8 +157,8 @@ export async function renderTalents(root: HTMLElement, slug: string, code: strin
       <section class="timeline" id="timeline"></section>
       <details class="removed" id="removed"></details>`)}
       <p class="data-note">Data from the ${esc(clientLabel(meta))} ${esc(cls.build)}, compared with Classic Era ${esc(cls.classicBuild)}.
-        Most talents only ship rank 1 in the client data; other ranks are shown only when verifiable.
-        <button type="button" class="link-btn" data-report-bug data-kind="data">Spotted wrong game data?</button></p>
+        The client often only has rank 1 of a talent, so other ranks only show up here once we can check them.
+        <button type="button" class="link-btn" data-report-bug data-kind="data">Something look wrong?</button></p>
     </section>
     <div class="tooltip" id="tooltip" role="tooltip" hidden></div>
     <div class="sheet" id="sheet" hidden></div>`;
@@ -424,7 +424,7 @@ function drawLegend(root: HTMLElement, s: State) {
       el.innerHTML = `<span class="legend-title">Popularity</span>
         <span class="heat-scale" aria-hidden="true"></span>
         <span class="muted">Share of <b>${n}</b> public ${esc(s.cls.name)} build${n === 1 ? "" : "s"} that took each talent
-          ${b ? `by level ${b.level}` : ""}${n < MIN_SAMPLE ? " — too few builds to be meaningful yet" : ""}.
+          ${b ? `by level ${b.level}` : ""}${n < MIN_SAMPLE ? ", not enough builds yet to say much" : ""}.
           ${s.preview === null ? "Scrub the leveling path to see earlier levels." : ""}</span>`;
     }
     return;
@@ -475,7 +475,7 @@ function drawStale(root: HTMLElement, s: State, update: (b: Build) => void) {
             ? `<ul>${changes
                 .map((c) => {
                   const d = c.kinds?.includes("text") ? diffWords(c.before ?? "", c.after ?? "") : null;
-                  return `<li><b>${esc(c.name)}</b> — ${esc(describeChange(c))}${
+                  return `<li><b>${esc(c.name)}</b>: ${esc(describeChange(c))}${
                     d ? `<div class="before-after"><p>${d.before}</p><p>${d.after}</p></div>` : ""
                   }</li>`;
                 })
@@ -761,7 +761,7 @@ async function saveBuild(s: State, gameBuild: string) {
       </label>
       <label class="check">
         <input type="checkbox" name="isPublic" ${user.emailVerified && !(e && !e.isPublic) ? "checked" : ""} ${user.emailVerified ? "" : "disabled"} />
-        <span>Public — list it in community builds so others can find and rate it${
+        <span>Public: show it in community builds so other people can find and rate it${
           user.emailVerified ? "" : `<br><span class="hint">Confirm your email address to publish. <a href="/account" data-link>Resend the link</a></span>`
         }</span>
       </label>

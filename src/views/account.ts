@@ -59,7 +59,7 @@ export async function renderAccount(root: HTMLElement) {
       }
 
       <h2 class="section-title">Change alerts</h2>
-      <p class="muted small">We email you when a new game build changes talents in a class or build you watch. Use the
+      <p class="muted small">When a new game build changes talents in a class or build you watch, we send you an email. Use the
         <b>Watch</b> button in the calculator or on a build page.</p>
       ${
         watches.length

@@ -62,8 +62,8 @@ export async function renderItemList(root: HTMLElement, params: URLSearchParams)
       <header class="page-head">
         <div>
           <h1>Item database</h1>
-          <p class="lede">All ${rows.length.toLocaleString()} items in the WoW Forever ${esc(clientLabel(siteMeta))} (build ${esc(build.split(".").pop()!)}),
-            each compared with Classic Era ${esc(classicBuild)}: ${counts.new.toLocaleString()} are new and ${counts.changed.toLocaleString()} changed.</p>
+          <p class="lede">${rows.length.toLocaleString()} items from the Forever ${esc(clientLabel(siteMeta))} (build ${esc(build.split(".").pop()!)}).
+            ${counts.new.toLocaleString()} of them don't exist in Classic Era ${esc(classicBuild)}, and ${counts.changed.toLocaleString()} work differently.</p>
         </div>
       </header>
       ${withRail(`<form class="item-filters" id="item-filters" role="search">
@@ -106,7 +106,7 @@ export async function renderItemList(root: HTMLElement, params: URLSearchParams)
       <div class="item-row item-head" aria-hidden="true"><span></span><span>Name</span><span class="item-row-type">Type</span><span class="item-row-num">iLvl</span><span class="item-row-num">Req</span><span class="item-row-status"></span></div>
       <div class="item-table" id="item-results" role="list"></div>
       <div class="more" id="item-more"></div>
-      <p class="data-note">Stats, effects, requirements and sell prices come straight from the game client. Drop sources and vendors aren't in the client, so they aren't listed.</p>`)}
+      <p class="data-note">Stats, effects and prices are read from the game client. Drop locations and vendors aren't in there, so you won't find them here.</p>`)}
     </section>`;
 
   const form = root.querySelector<HTMLFormElement>("#item-filters")!;
@@ -386,8 +386,8 @@ export async function renderItem(root: HTMLElement, id: number) {
           ${d.createdBy ? `<section class="panel"><h2>Created by</h2>${recipeList(d.createdBy, false)}</section>` : ""}
           ${d.reagentFor ? `<section class="panel"><h2>Reagent for</h2>${recipeList(d.reagentFor, true)}</section>` : ""}
           ${adSlot("rectangle")}
-          <p class="data-note">From the ${esc(clientLabel(siteMeta))} (build ${esc(siteMeta.build)}). Where items drop and who sells them isn't part of the client data, so it isn't listed here.
-            <button type="button" class="link-btn" data-report-bug data-kind="data">Spotted wrong game data?</button></p>
+          <p class="data-note">Data from the ${esc(clientLabel(siteMeta))}, build ${esc(siteMeta.build)}. Where it drops or who sells it isn't in the client data.
+            <button type="button" class="link-btn" data-report-bug data-kind="data">Something look wrong?</button></p>
         </div>
       </div>
     </section>`;

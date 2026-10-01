@@ -72,7 +72,7 @@ export async function renderCompare(root: HTMLElement, parts: string[], params: 
       <header class="page-head">
         <div>
           <h1>Compare builds</h1>
-          <p class="lede">Both builds overlaid on one set of ${esc(cls.name)} trees. Every talent that differs is listed below with its tooltip at each rank.</p>
+          <p class="lede">Both builds on one set of ${esc(cls.name)} trees. Anything that differs is listed below, with the tooltip for each rank.</p>
         </div>
         <div class="build-head-actions">
           <button class="btn" id="swap">Swap A ↔ B</button>

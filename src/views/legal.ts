@@ -17,7 +17,7 @@ export function renderPrivacy(root: HTMLElement) {
   root.innerHTML = `
     <article class="page prose">
       <h1>Privacy policy</h1>
-      <p class="lede">What Forever Forge stores about you, why, and how to get rid of it.</p>
+      <p class="lede">What we store about you, and how to get it deleted.</p>
 
       <h2>Who is responsible</h2>
       <p>${SITE_OPERATOR.name}<br>${operatorAddress}<br>${operatorEmail}</p>

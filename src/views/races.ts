@@ -32,7 +32,7 @@ export async function renderRaces(root: HTMLElement) {
   root.innerHTML = `
     <section class="page">
       <h1>Race &amp; class combinations</h1>
-      <p class="lede"><b>${fresh}</b> combinations are new compared with Classic Era, read from the game client's character creation data.</p>
+      <p class="lede"><b>${fresh}</b> race/class combos are new compared to Classic Era. We read them from the character creation data in the client.</p>
       <div class="matrix-wrap">
         <table class="matrix">
           <thead><tr><th></th>${classes

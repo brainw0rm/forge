@@ -110,39 +110,39 @@ export async function renderHome(root: HTMLElement) {
         .join("")}
     </section>
 
-    <div class="section-head"><h2>Tools</h2><span class="muted small">Everything works without an account</span></div>
+    <div class="section-head"><h2>Tools</h2><span class="muted small">No account needed for any of these</span></div>
     <section class="tool-grid">
-      <a class="tool-card" href="/items" data-link><b>Item database</b><span>Every item in the game with stats, effects and what changed since Classic.</span></a>
-      <a class="tool-card" href="/compare" data-link><b>Compare builds</b><span>Overlay two builds and see every talent that differs, rank by rank.</span></a>
-      <a class="tool-card" href="/leveling" data-link><b>Leveling planner</b><span>Talent points, trainer abilities and dungeons for every level from 1 to 60.</span></a>
-      <a class="tool-card" href="/legacy" data-link><b>Legacy planner</b><span>Spend the account-wide Legacy points and see how to earn more.</span></a>
-      <a class="tool-card" href="/gear" data-link><b>Gear sandbox</b><span>Equip real items from the game and run an editable stat formula sheet.</span></a>
-      <a class="tool-card" href="/professions" data-link><b>Professions</b><span>Every recipe with reagents, and which ones are new in Forever.</span></a>
-      <a class="tool-card" href="/talents/warrior?lens=popularity" data-link><b>Popularity heatmap</b><span>See which talents the community actually takes, by level.</span></a>
+      <a class="tool-card" href="/items" data-link><b>Item database</b><span>All the items in the game, with stats and what's different from Classic.</span></a>
+      <a class="tool-card" href="/compare" data-link><b>Compare builds</b><span>Put two builds side by side and see where they differ.</span></a>
+      <a class="tool-card" href="/leveling" data-link><b>Leveling planner</b><span>What you get at each level: talent points, new spells, dungeons.</span></a>
+      <a class="tool-card" href="/legacy" data-link><b>Legacy planner</b><span>Spend your account-wide Legacy points and see where to get more.</span></a>
+      <a class="tool-card" href="/gear" data-link><b>Gear sandbox</b><span>Gear up with real items and tinker with the stat math yourself.</span></a>
+      <a class="tool-card" href="/professions" data-link><b>Professions</b><span>All recipes with their reagents. The new ones are marked.</span></a>
+      <a class="tool-card" href="/talents/warrior?lens=popularity" data-link><b>Popularity heatmap</b><span>Which talents people actually pick, level by level.</span></a>
     </section>
 
     <div class="parchment">
-    <div class="section-head"><h2>Why Forever Forge</h2></div>
+    <div class="section-head"><h2>What's different here</h2></div>
     <section class="features">
       <article>
         <span class="num">I</span>
         <h3>Changes lens</h3>
-        <p>One switch highlights every talent that is new, reworked or retuned, with a word-level diff against Classic Era in each tooltip.</p>
+        <p>Flip it on and the new, reworked and retuned talents light up. Hover one to see which words changed since Classic.</p>
       </article>
       <article>
         <span class="num">II</span>
-        <h3>Leveling path built in</h3>
-        <p>Points are stored in the order you spend them. Scrub to any level and reorder picks without breaking tier requirements.</p>
+        <h3>Leveling order included</h3>
+        <p>The calculator remembers the order you spend points in. Drag the slider to any level or move picks around, and it won't let you break tier rules.</p>
       </article>
       <article>
         <span class="num">III</span>
-        <h3>Builds that stay current</h3>
-        <p>Saved builds remember the game build they were made on and flag any talent that has changed since, through the beta and into the live game.</p>
+        <h3>Builds that keep up</h3>
+        <p>A saved build knows which game build it was made on. If Blizzard changes one of its talents later, it tells you, beta or live.</p>
       </article>
       <article>
         <span class="num">IV</span>
-        <h3>Alerts when talents change</h3>
-        <p>Watch a class or a saved build and get an email when a new game build changes its talents.</p>
+        <h3>Emails when talents change</h3>
+        <p>Watch a class or a build and we'll email you when a new game build touches its talents. Unsubscribing is one click.</p>
       </article>
     </section>
     </div>`;

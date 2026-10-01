@@ -62,15 +62,15 @@ export function heroHtml(meta: Meta, stats: HeroStats): string {
     <section class="hero">
       <div class="hero-copy">
         <p class="eyebrow hero-live"><span class="live-dot" aria-hidden="true"></span>${isLive(meta) ? "Live game data" : "Live beta data"} · build ${esc(meta.build.split(".").pop()!)}</p>
-        <h1>Plan your Forever build with <span class="hero-accent">the real game data</span></h1>
-        <p class="lede">Every talent and item comes straight from the game client, compared with Classic Era and every new build.
-          Plan, share and rate builds with the community.</p>
+        <h1>Plan your Forever build from <span class="hero-accent">the actual game files</span></h1>
+        <p class="lede">We pull the talents and items out of the game client itself and check each new build against Classic Era
+          and the build before it. Make a build, share it, and see what other people are running.</p>
         ${
           isLive(meta)
             ? ""
-            : `<p class="hero-launch"><b>Ready for launch.</b> Right now everything follows the beta. When WoW Forever goes live on
-                ${RELEASE_DATE.toLocaleDateString(undefined, { month: "long", day: "numeric", timeZone: "UTC" })}, the site switches to the live game
-                on its own, and saved builds flag any talent that changed at release.</p>`
+            : `<p class="hero-launch"><b>Beta data for now.</b> Forever launches on
+                ${RELEASE_DATE.toLocaleDateString(undefined, { month: "long", day: "numeric", timeZone: "UTC" })} and we switch to the live game as soon
+                as it's out. If Blizzard changes talents at launch, your saved builds will tell you which ones.</p>`
         }
         <div class="hero-search">
           <input id="hero-q" type="search" autocomplete="off" spellcheck="false" placeholder="Search talents, items and classes"

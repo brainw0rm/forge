@@ -8,9 +8,9 @@ import { currentUser } from "./session";
 import { esc, toast } from "./ui";
 
 const KINDS = [
-  ["bug", "Something is broken", "A button, page or feature doesn't work as it should."],
-  ["data", "Wrong game data", "A talent, item or number doesn't match the game."],
-  ["idea", "Idea or wish", "Something you'd like the site to do."],
+  ["bug", "Something is broken", "Part of the site doesn't work right."],
+  ["data", "Wrong game data", "A talent, item or number is off."],
+  ["idea", "Idea or wish", "Something you'd like to see here."],
 ] as const;
 
 export async function openBugReport(kind: string = "bug") {
@@ -28,13 +28,13 @@ export async function openBugReport(kind: string = "bug") {
       </fieldset>
       <label>What happened?
         <textarea name="message" required minlength="10" maxlength="2000" rows="5"
-          placeholder="What did you do, what did you expect, and what happened instead?"></textarea>
+          placeholder="What were you doing, and what went wrong?"></textarea>
       </label>
       <label>Email <span class="optional">(optional, only if you'd like a reply)</span>
         <input type="email" name="email" autocomplete="email" maxlength="254" value="${esc(user?.email ?? "")}" />
       </label>
       <label class="hp" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off" /></label>
-      <p class="fine">We'll also send this page's address (<code>${esc(page)}</code>), your browser, screen size and the game build shown. Nothing else.</p>
+      <p class="fine">This also sends us the page you're on (<code>${esc(page)}</code>), your browser, screen size and the game build. That's all.</p>
       <div class="form-actions">
         <button type="button" class="btn ghost" data-close>Cancel</button>
         <button class="btn primary">Send report</button>

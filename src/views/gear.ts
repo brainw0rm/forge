@@ -157,9 +157,8 @@ export async function renderGear(root: HTMLElement, slugPart: string, params: UR
       <header class="page-head">
         <div>
           <h1>Gear sandbox</h1>
-          <p class="lede">Equip items straight from the game client. Stats, armor and weapon damage come from the game data;
-            the formulas underneath are yours to edit. The client contains every item it knows about, so not all of them
-            are necessarily obtainable in Forever.</p>
+          <p class="lede">Put on real items from the game client and watch the numbers add up. The formulas below are Classic rules
+            of thumb, so change them however you like. Heads up: the client has plenty of items that may never be obtainable in Forever.</p>
         </div>
         <div class="build-head-actions">
           <button class="btn" id="share">Copy link</button>

@@ -20,7 +20,7 @@ export async function renderLogin(root: HTMLElement, params: URLSearchParams) {
     <section class="auth-page">
       <div class="auth-card">
         <h1>Sign in</h1>
-        <p class="muted">Welcome back. Your saved builds are waiting.</p>
+        <p class="muted">Good to see you again.</p>
         <form class="form" novalidate>
           <label>Username or email
             <input name="login" autocomplete="username" required autofocus />
@@ -64,7 +64,7 @@ export async function renderSignup(root: HTMLElement, params: URLSearchParams) {
     <section class="auth-page">
       <div class="auth-card">
         <h1>Create your account</h1>
-        <p class="muted">Save builds, share them, and rate the community's best.</p>
+        <p class="muted">It's free. You'll be able to save builds and rate other people's.</p>
         <form class="form" novalidate>
           <label>Username
             <input name="username" autocomplete="username" required autofocus

@@ -94,10 +94,10 @@ interface Promo {
 }
 
 const PROMOS: Promo[] = [
-  { title: "Save your builds", text: "Create a free account to keep your builds and share them.", href: "/signup", cta: "Create account", signedOutOnly: true },
-  { title: "Community builds", text: "Browse the top-rated builds for every class and rate your favorites.", href: "/builds", cta: "Browse builds" },
-  { title: "What changed this build?", text: "Every game build is diffed talent by talent.", href: "/changes", cta: "See changes" },
-  { title: "Classic → Forever", text: "Word-by-word comparison of every talent against Classic Era.", href: "/changes/classic/warrior", cta: "Compare" },
+  { title: "Save your builds", text: "Make a free account so your builds don't get lost.", href: "/signup", cta: "Create account", signedOutOnly: true },
+  { title: "Community builds", text: "See what other players are running and rate the good ones.", href: "/builds", cta: "Browse builds" },
+  { title: "What changed this build?", text: "We compare each new game build talent by talent.", href: "/changes", cta: "See changes" },
+  { title: "Classic → Forever", text: "See how each talent changed since Classic Era.", href: "/changes/classic/warrior", cta: "Compare" },
 ];
 
 let rotation = Math.floor(Math.random() * PROMOS.length);

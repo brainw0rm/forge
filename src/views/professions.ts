@@ -16,7 +16,7 @@ export async function renderProfessions(root: HTMLElement, slug: string, params:
       <section class="page">
         <header class="page-head"><div>
           <h1>Professions</h1>
-          <p class="lede">Every recipe in the game client with reagents and difficulty. Recipes that aren't in Classic Era are marked new.</p>
+          <p class="lede">All recipes from the game client, with reagents and skill levels. Anything that wasn't in Classic Era is marked new.</p>
         </div></header>
         <h2 class="section-title">Primary</h2>
         <div class="prof-grid">${list.filter((p) => p.kind === "primary").map(card).join("")}</div>
