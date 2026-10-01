@@ -1,0 +1,10 @@
+node_modules/
+dist/
+pipeline/.cache/
+__pycache__/
+.DS_Store
+.wrangler/
+.dev.vars
+.env.local
+.claude/settings.local.json
+.claude/worktrees/

@@ -1,0 +1,1 @@
+{"id":3012,"name":"Comprehension","recipes":[{"spell":1302508,"name":"Study","skill":1,"yellow":0,"grey":0,"creates":{"id":277651,"name":"Bundle of Scrolls","count":1,"q":1,"icon":"trade_archaeology_silverscrollcase"},"reagents":[{"id":17056,"name":"Light Feather","count":1,"q":1,"icon":"inv_feather_04"}],"new":true}]}

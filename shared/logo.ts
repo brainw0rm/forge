@@ -1,0 +1,42 @@
+// The Forever Forge mark: an eternal flame on an anvil, inside a gold-rimmed crest.
+// Original artwork in the site palette. Used by the OG images (server/og.ts); index.html and
+// public/favicon.svg carry the same markup (regenerate with `node scripts/write-logo.ts`).
+
+/** Inner markup for a 48×48 viewBox. `id` prefixes gradient ids so several marks can share a page. */
+export function logoMark(id = "ff"): string {
+  return `<defs>
+    <linearGradient id="${id}-rim" x1="0" y1="0" x2=".35" y2="1">
+      <stop offset="0" stop-color="#fff1a8"/><stop offset=".28" stop-color="#f7b90a"/><stop offset=".52" stop-color="#a8740f"/>
+      <stop offset=".74" stop-color="#f3c547"/><stop offset="1" stop-color="#7d520b"/>
+    </linearGradient>
+    <linearGradient id="${id}-field" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#26407f"/><stop offset=".6" stop-color="#172853"/><stop offset="1" stop-color="#0d1838"/>
+    </linearGradient>
+    <radialGradient id="${id}-glow" cx=".5" cy=".5" r=".45">
+      <stop offset="0" stop-color="#f7b90a" stop-opacity=".5"/><stop offset=".55" stop-color="#c87f8c" stop-opacity=".16"/><stop offset="1" stop-color="#c87f8c" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="${id}-flame" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#e07a1c"/><stop offset=".5" stop-color="#f7b90a"/><stop offset="1" stop-color="#ffe98a"/>
+    </linearGradient>
+    <linearGradient id="${id}-anvil" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff6e8"/><stop offset=".55" stop-color="#e2cfb0"/><stop offset="1" stop-color="#a88f6a"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#${id}-rim)" d="M5.6 6.2H19.2L24 2.8l4.8 3.4h13.6V21c0 11.8-7.8 19.9-18.4 24.4C13.4 40.9 5.6 32.8 5.6 21Z"/>
+  <path fill="#0b1530" d="M7.5 8h12.3L24 5.1 28.2 8h12.3v13c0 10.6-7 17.9-16.5 22.1C14.5 38.9 7.5 31.6 7.5 21Z"/>
+  <path fill="url(#${id}-rim)" fill-opacity=".9" d="M8.3 8.8h11.8L24 6.1l3.9 2.7h11.8V21c0 10.1-6.6 17-15.7 21.1C14.9 38 8.3 31.1 8.3 21Z"/>
+  <path fill="url(#${id}-field)" d="M9 9.5h11.3L24 6.9l3.7 2.6H39V21c0 9.6-6.3 16.2-15 20.2C15.3 37.2 9 30.6 9 21Z"/>
+  <ellipse cx="24" cy="20" rx="12" ry="11" fill="url(#${id}-glow)"/>
+  <path fill="#ffe98a" d="M33.6 10.2l.5 1.2 1.2.5-1.2.5-.5 1.2-.5-1.2-1.2-.5 1.2-.5Z"/>
+  <path fill="#ffe98a" fill-opacity=".8" d="M14.6 13.3l.35.85.85.35-.85.35-.35.85-.35-.85-.85-.35.85-.35Z"/>
+  <path fill="url(#${id}-flame)" d="M24 8.2c1.4 3.4 5.4 5.7 6.4 10 .9 3.9-1.3 7.3-5.8 7.7h-1.2c-4.3-.4-6.6-3.5-6-7 .4-2.3 1.8-3.8 3.2-4.7-.1 2.1.6 3.6 1.9 4.4-.7-3.7-.1-7.3 1.5-10.4Z"/>
+  <path fill="#fff4d6" d="M24.4 15c1.4 2.3 3.1 3.9 3.1 6.3 0 2.2-1.4 3.6-3.3 3.6s-3.3-1.3-3.3-3.1c0-1.7 1-2.8 2.1-3.6 0 1.3.4 2.1 1 2.5-.4-2-.2-4 .4-5.7Z"/>
+  <g transform="translate(24 0) scale(.9 1) translate(-24 0)">
+  <path fill="url(#${id}-anvil)" d="M9.4 27.2c3.2-.8 5.2-1 7.6-1h20.4v2.2c0 1.3-.9 2.1-2.2 2.1h-3.8c-1.1 0-2 .9-2 2v1.8h2.8c.9 0 1.6.7 1.6 1.6v1.7H14.2v-1.7c0-.9.7-1.6 1.6-1.6h2.8v-1.8c0-1.2-.8-2-2-2-3 0-5.3-1.2-7.2-3.3Z"/>
+  <path fill="none" stroke="#fff" stroke-opacity=".55" stroke-width=".5" stroke-linecap="round" d="M17.4 26.75h19.4"/>
+  </g>`;
+}
+
+/** A standalone SVG file (favicon, previews). */
+export const logoSvg = (id = "ff") =>
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">${logoMark(id)}</svg>`;

@@ -1,0 +1,1 @@
+{"id":2933,"name":"Test Profession [DNT]","recipes":[{"spell":1240345,"name":"Smelt Copper (Test)","skill":1,"yellow":10,"grey":20,"creates":{"id":2840,"name":"Copper Bar","count":1,"q":1,"icon":"inv_ingot_02"},"reagents":[{"id":2770,"name":"Copper Ore","count":1,"q":1,"icon":"inv_ore_copper_01"}],"new":true}]}

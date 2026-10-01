@@ -1,0 +1,17 @@
+{
+  "source": "https://warcraft.wiki.gg/wiki/World_of_Warcraft:_Forever",
+  "note": "Level ranges Blizzard announced at BlizzCon 2026. Used only for dungeons/raids the beta client doesn't contain yet, and shown next to the client's own minimum level for the rest.",
+  "dungeons": [
+    { "name": "Hall of Thanes", "min": 13, "max": 18, "kind": "dungeon" },
+    { "name": "Ruins of Lordaeron", "min": 15, "max": 20, "kind": "dungeon" },
+    { "name": "Excavation Site: Wetlands", "min": 24, "max": 29, "kind": "dungeon" },
+    { "name": "City of Dalaran", "min": 28, "max": 33, "kind": "dungeon" },
+    { "name": "Drowned City", "min": 35, "max": 40, "kind": "dungeon" },
+    { "name": "Krol'dok Stronghold", "min": 40, "max": 45, "kind": "dungeon" },
+    { "name": "Alcaz Prison", "min": 48, "max": 53, "kind": "dungeon" },
+    { "name": "Blackmaw Hold", "min": 55, "max": 60, "kind": "dungeon" },
+    { "name": "Shaper's Terrace", "min": 58, "max": 60, "kind": "dungeon" },
+    { "name": "Barrow Deeps", "min": 60, "max": 60, "kind": "raid", "size": 10 },
+    { "name": "Hyjal Summit", "min": 60, "max": 60, "kind": "raid", "size": 20 }
+  ]
+}

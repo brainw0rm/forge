@@ -1,0 +1,80 @@
+# Rebuilds public/data from the newest WoW Forever beta build on wago.tools and
+# commits it when anything changed. Cloudflare Pages (connected to this repo)
+# redeploys on the push, so the site tracks the beta without manual work.
+name: Refresh game data
+
+on:
+  schedule:
+    - cron: "17 */4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    env:
+      SITE_URL: ${{ secrets.SITE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Restore DB2 cache
+        uses: actions/cache@v4
+        with:
+          path: pipeline/.cache
+          key: db2-${{ github.run_id }}
+          restore-keys: db2-
+
+      - name: Build data
+        # Optional repository variable FOREVER_PHASE=beta|live overrides the automatic beta/live detection.
+        env:
+          FOREVER_PHASE: ${{ vars.FOREVER_PHASE }}
+        run: python3 pipeline/build_data.py --refresh
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Test
+        run: |
+          npm ci
+          npm test
+          npm run build
+
+      - name: Commit if changed
+        id: commit
+        run: |
+          # meta.json always carries a fresh timestamp; only commit real data changes.
+          if git diff --quiet -- public/data ':!public/data/meta.json'; then
+            echo "No data changes"; exit 0
+          fi
+          git config user.name "forever-forge-bot"
+          git config user.email "forever-forge-bot@users.noreply.github.com"
+          git add public/data
+          git commit -m "Update game data to $(python3 -c 'import json;print(json.load(open("public/data/meta.json"))["build"])')"
+          git push
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      # After Cloudflare Pages deploys the new data, email everyone watching changed talents.
+      # Needs repository secrets SITE_URL (e.g. https://forever-forge.com) and NOTIFY_SECRET
+      # (the same value as the Pages project's NOTIFY_SECRET).
+      - name: Send change alerts
+        if: steps.commit.outputs.changed == 'true' && env.SITE_URL != ''
+        env:
+          NOTIFY_SECRET: ${{ secrets.NOTIFY_SECRET }}
+        run: |
+          build=$(python3 -c 'import json;print(json.load(open("public/data/meta.json"))["build"])')
+          # Wait (up to ~15 min) until the deployed site serves the new build.
+          for i in $(seq 1 45); do
+            curl -fsS "$SITE_URL/data/meta.json" | grep -q "\"$build\"" && break
+            sleep 20
+          done
+          curl -fsS -X POST "$SITE_URL/api/internal/notify" \
+            -H "Authorization: Bearer $NOTIFY_SECRET" -H "Origin: $SITE_URL" -H "Content-Type: application/json" -d '{}'
+

@@ -1,0 +1,12 @@
+# Cloudflare Pages project: static site in dist/ + API in functions/ backed by D1.
+name = "forever-forge"
+compatibility_date = "2026-09-01"
+pages_build_output_dir = "dist"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "forever-forge"
+# Replace with the id printed by `npx wrangler d1 create forever-forge`.
+# Local development ignores it and uses a SQLite file under .wrangler/.
+database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "migrations"
