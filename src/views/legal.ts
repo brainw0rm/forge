@@ -5,7 +5,7 @@ import { setTitle } from "../ui";
 const SITE_OPERATOR = {
   name: "Julian Reil",
   street: "Herrenstrasse 23",
-  city: "[Postal code] [City]",
+  city: "4020 Linz",
   country: "Austria",
   email: "wowforeverforge@gmail.com",
 };
