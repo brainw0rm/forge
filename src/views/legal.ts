@@ -1,14 +1,16 @@
-// Privacy policy and imprint. The operator details below are placeholders that
-// must be filled in (see SITE_OPERATOR) before the site goes live.
+// Privacy policy and imprint (Austria: §5 E-Commerce-Gesetz, §25 Mediengesetz).
 
 import { setTitle } from "../ui";
 
-// TODO(before launch): replace with the real operator details.
 const SITE_OPERATOR = {
-  name: "[Full name or company]",
-  address: "[Street and number]<br>[Postal code, city]<br>[Country]",
-  email: "[contact email]",
+  name: "Julian Reil",
+  street: "Herrenstrasse 23",
+  city: "[Postal code] [City]",
+  country: "Austria",
+  email: "wowforeverforge@gmail.com",
 };
+const operatorAddress = `${SITE_OPERATOR.street}<br>${SITE_OPERATOR.city}<br>${SITE_OPERATOR.country}`;
+const operatorEmail = `<a href="mailto:${SITE_OPERATOR.email}">${SITE_OPERATOR.email}</a>`;
 
 export function renderPrivacy(root: HTMLElement) {
   setTitle("Privacy policy");
@@ -18,7 +20,7 @@ export function renderPrivacy(root: HTMLElement) {
       <p class="lede">What Forever Forge stores about you, why, and how to get rid of it.</p>
 
       <h2>Who is responsible</h2>
-      <p>${SITE_OPERATOR.name}<br>${SITE_OPERATOR.address}<br>${SITE_OPERATOR.email}</p>
+      <p>${SITE_OPERATOR.name}<br>${operatorAddress}<br>${operatorEmail}</p>
 
       <h2>Without an account</h2>
       <p>You can use the talent calculator, changelog and community builds without an account. Your builds live in the page
@@ -86,9 +88,13 @@ export function renderImprint(root: HTMLElement) {
     <article class="page prose">
       <h1>Imprint</h1>
       <h2>Operator</h2>
-      <p>${SITE_OPERATOR.name}<br>${SITE_OPERATOR.address}</p>
+      <p>${SITE_OPERATOR.name}<br>${operatorAddress}</p>
       <h2>Contact</h2>
-      <p>${SITE_OPERATOR.email}</p>
+      <p>${operatorEmail}</p>
+      <h2>Disclosure under §25 Mediengesetz</h2>
+      <p>Media owner: ${SITE_OPERATOR.name}, ${SITE_OPERATOR.city.replace(/^\S+\s+/, "")}, ${SITE_OPERATOR.country}.<br>
+        Basic direction: information and planning tools about the game World of Warcraft: Forever (talent builds,
+        game data, community builds and news headlines).</p>
       <h2>Disclaimer</h2>
       <p>Forever Forge is a fan project and is not affiliated with or endorsed by Blizzard Entertainment.
         World of Warcraft and related names and images are trademarks of Blizzard Entertainment, Inc.

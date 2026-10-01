@@ -6,7 +6,7 @@ pages_build_output_dir = "dist"
 [[d1_databases]]
 binding = "DB"
 database_name = "forever-forge"
-# Replace with the id printed by `npx wrangler d1 create forever-forge`.
-# Local development ignores it and uses a SQLite file under .wrangler/.
-database_id = "00000000-0000-0000-0000-000000000000"
+# Production database (created 2026-10-01, region EEUR). Local development ignores the id and
+# uses a SQLite file under .wrangler/.
+database_id = "24529dc0-19eb-48d7-a2e2-8e4078358176"
 migrations_dir = "migrations"

@@ -14,7 +14,7 @@ for (const file of [".env", ".env.production", ".env.local", ".env.production.lo
 
 const problems = [];
 const legal = readFileSync(new URL("../src/views/legal.ts", import.meta.url), "utf8");
-if (/\[(Full name|Street|contact email)/.test(legal)) problems.push("Operator details in src/views/legal.ts are still placeholders (imprint + privacy policy).");
+if (/\[(Full name|Street|contact email|Postal code)/.test(legal)) problems.push("Operator details in src/views/legal.ts are still placeholders (imprint + privacy policy).");
 const wrangler = readFileSync(new URL("../wrangler.toml", import.meta.url), "utf8");
 if (wrangler.includes("00000000-0000-0000-0000-000000000000")) problems.push("wrangler.toml still has the placeholder D1 database_id.");
 if (!process.env.VITE_ADSENSE_CLIENT) problems.push("VITE_ADSENSE_CLIENT is not set: ad slots show \"Ad space\" placeholders (or house promos with VITE_AD_FALLBACK=house) and no ads.txt is generated.");
