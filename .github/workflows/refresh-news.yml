@@ -1,7 +1,7 @@
 # Reads the WoW news sites' public RSS/Atom feeds and sends the headlines about WoW Forever to
 # the site (headline, link, publisher, date only; see shared/news.ts). Parsing happens here,
 # not in the Pages Function, so the site stays within the Workers CPU limits.
-# Needs repository secrets SITE_URL (e.g. https://forever-forge.com) and NOTIFY_SECRET
+# Needs repository secrets SITE_URL (e.g. https://wow-forever-forge.com) and NOTIFY_SECRET
 # (the same value as the Pages project's NOTIFY_SECRET).
 name: Refresh news
 

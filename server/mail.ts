@@ -17,7 +17,7 @@ export async function sendMail(env: Env, mail: Mail): Promise<void> {
       method: "POST",
       headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        from: env.MAIL_FROM ?? "Forever Forge <noreply@forever-forge.com>",
+        from: env.MAIL_FROM ?? "Forever Forge <noreply@wow-forever-forge.com>",
         to: [mail.to],
         subject: mail.subject,
         text: mail.text,

@@ -6,7 +6,7 @@ export interface Env {
   ASSETS?: Fetcher;
   /** Resend API key. Without it, mail goes to the dev outbox (if enabled) or fails. */
   RESEND_API_KEY?: string;
-  /** Sender, e.g. "Forever Forge <noreply@forever-forge.com>". */
+  /** Sender, e.g. "Forever Forge <noreply@wow-forever-forge.com>". */
   MAIL_FROM?: string;
   /** Public site URL used in emailed links; defaults to the request's origin. */
   APP_URL?: string;

@@ -154,7 +154,7 @@ export function cardSvg(d: CardData): string {
     d.changedSince
       ? `<rect x="80" y="${CARD_H - 88}" width="${420}" height="44" rx="22" fill="${C.rose}" fill-opacity="0.18" stroke="${C.rose}"/>
          <text x="102" y="${CARD_H - 59}" font-size="21" font-weight="600" fill="${C.gold}">${d.changedSince} talent${d.changedSince > 1 ? "s" : ""} changed since this was made</text>`
-      : `<text x="80" y="${CARD_H - 58}" font-size="22" fill="${C.haze}">forever-forge.com</text>`
+      : `<text x="80" y="${CARD_H - 58}" font-size="22" fill="${C.haze}">wow-forever-forge.com</text>`
   }
 </svg>`;
 }

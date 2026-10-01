@@ -22,7 +22,7 @@ const env = {
 
 describe("item link previews", () => {
   it("summarizes the item like its tooltip", async () => {
-    const meta = await itemPageMeta(new Request("https://forever-forge.com/items/12620"), env);
+    const meta = await itemPageMeta(new Request("https://wow-forever-forge.com/items/12620"), env);
     expect(meta?.title).toBe("Enchanted Thorium Helm");
     expect(meta?.description).toBe(
       "Epic Head · item level 62 · requires level 57 · 600 armor · +20 Strength · +14 Critical Strike Rating. Changed since Classic Era. Equip: Increases your chance to block by 2%.",
@@ -30,7 +30,7 @@ describe("item link previews", () => {
   });
 
   it("falls back to the default page for unknown items and other paths", async () => {
-    expect(await itemPageMeta(new Request("https://forever-forge.com/items/99"), env)).toBeNull();
-    expect(await itemPageMeta(new Request("https://forever-forge.com/items"), env)).toBeNull();
+    expect(await itemPageMeta(new Request("https://wow-forever-forge.com/items/99"), env)).toBeNull();
+    expect(await itemPageMeta(new Request("https://wow-forever-forge.com/items"), env)).toBeNull();
   });
 });

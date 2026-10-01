@@ -1,6 +1,6 @@
 # Forever Forge
 
-Theorycrafting and build tools for **World of Warcraft: Forever**, served at [forever-forge.com](https://forever-forge.com).
+Theorycrafting and build tools for **World of Warcraft: Forever**, served at [wow-forever-forge.com](https://wow-forever-forge.com).
 
 All game data is read from the public beta client (via [wago.tools](https://wago.tools) DB2 exports). Each talent is diffed against Classic Era and against every earlier beta build.
 
@@ -134,7 +134,7 @@ The "Report a bug" button opens a short form, which sends the message, the page 
   - To remove one headline, moderators use its *Hide* button on the News page; it's undone from the moderation page, and the next fetch never brings it back.
   - To stop a publisher entirely, delete its entry from `NEWS_SOURCES` in `shared/news.ts`.
   - The News page asks publishers to get in touch through the imprint.
-- **Politeness:** one request per feed per run with an identifying User-Agent (`ForeverForgeNews/1.0 (+https://forever-forge.com/news)`). A feed that refuses automated clients is skipped, not worked around; Massively Overpowered currently answers 403. Blizzard's own news site and Icy Veins have no public feed, so they aren't included and aren't scraped.
+- **Politeness:** one request per feed per run with an identifying User-Agent (`ForeverForgeNews/1.0 (+https://wow-forever-forge.com/news)`). A feed that refuses automated clients is skipped, not worked around; Massively Overpowered currently answers 403. Blizzard's own news site and Icy Veins have no public feed, so they aren't included and aren't scraped.
 
 ## Logo
 
@@ -149,7 +149,7 @@ A build is the ordered list of points spent, so a link also records the leveling
 1. `npx wrangler d1 create forever-forge`, then put the printed `database_id` in `wrangler.toml`.
 2. `npm run db:migrate` to create the tables in the remote database.
 3. Create the Pages project, either by connecting the Git repo (build command `npm run build`, output `dist`) or with `npm run deploy`. Bind the D1 database as `DB` under Settings → Bindings. SPA fallback is automatic because there's no `404.html`.
-4. Add `forever-forge.com` as a custom domain.
+4. Add `wow-forever-forge.com` as a custom domain.
 
 ### Before launch
 
@@ -165,7 +165,7 @@ These can't be checked from the code:
 - **Change alerts:**
   1. Generate a random secret, e.g. `openssl rand -hex 32`.
   2. Set it as `NOTIFY_SECRET` on the Pages project.
-  3. Add GitHub repository secrets `NOTIFY_SECRET` (same value) and `SITE_URL` (`https://forever-forge.com`).
+  3. Add GitHub repository secrets `NOTIFY_SECRET` (same value) and `SITE_URL` (`https://wow-forever-forge.com`).
 
   After each data update, the workflow waits for the deploy and then calls `POST /api/internal/notify`.
 - **Consent:** enable AdSense's certified consent message (Privacy & messaging → European regulations) so EU visitors get a GDPR prompt.

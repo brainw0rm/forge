@@ -10,7 +10,7 @@
 import { readFileSync } from "node:fs";
 import { NEWS_SOURCES, forSource, parseFeed, type NewsItem } from "../shared/news.ts";
 
-const UA = "ForeverForgeNews/1.0 (+https://forever-forge.com/news)";
+const UA = "ForeverForgeNews/1.0 (+https://wow-forever-forge.com/news)";
 const TIMEOUT_MS = 20_000;
 const MAX_BYTES = 8 * 1024 * 1024;
 

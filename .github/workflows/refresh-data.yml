@@ -62,7 +62,7 @@ jobs:
           echo "changed=true" >> "$GITHUB_OUTPUT"
 
       # After Cloudflare Pages deploys the new data, email everyone watching changed talents.
-      # Needs repository secrets SITE_URL (e.g. https://forever-forge.com) and NOTIFY_SECRET
+      # Needs repository secrets SITE_URL (e.g. https://wow-forever-forge.com) and NOTIFY_SECRET
       # (the same value as the Pages project's NOTIFY_SECRET).
       - name: Send change alerts
         if: steps.commit.outputs.changed == 'true' && env.SITE_URL != ''
