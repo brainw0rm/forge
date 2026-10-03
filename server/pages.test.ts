@@ -57,7 +57,7 @@ describe("server-rendered pages", () => {
     expect(page).toMatchObject({ status: 200, canonical: "/flights/kalimdor", title: "Kalimdor Flight Paths in WoW Forever · Forever Forge" });
     expect(page.body).toContain("<h2>Mount Hyjal</h2>");
     expect(page.body).toContain("Summit of Eternity (both factions, new in Forever)");
-    expect(page.description).toMatch(/^All \d+ flight points in Kalimdor/);
+    expect(page.description).toMatch(/^Flight map and route planner for Kalimdor/);
   });
 
   it("keeps private pages out of search results", async () => {

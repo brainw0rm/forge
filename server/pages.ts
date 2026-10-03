@@ -291,7 +291,7 @@ export async function resolvePage(req: Request, env: Env): Promise<Page> {
       return simple(
         `/flights/${a}`,
         `${cont.name} Flight Paths in WoW Forever`,
-        `All ${nodes.length} flight points in ${cont.name} in World of Warcraft: Forever on one map, with routes and prices.${
+        `Flight map and route planner for ${cont.name} in World of Warcraft: Forever: all ${nodes.length} flight points with routes and prices.${
           fresh.length ? ` ${fresh.length} are new: ${[...new Set(fresh.map((n) => n.name))].join(", ")}.` : ""
         }`,
         {

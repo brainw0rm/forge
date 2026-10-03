@@ -119,7 +119,7 @@ export async function renderHome(root: HTMLElement) {
       <a class="tool-card" href="/legacy" data-link><b>Legacy planner</b><span>Spend your account-wide Legacy points and see where to get more.</span></a>
       <a class="tool-card" href="/gear" data-link><b>Gear sandbox</b><span>Gear up with real items and tinker with the stat math yourself.</span></a>
       <a class="tool-card" href="/professions" data-link><b>Professions</b><span>All recipes with their reagents. The new ones are marked.</span></a>
-      <a class="tool-card" href="/flights" data-link><b>Flight map</b><span>Every flight point and route, including the new ones in Riverglades and Mount Hyjal.</span></a>
+      <a class="tool-card" href="/flights" data-link><b>Flight map</b><span>Plan a flight across the continent, including the new flight points in Riverglades and Mount Hyjal.</span></a>
       <a class="tool-card" href="/talents/warrior?lens=popularity" data-link><b>Popularity heatmap</b><span>Which talents people actually pick, level by level.</span></a>
     </section>
 

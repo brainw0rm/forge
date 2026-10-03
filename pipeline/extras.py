@@ -106,27 +106,33 @@ def build_dungeons(build: str):
 
 CONTINENT_MAPS = {"0": "1415", "1": "1414"}  # world map ID -> continent UiMap
 CONTINENT_NAMES = {"0": "Eastern Kingdoms", "1": "Kalimdor"}
+MAP_ASPECT = 2 / 3  # continent maps are 3:2
 # Internal nodes: transports, quest flights, retired ("zzOLD") and placeholder entries.
 NOT_A_FLIGHT_POINT = re.compile(r"^(zz|Generic|Quest Path|Transport)", re.I)
-# City maps are tiny next to zones; their names would only clutter the zone labels.
-MIN_ZONE_AREA = 2_500_000  # square yards
 
 
 def build_flights(build: str, era_build: str):
-    """Flight points and routes per continent, projected onto the continent maps, marked new
-    when Classic Era doesn't have them. Positions are 0..1 across the continent's map."""
+    """Flight points, routes and a drawn map per continent, marked new where Classic Era doesn't
+    have them. Positions are 0..1 across the continent's map."""
+    import mapshape
+
     era_nodes = {r["ID"] for r in load_table(era_build, "TaxiNodes")}
     era_paths = {(r["FromTaxiNode"], r["ToTaxiNode"]) for r in load_table(era_build, "TaxiPath")}
     era_maps = {r["ID"] for r in load_table(era_build, "UiMap")}
-    ui_maps = load_table(build, "UiMap")
+    ui_maps = {r["ID"]: r for r in load_table(build, "UiMap")}
     assign: dict[str, list[dict]] = {}
     for r in load_table(build, "UiMapAssignment"):
         assign.setdefault(r["UiMapID"], []).append(r)
 
+    def region(ui_map: str, map_id: str):
+        a = next((r for r in assign.get(ui_map, []) if r["MapID"] == map_id), None)
+        if not a:
+            return None
+        return ((num(a[k]) for k in ("Region_0", "Region_1", "Region_3", "Region_4")),
+                (num(a[k]) for k in ("UiMin_0", "UiMin_1", "UiMax_0", "UiMax_1")))
+
     def projector(ui_map: str, map_id: str):
-        a = next(r for r in assign[ui_map] if r["MapID"] == map_id)
-        min_x, min_y, max_x, max_y = (num(a[k]) for k in ("Region_0", "Region_1", "Region_3", "Region_4"))
-        u0, v0, u1, v1 = (num(a[k]) for k in ("UiMin_0", "UiMin_1", "UiMax_0", "UiMax_1"))
+        (min_x, min_y, max_x, max_y), (u0, v0, u1, v1) = (tuple(g) for g in region(ui_map, map_id))
         # World X points north and Y west; the map's x grows east and y south.
         return lambda x, y: (round(u0 + (max_y - y) / (max_y - min_y) * (u1 - u0), 4),
                              round(v0 + (max_x - x) / (max_x - min_x) * (v1 - v0), 4))
@@ -150,10 +156,16 @@ def build_flights(build: str, era_build: str):
             "x": x, "y": y, "isNew": r["ID"] not in era_nodes,
         }
 
-    # The flight lines, thinned out: every third point is plenty at map scale.
+    # Flight distance along the actual path, in yards: the route planner looks for the shortest trip.
     points: dict[str, list[tuple[int, float, float]]] = {}
     for r in load_table(build, "TaxiPathNode"):
         points.setdefault(r["PathID"], []).append((int(r["NodeIndex"]), num(r["Loc_0"]), num(r["Loc_1"])))
+
+    def length(path_id: str) -> int | None:
+        pts = sorted(points.get(path_id, []))
+        if len(pts) < 2:
+            return None
+        return round(sum(((b[1] - a[1]) ** 2 + (b[2] - a[2]) ** 2) ** 0.5 for a, b in zip(pts, pts[1:])))
 
     paths: dict[tuple[str, str], dict] = {}
     for r in load_table(build, "TaxiPath"):
@@ -162,31 +174,53 @@ def build_flights(build: str, era_build: str):
             continue
         key = (a, b) if int(a) < int(b) else (b, a)
         p = paths.setdefault(key, {"a": int(key[0]), "b": int(key[1]), "isNew": True})
-        # Costs (copper) can differ by direction.
-        p["costAB" if (a, b) == key else "costBA"] = int(r["Cost"])
+        # Price (copper) and distance can differ by direction.
+        d = "AB" if (a, b) == key else "BA"
+        p["cost" + d] = int(r["Cost"])
+        if (dist := length(r["ID"])) is not None:
+            p["dist" + d] = dist
         p["isNew"] = p["isNew"] and (a, b) not in era_paths
-        if "line" not in p and r["ID"] in points:
-            c = str(nodes[a]["continent"])
-            pts = [proj[c](x, y) for _, x, y in sorted(points[r["ID"]])]
-            pts = pts[::3] + ([pts[-1]] if (len(pts) - 1) % 3 else [])
-            p["line"] = pts if (a, b) == key else pts[::-1]
 
-    zones = []
-    for m in ui_maps:
-        c = next((c for c, cm in CONTINENT_MAPS.items() if m["ParentUiMapID"] == cm), None)
-        if c is None or m["Type"] != "3":
-            continue
-        a = next((r for r in assign.get(m["ID"], []) if r["MapID"] == c), None)
-        if not a:
-            continue
-        min_x, min_y, max_x, max_y = (num(a[k]) for k in ("Region_0", "Region_1", "Region_3", "Region_4"))
-        if (max_x - min_x) * (max_y - min_y) < MIN_ZONE_AREA:
-            continue
-        x, y = proj[c]((min_x + max_x) / 2, (min_y + max_y) / 2)
-        zones.append({"name": m["Name_lang"], "continent": int(c), "x": x, "y": y, "isNew": m["ID"] not in era_maps})
+    # The map: the zone maps' explored-area overlays, projected onto the continent, cover the land.
+    art_maps: dict[str, list[str]] = {}
+    for r in load_table(build, "UiMapXMapArt"):
+        art_maps.setdefault(r["UiMapArtID"], []).append(r["UiMapID"])
+    art_style = {r["ID"]: r["UiMapArtStyleID"] for r in load_table(build, "UiMapArt")}
+    canvas = {r["UiMapArtStyleID"]: (num(r["LayerWidth"]), num(r["LayerHeight"]))
+              for r in load_table(build, "UiMapArtStyleLayer") if r["LayerIndex"] == "0"}
+    rects: dict[str, list[tuple]] = {c: [] for c in CONTINENT_MAPS}
+    for o in load_table(build, "WorldMapOverlay"):
+        size = canvas.get(art_style.get(o["UiMapArtID"], ""))
+        for um in art_maps.get(o["UiMapArtID"], []):
+            m = ui_maps.get(um)
+            c = next((c for c, cm in CONTINENT_MAPS.items() if m and m["ParentUiMapID"] == cm and m["Type"] == "3"), None)
+            reg = region(um, c) if c and size else None
+            if not reg:
+                continue
+            (min_x, min_y, max_x, max_y), (u0, v0, u1, v1) = (tuple(g) for g in reg)
+
+            def to_map(px: float, py: float, c=c, b=(min_x, min_y, max_x, max_y, u0, v0, u1, v1)):
+                mnx, mny, mxx, mxy, a0, b0, a1, b1 = b
+                u, v = (px / size[0] - a0) / (a1 - a0), (py / size[1] - b0) / (b1 - b0)
+                return proj[c](mxx - v * (mxx - mnx), mxy - u * (mxy - mny))
+
+            ox, oy = num(o["OffsetX"]), num(o["OffsetY"])
+            art = (*to_map(ox, oy), *to_map(ox + num(o["TextureWidth"]), oy + num(o["TextureHeight"])))
+            hit = (*to_map(num(o["HitRectLeft"]), num(o["HitRectTop"])), *to_map(num(o["HitRectRight"]), num(o["HitRectBottom"])))
+            # The hit area counts twice: the artwork bleeds into neighboring zones, the hit area doesn't.
+            rects[c] += [(m["Name_lang"], *art), (m["Name_lang"], *hit)]
+
+    continents, zones = [], []
+    for c, name in CONTINENT_NAMES.items():
+        land, shapes, labels = mapshape.build(rects[c], MAP_ASPECT)
+        continents.append({"id": int(c), "name": name, "land": land})
+        new_maps = {m["Name_lang"] for m in ui_maps.values() if m["ParentUiMapID"] == CONTINENT_MAPS[c] and m["ID"] not in era_maps}
+        for z, shape in shapes.items():
+            x, y = labels[z]
+            zones.append({"name": z, "continent": int(c), "x": x, "y": y, "isNew": z in new_maps, "shape": shape})
 
     write_json(OUT / "flights.json", {
-        "continents": [{"id": int(c), "name": n} for c, n in CONTINENT_NAMES.items()],
+        "continents": continents,
         "nodes": sorted(nodes.values(), key=lambda n: (n["continent"], n["zone"], n["name"], n["id"])),
         "paths": list(paths.values()),
         "zones": sorted(zones, key=lambda z: z["name"]),
