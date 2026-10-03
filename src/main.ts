@@ -13,6 +13,7 @@ import { logout, renderForgot, renderLogin, renderReset, renderSignup, renderVer
 import { renderBuildDetail, renderBuildList } from "./views/builds";
 import { renderChanges } from "./views/changes";
 import { renderCompare } from "./views/compare";
+import { renderFlights } from "./views/flights";
 import { renderGear } from "./views/gear";
 import { renderHome } from "./views/home";
 import { renderItem, renderItemList } from "./views/items";
@@ -32,7 +33,7 @@ const app = document.getElementById("app")!;
 async function route() {
   const parts = location.pathname.split("/").filter(Boolean);
   const params = new URLSearchParams(location.search);
-  const tools = ["compare", "leveling", "legacy", "gear", "professions"];
+  const tools = ["compare", "leveling", "legacy", "gear", "professions", "flights"];
   document.querySelector(".nav-menu")?.classList.toggle("active", tools.includes(parts[0] ?? ""));
   document.querySelectorAll<HTMLAnchorElement>(".site-nav > a[data-link]").forEach((a) => {
     const section = a.getAttribute("href")!.split("/")[1];
@@ -71,6 +72,11 @@ async function route() {
         return await renderChanges(app, parts[1] ?? "", parts[2] ?? "");
       case "races":
         return await renderRaces(app);
+      case "flights": {
+        const known = ["eastern-kingdoms", "kalimdor"];
+        if (!known.includes(parts[1] ?? "")) history.replaceState(null, "", `/flights/${known[0]}${location.search}`);
+        return await renderFlights(app, parts[1] ?? "", params);
+      }
       case "items":
         return /^\d+$/.test(parts[1] ?? "") ? await renderItem(app, Number(parts[1])) : await renderItemList(app, params);
       case "news":

@@ -48,6 +48,16 @@ describe("server-rendered pages", () => {
     expect(await resolvePage(get("/talents/notaclass"), env)).toMatchObject({ status: 301, redirect: "/talents/warrior" });
     expect((await resolvePage(get("/professions/alchemy"), env)).status).toBe(200);
     expect((await resolvePage(get("/professions/basket-weaving"), env)).status).toBe(404);
+    expect(await resolvePage(get("/flights"), env)).toMatchObject({ status: 301, redirect: "/flights/eastern-kingdoms" });
+    expect((await resolvePage(get("/flights/northrend"), env)).status).toBe(301);
+  });
+
+  it("lists every flight point of a continent, with the new ones called out", async () => {
+    const page = await resolvePage(get("/flights/kalimdor"), env);
+    expect(page).toMatchObject({ status: 200, canonical: "/flights/kalimdor", title: "Kalimdor Flight Paths in WoW Forever · Forever Forge" });
+    expect(page.body).toContain("<h2>Mount Hyjal</h2>");
+    expect(page.body).toContain("Summit of Eternity (both factions, new in Forever)");
+    expect(page.description).toMatch(/^All \d+ flight points in Kalimdor/);
   });
 
   it("keeps private pages out of search results", async () => {

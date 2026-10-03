@@ -1,4 +1,4 @@
-"""Extra datasets for the leveling planner, Legacy planner, professions and gear sandbox.
+"""Extra datasets for the leveling planner, Legacy planner, professions, flight map and gear sandbox.
 
 Everything is read from the Forever beta client, except dungeons Blizzard announced that
 aren't in the client yet (pipeline/announced.json, labeled as such on the site).
@@ -100,6 +100,98 @@ def build_dungeons(build: str):
                     "source": "announced", "isNew": True, **({"size": a["size"]} if "size" in a else {})})
     out.sort(key=lambda d: (d["minLevel"], d["name"]))
     write_json(OUT / "dungeons.json", {"source": announced["source"], "dungeons": out})
+
+
+# --------------------------------------------------------------------------- flight paths
+
+CONTINENT_MAPS = {"0": "1415", "1": "1414"}  # world map ID -> continent UiMap
+CONTINENT_NAMES = {"0": "Eastern Kingdoms", "1": "Kalimdor"}
+# Internal nodes: transports, quest flights, retired ("zzOLD") and placeholder entries.
+NOT_A_FLIGHT_POINT = re.compile(r"^(zz|Generic|Quest Path|Transport)", re.I)
+# City maps are tiny next to zones; their names would only clutter the zone labels.
+MIN_ZONE_AREA = 2_500_000  # square yards
+
+
+def build_flights(build: str, era_build: str):
+    """Flight points and routes per continent, projected onto the continent maps, marked new
+    when Classic Era doesn't have them. Positions are 0..1 across the continent's map."""
+    era_nodes = {r["ID"] for r in load_table(era_build, "TaxiNodes")}
+    era_paths = {(r["FromTaxiNode"], r["ToTaxiNode"]) for r in load_table(era_build, "TaxiPath")}
+    era_maps = {r["ID"] for r in load_table(era_build, "UiMap")}
+    ui_maps = load_table(build, "UiMap")
+    assign: dict[str, list[dict]] = {}
+    for r in load_table(build, "UiMapAssignment"):
+        assign.setdefault(r["UiMapID"], []).append(r)
+
+    def projector(ui_map: str, map_id: str):
+        a = next(r for r in assign[ui_map] if r["MapID"] == map_id)
+        min_x, min_y, max_x, max_y = (num(a[k]) for k in ("Region_0", "Region_1", "Region_3", "Region_4"))
+        u0, v0, u1, v1 = (num(a[k]) for k in ("UiMin_0", "UiMin_1", "UiMax_0", "UiMax_1"))
+        # World X points north and Y west; the map's x grows east and y south.
+        return lambda x, y: (round(u0 + (max_y - y) / (max_y - min_y) * (u1 - u0), 4),
+                             round(v0 + (max_x - x) / (max_x - min_x) * (v1 - v0), 4))
+
+    proj = {c: projector(m, c) for c, m in CONTINENT_MAPS.items()}
+
+    nodes = {}
+    for r in load_table(build, "TaxiNodes"):
+        c = r["ContinentID"]
+        # Players learn a flight point by setting its bit; nodes without one aren't learnable.
+        if c not in proj or r["CharacterBitNumber"] == "0" or NOT_A_FLIGHT_POINT.match(r["Name_lang"]):
+            continue
+        flags = int(num(r["Flags"]))
+        alliance = bool(flags & 1) or (not flags & 3 and r["MountCreatureID_1"] != "0")
+        horde = bool(flags & 2) or (not flags & 3 and r["MountCreatureID_0"] != "0")
+        place, _, zone = r["Name_lang"].rpartition(", ")
+        x, y = proj[c](num(r["Pos_0"]), num(r["Pos_1"]))
+        nodes[r["ID"]] = {
+            "id": int(r["ID"]), "name": place or zone, "zone": zone, "continent": int(c),
+            "faction": "both" if alliance and horde else "alliance" if alliance else "horde",
+            "x": x, "y": y, "isNew": r["ID"] not in era_nodes,
+        }
+
+    # The flight lines, thinned out: every third point is plenty at map scale.
+    points: dict[str, list[tuple[int, float, float]]] = {}
+    for r in load_table(build, "TaxiPathNode"):
+        points.setdefault(r["PathID"], []).append((int(r["NodeIndex"]), num(r["Loc_0"]), num(r["Loc_1"])))
+
+    paths: dict[tuple[str, str], dict] = {}
+    for r in load_table(build, "TaxiPath"):
+        a, b = r["FromTaxiNode"], r["ToTaxiNode"]
+        if a not in nodes or b not in nodes or a == b:
+            continue
+        key = (a, b) if int(a) < int(b) else (b, a)
+        p = paths.setdefault(key, {"a": int(key[0]), "b": int(key[1]), "isNew": True})
+        # Costs (copper) can differ by direction.
+        p["costAB" if (a, b) == key else "costBA"] = int(r["Cost"])
+        p["isNew"] = p["isNew"] and (a, b) not in era_paths
+        if "line" not in p and r["ID"] in points:
+            c = str(nodes[a]["continent"])
+            pts = [proj[c](x, y) for _, x, y in sorted(points[r["ID"]])]
+            pts = pts[::3] + ([pts[-1]] if (len(pts) - 1) % 3 else [])
+            p["line"] = pts if (a, b) == key else pts[::-1]
+
+    zones = []
+    for m in ui_maps:
+        c = next((c for c, cm in CONTINENT_MAPS.items() if m["ParentUiMapID"] == cm), None)
+        if c is None or m["Type"] != "3":
+            continue
+        a = next((r for r in assign.get(m["ID"], []) if r["MapID"] == c), None)
+        if not a:
+            continue
+        min_x, min_y, max_x, max_y = (num(a[k]) for k in ("Region_0", "Region_1", "Region_3", "Region_4"))
+        if (max_x - min_x) * (max_y - min_y) < MIN_ZONE_AREA:
+            continue
+        x, y = proj[c]((min_x + max_x) / 2, (min_y + max_y) / 2)
+        zones.append({"name": m["Name_lang"], "continent": int(c), "x": x, "y": y, "isNew": m["ID"] not in era_maps})
+
+    write_json(OUT / "flights.json", {
+        "continents": [{"id": int(c), "name": n} for c, n in CONTINENT_NAMES.items()],
+        "nodes": sorted(nodes.values(), key=lambda n: (n["continent"], n["zone"], n["name"], n["id"])),
+        "paths": list(paths.values()),
+        "zones": sorted(zones, key=lambda z: z["name"]),
+    })
+    return len(nodes), len(paths)
 
 
 # --------------------------------------------------------------------------- legacy

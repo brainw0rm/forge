@@ -21,6 +21,7 @@ All game data is read from the public beta client (via [wago.tools](https://wago
 | `/legacy/<code>` | Legacy (account-wide) point planner and every way to earn points |
 | `/gear/<class>?i=…` | Gear sandbox: real beta items, stat totals and an editable formula sheet |
 | `/professions/<name>` | Recipe browser with reagents, difficulty and "new in Forever" markers |
+| `/flights/<continent>` | Flight map: every learnable flight point and route with prices, new ones (and new zones) marked |
 
 The calculator also has a **popularity lens**: each talent is shaded by how many public builds take it, optionally at the level you scrub to. Users can **watch** a class or a saved build to get emailed when a new beta build changes its talents. Share links and build pages have generated **social preview images** (`/og/…`), so they unfurl nicely in Discord and elsewhere.
 | `/privacy`, `/imprint` | Legal pages (fill in `SITE_OPERATOR` in `src/views/legal.ts` first) |
@@ -67,6 +68,7 @@ npm test                      # unit tests + API tests against an in-memory D1
    - Dungeon minimum levels come from `LFGDungeons` and `ContentTuning`. Dungeons that aren't in the client yet use Blizzard's announced ranges from `pipeline/announced.json`, labeled as such.
    - The Legacy trees come from the 16-point trait currency.
    - Recipes come from `SkillLineAbility`, `SpellReagents` and create-item effects.
+   - Flight points and routes come from `TaxiNodes`, `TaxiPath` and `TaxiPathNode`, projected onto the continent maps with `UiMapAssignment`. Only learnable points count (they have a `CharacterBitNumber`); transports, quest flights and retired `zzOLD` entries are skipped. Faction comes from the node flags, or from the flight master's mount where the flags don't say. Zone labels come from the continents' child `UiMap`s.
    - Item stats come from `ItemSparse` percentages times the `RandPropPoints` item-level budget. Armor comes from `ItemArmor*`, weapon DPS from `ItemDamage*`. Weapons with a special quality modifier show no damage rather than a guess.
 
 ## Item database

@@ -59,6 +59,7 @@ function sitemaps(site: string | undefined): Plugin {
         .map((r) => `/items/${r[0]}`);
       const pages = [
         "/", "/builds", "/items", "/changes", "/news", "/races", "/legacy", "/gear", "/compare", "/professions",
+        "/flights/eastern-kingdoms", "/flights/kalimdor",
         ...classes.flatMap((c) => [`/talents/${c}`, `/changes/classic/${c}`, `/leveling/${c}`, `/gear/${c}`]),
         ...professions.map((p) => `/professions/${p}`),
         "/privacy", "/imprint",

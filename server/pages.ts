@@ -32,6 +32,10 @@ export interface Page {
 
 export const SITE_NAME = "Forever Forge";
 const DEFAULT_TITLE = "Forever Forge · WoW Forever talent calculator, builds and item database";
+interface FlightFile {
+  nodes: { name: string; zone: string; continent: number; faction: "alliance" | "horde" | "both"; isNew: boolean }[];
+}
+
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
 const cap = (s: string) => s[0].toUpperCase() + s.slice(1);
 const PRIVATE = new Set(["account", "admin", "login", "signup", "forgot-password", "reset-password", "verify-email", "unsubscribe"]);
@@ -275,6 +279,33 @@ export async function resolvePage(req: Request, env: Env): Promise<Page> {
       return simple("/compare", "Compare WoW Forever Builds", "Put two World of Warcraft: Forever talent builds side by side and see where they differ.", a ? { canonical: "/compare" } : {});
     case "news":
       return a ? notFound() : simple("/news", "WoW Forever News", "World of Warcraft: Forever news headlines from Wowhead, MMO-Champion, Blizzard Watch, PC Gamer and buffed.de.");
+    case "flights": {
+      const continents: Record<string, { id: number; name: string }> = { "eastern-kingdoms": { id: 0, name: "Eastern Kingdoms" }, kalimdor: { id: 1, name: "Kalimdor" } };
+      if (!a || !continents[a]) return { ...notFound(), status: 301, redirect: "/flights/eastern-kingdoms" };
+      if (b) return notFound();
+      const cont = continents[a];
+      const data = await load<FlightFile>("/data/flights.json");
+      const nodes = (data?.nodes ?? []).filter((n) => n.continent === cont.id);
+      const fresh = nodes.filter((n) => n.isNew);
+      const zones = [...new Set(nodes.map((n) => n.zone))].sort();
+      return simple(
+        `/flights/${a}`,
+        `${cont.name} Flight Paths in WoW Forever`,
+        `All ${nodes.length} flight points in ${cont.name} in World of Warcraft: Forever on one map, with routes and prices.${
+          fresh.length ? ` ${fresh.length} are new: ${[...new Set(fresh.map((n) => n.name))].join(", ")}.` : ""
+        }`,
+        {
+          body: `<section class="page"><h1>${esc(cont.name)} flight paths in WoW Forever</h1>${zones
+            .map(
+              (z) => `<h2>${esc(z)}</h2><ul>${nodes
+                .filter((n) => n.zone === z)
+                .map((n) => `<li>${esc(n.name)} (${n.faction === "both" ? "both factions" : n.faction === "alliance" ? "Alliance" : "Horde"}${n.isNew ? ", new in Forever" : ""})</li>`)
+                .join("")}</ul>`,
+            )
+            .join("")}</section>`,
+        },
+      );
+    }
     case "races":
       return a ? notFound() : simple("/races", "WoW Forever Race & Class Combinations", "Which races can play which classes in World of Warcraft: Forever, with the combinations that are new since Classic Era.");
     case "privacy":

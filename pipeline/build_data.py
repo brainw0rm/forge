@@ -1023,9 +1023,11 @@ def main() -> None:
     extras.build_legacy(latest_db, icons)
     n_items = extras.build_items(latest, era_build, icons)
     n_prof = extras.build_professions(latest_db, era_build, icons)
+    n_nodes, n_paths = extras.build_flights(latest, era_build)
     import itemdb
     n_db = itemdb.build_itemdb(latest_db, era_db, icons, json.loads((OUT / "professions" / "index.json").read_text()))
-    print(f"Extras: {n_items} gear items, {n_db} items in the database, {n_prof} professions, leveling, dungeons, legacy")
+    print(f"Extras: {n_items} gear items, {n_db} items in the database, {n_prof} professions, "
+          f"{n_nodes} flight points, {n_paths} flight routes, leveling, dungeons, legacy")
 
     write_json(OUT / "changelog.json", changelog)
     write_json(OUT / "meta.json", {
