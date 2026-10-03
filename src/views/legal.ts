@@ -53,6 +53,11 @@ export function renderPrivacy(root: HTMLElement) {
         Personalized ads are only shown if you agree in the consent dialog, and you can change your choice at any time.
         See <a href="https://policies.google.com/technologies/ads" rel="noopener">how Google uses data for ads</a>.</p>
 
+      <h2>Donations</h2>
+      <p>The "Support on Ko-fi" links take you to Ko-fi, which handles donations under its own
+        <a href="https://more.ko-fi.com/privacy" rel="noopener">privacy policy</a>. Nothing from Ko-fi is loaded on this site
+        until you click. If you donate, we see what Ko-fi shows us, usually your name or nickname and your message.</p>
+
       <h2>Your rights</h2>
       <p>You can delete your account, builds and ratings at any time from <a href="/account" data-link>My account</a>.
         You also have the right to access, correct, restrict and port your data, to object to processing, and to complain

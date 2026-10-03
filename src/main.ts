@@ -4,6 +4,7 @@ import "./style.css";
 import { loadAdScript } from "./ads";
 import { openBugReport } from "./feedback";
 import { getMeta, iconUrl } from "./data";
+import { showSupportLinks } from "./support";
 import { currentUser, onUserChange } from "./session";
 import { esc, setTitle } from "./ui";
 import { renderAccount } from "./views/account";
@@ -33,7 +34,7 @@ async function route() {
   const params = new URLSearchParams(location.search);
   const tools = ["compare", "leveling", "legacy", "gear", "professions"];
   document.querySelector(".nav-menu")?.classList.toggle("active", tools.includes(parts[0] ?? ""));
-  document.querySelectorAll<HTMLAnchorElement>(".site-nav > a").forEach((a) => {
+  document.querySelectorAll<HTMLAnchorElement>(".site-nav > a[data-link]").forEach((a) => {
     const section = a.getAttribute("href")!.split("/")[1];
     a.classList.toggle("active", section === (parts[0] ?? ""));
     if (a.classList.contains("active")) a.setAttribute("aria-current", "page");
@@ -176,6 +177,7 @@ getMeta().then((m) => {
 currentUser().then(renderAuthArea);
 onUserChange(renderAuthArea);
 loadAdScript();
+showSupportLinks();
 // Some Forever icons aren't on Blizzard's public icon server yet: show the "?" icon instead of a broken image.
 document.addEventListener(
   "error",

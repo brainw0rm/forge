@@ -222,6 +222,19 @@ details:not([open]) > .menu { display: none; }
 /* Make room for the account buttons when signed out; the hero and data notes show the build too. */
 @media (max-width: 1180px) { .build-badge { display: none; } }
 .site-nav .nav-bug { display: none; }
+/* Ko-fi: next to "Report a bug" in the header, in the menu on smaller screens. Hidden until VITE_KOFI_URL is set. */
+[data-kofi][hidden] { display: none !important; }
+.header-kofi { gap: 6px; color: var(--muted); border-color: var(--hairline); }
+.header-kofi svg { width: 16px; height: 16px; }
+.header-kofi:hover { color: var(--gold); }
+@media (max-width: 1279px) { .header-kofi span { display: none; } .header-kofi { padding: 6px 8px; } }
+.site-nav .nav-kofi { display: none; }
+.footer-kofi { color: var(--gold) !important; }
+.support-note { display: flex; gap: 20px; align-items: center; justify-content: space-between; margin: 36px 0 0; padding: 18px 22px; border: 1px solid var(--hairline); border-radius: var(--radius); background: var(--surface); }
+.support-note p { margin: 0; color: var(--muted); font-size: 14.5px; }
+.support-note p b { color: var(--text); font-weight: 600; }
+.support-note .btn { flex: none; }
+@media (max-width: 640px) { .support-note { flex-direction: column; align-items: stretch; } }
 .form .hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
 .form label.radio span { display: grid; gap: 1px; }
 .form label.radio small { font-size: 12.5px; font-weight: 400; }
@@ -1090,7 +1103,8 @@ a.item-chip:hover { text-decoration: none; border-color: var(--border-strong); }
     background: var(--surface-2); border-bottom: 1px solid var(--border); padding: 8px 12px; box-shadow: var(--shadow-lg);
   }
   .menu-open .site-nav { display: flex; }
-  .header-bug { display: none; }
+  .header-bug, .header-kofi { display: none; }
+  .site-nav .nav-kofi { display: block; color: var(--gold); }
   .site-nav .nav-bug { display: block; text-align: left; background: none; border: 0; padding: 12px; font: 500 15px var(--font); color: var(--muted); cursor: pointer; }
   .nav-menu .menu { position: static; box-shadow: none; border: 0; background: none; padding: 0 0 0 12px; min-width: 0; }
   .site-nav a { padding: 12px; font-size: 15px; }

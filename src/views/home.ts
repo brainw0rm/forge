@@ -1,3 +1,4 @@
+import { KOFI_URL } from "../support";
 import { adSlot, fillAds } from "../ads";
 import { api, type NewsPage, type SavedBuild } from "../api";
 import { buildLabel, classColor, getChangelog, getMeta, iconUrl, type Change, type Status } from "../data";
@@ -121,6 +122,14 @@ export async function renderHome(root: HTMLElement) {
       <a class="tool-card" href="/talents/warrior?lens=popularity" data-link><b>Popularity heatmap</b><span>Which talents people actually pick, level by level.</span></a>
     </section>
 
+    ${
+      KOFI_URL
+        ? `<aside class="support-note">
+            <p><b>Free, no paywall, no account needed.</b> Forever Forge is a one-person project. If it saves you some time, you can chip in for the server bill.</p>
+            <a class="btn" href="${KOFI_URL}" target="_blank" rel="noopener">Support on Ko-fi</a>
+          </aside>`
+        : ""
+    }
     <div class="parchment">
     <div class="section-head"><h2>What's different here</h2></div>
     <section class="features">

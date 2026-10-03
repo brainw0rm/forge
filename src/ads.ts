@@ -15,6 +15,7 @@
 // (e.g. while AdSense is still reviewing the site).
 
 import { currentUser } from "./session";
+import { KOFI_URL } from "./support";
 
 type Kind = "leaderboard" | "rectangle" | "rail";
 
@@ -91,6 +92,7 @@ interface Promo {
   href: string;
   cta: string;
   signedOutOnly?: boolean;
+  external?: boolean;
 }
 
 const PROMOS: Promo[] = [
@@ -98,6 +100,9 @@ const PROMOS: Promo[] = [
   { title: "Community builds", text: "See what other players are running and rate the good ones.", href: "/builds", cta: "Browse builds" },
   { title: "What changed this build?", text: "We compare each new game build talent by talent.", href: "/changes", cta: "See changes" },
   { title: "Classic → Forever", text: "See how each talent changed since Classic Era.", href: "/changes/classic/warrior", cta: "Compare" },
+  ...(KOFI_URL
+    ? [{ title: "Keep the forge lit", text: "Forever Forge is free and has no paywall. If it helps you, a coffee on Ko-fi helps it.", href: KOFI_URL, cta: "Support on Ko-fi", external: true }]
+    : []),
 ];
 
 let rotation = Math.floor(Math.random() * PROMOS.length);
@@ -114,12 +119,12 @@ export async function fillAds(root: ParentNode) {
   const houses = root.querySelectorAll<HTMLElement>("[data-house]:empty");
   if (!houses.length) return;
   const signedIn = !!(await currentUser());
-  // Don't advertise the page you're already on.
+  // Don't advertise the page you're already on. (External links count as the home page, which has its own Ko-fi note.)
   const here = location.pathname.split("/")[1];
   const pool = PROMOS.filter((p) => !(p.signedOutOnly && signedIn) && p.href.split("/")[1] !== here);
   houses.forEach((el) => {
     const p = pool[rotation++ % pool.length];
-    el.innerHTML = `<a class="house-ad" href="${p.href}" data-link>
+    el.innerHTML = `<a class="house-ad" href="${p.href}" ${p.external ? `target="_blank" rel="noopener"` : "data-link"}>
         <span class="house-text"><strong>${p.title}</strong><span>${p.text}</span></span>
         <span class="btn small">${p.cta}</span>
       </a>`;
