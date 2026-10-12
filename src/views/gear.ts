@@ -1,11 +1,11 @@
 // Gear sandbox: equip real items from the game client, total their stats, and run an
 // editable formula sheet on top. Item stats, armor and weapon damage come from the client;
-// the formulas are visible assumptions the user can change.
+// the character sheet's rules of thumb are visible assumptions the user can change (src/gearstats.ts).
 
 import { signed } from "../../shared/items";
 import { adSlot, fillAds } from "../ads";
 import { classColor, getItems, getMeta, iconUrl, QUALITY_COLOR, type Item } from "../data";
-import { runSheet } from "../formula";
+import { CLASS_SHEETS, characterSheet, fmtStat, sheetFor } from "../gearstats";
 import { openModal } from "../modal";
 import { openShare } from "../share";
 import { esc, setTitle } from "../ui";
@@ -49,70 +49,6 @@ const STAT_KEYS = Object.keys(STAT_LABEL);
 const BASE_KEYS = ["str", "agi", "sta", "int", "spi"] as const;
 const ARMOR_NAMES = ["", "Cloth", "Leather", "Mail", "Plate"];
 
-type Archetype = "melee" | "agile" | "caster" | "hybrid";
-const ARCHETYPE: Record<string, Archetype> = {
-  warrior: "melee", rogue: "agile", hunter: "agile", mage: "caster", warlock: "caster", priest: "caster",
-  paladin: "hybrid", shaman: "hybrid", druid: "hybrid",
-};
-
-/** Starting formula sheets. These are Classic Era rules of thumb, shown as editable assumptions. */
-const PRESETS: Record<Archetype, string> = {
-  melee: `# Totals: gear plus the base stats you entered
-str = base_str + gear_str
-agi = base_agi + gear_agi
-sta = base_sta + gear_sta
-armor = gear_armor + agi * 2
-health = sta * 10
-# Classic Era rules of thumb at level 60. Edit them if Forever differs.
-attack_power = level * 3 - 20 + str * 2 + gear_ap
-crit_pct = agi / 20 + gear_crit / 14   # 14 crit rating = 1% (e.g. Lionheart Helm: 28 = 2%)
-hit_pct = gear_hit / 10                  # 10 hit rating = 1%
-# White damage per second with the main-hand weapon
-mh_avg = (mh_min + mh_max) / 2
-white_dps = (mh_avg + attack_power / 14 * mh_speed) / max(mh_speed, 0.1)`,
-  agile: `# Totals: gear plus the base stats you entered
-str = base_str + gear_str
-agi = base_agi + gear_agi
-sta = base_sta + gear_sta
-armor = gear_armor + agi * 2
-health = sta * 10
-# Classic Era rules of thumb at level 60. Edit them if Forever differs.
-attack_power = level * 2 - 20 + str + agi + gear_ap
-ranged_attack_power = level * 2 - 10 + agi * 2 + gear_ap + gear_rap
-crit_pct = agi / 29 + gear_crit / 14   # rogues ~29 agility per 1% crit, hunters ~53
-hit_pct = gear_hit / 10
-mh_avg = (mh_min + mh_max) / 2
-white_dps = (mh_avg + attack_power / 14 * mh_speed) / max(mh_speed, 0.1)`,
-  caster: `# Totals: gear plus the base stats you entered
-int = base_int + gear_int
-spi = base_spi + gear_spi
-sta = base_sta + gear_sta
-health = sta * 10
-mana = int * 15
-# Classic Era rules of thumb at level 60. Edit them if Forever differs.
-spell_power = gear_sp + gear_spelldmg
-healing_power = gear_sp + gear_healing
-spell_crit_pct = int / 59.5 + gear_crit / 14   # ~59.5 intellect per 1% (mage)
-spell_hit_pct = gear_hit / 10
-mp5 = gear_mp5`,
-  hybrid: `# Totals: gear plus the base stats you entered
-str = base_str + gear_str
-agi = base_agi + gear_agi
-sta = base_sta + gear_sta
-int = base_int + gear_int
-armor = gear_armor + agi * 2
-health = sta * 10
-mana = int * 15
-# Classic Era rules of thumb at level 60. Edit them if Forever differs.
-attack_power = level * 3 - 20 + str * 2 + gear_ap
-crit_pct = agi / 20 + gear_crit / 14
-spell_power = gear_sp + gear_spelldmg
-healing_power = gear_sp + gear_healing
-spell_crit_pct = int / 54 + gear_crit / 14
-mh_avg = (mh_min + mh_max) / 2
-white_dps = (mh_avg + attack_power / 14 * mh_speed) / max(mh_speed, 0.1)`,
-};
-
 const store = {
   get(key: string) {
     try {
@@ -124,6 +60,13 @@ const store = {
   set(key: string, value: string) {
     try {
       localStorage.setItem(`ff:gear:${key}`, value);
+    } catch {
+      /* private mode */
+    }
+  },
+  remove(key: string) {
+    try {
+      localStorage.removeItem(`ff:gear:${key}`);
     } catch {
       /* private mode */
     }
@@ -151,15 +94,19 @@ export async function renderGear(root: HTMLElement, slugPart: string, params: UR
     }),
   );
   const base: Record<string, number> = JSON.parse(store.get(`base:${slug}`) ?? "{}");
-  let sheet = store.get(`sheet:${slug}`) ?? PRESETS[ARCHETYPE[slug]];
+  const rules = CLASS_SHEETS[slug];
+  const ruleValues: Record<string, number> = { ...Object.fromEntries(rules.params.map((x) => [x.key, x.value])), ...JSON.parse(store.get(`rules:${slug}`) ?? "{}") };
+  // Formulas the player rewrote by hand; null while the rules of thumb drive the sheet.
+  let custom = store.get(`formulas:${slug}`);
+  const sheet = () => custom ?? sheetFor(slug, ruleValues);
 
   root.innerHTML = `
     <section class="page gear" style="--class:${classColor(slug)}">
       <header class="page-head">
         <div>
           <h1>Gear sandbox</h1>
-          <p class="lede">Put on real items from the game client and watch the numbers add up. The formulas below are Classic rules
-            of thumb, so change them however you like. Heads up: the client has plenty of items that may never be obtainable in Forever.</p>
+          <p class="lede">Put on real items from the game client and see your character sheet add up. The math uses Classic Era
+            rules of thumb, which you can change. Heads up: the client has plenty of items that may never be obtainable in Forever.</p>
         </div>
         <div class="build-head-actions">
           <button class="btn" id="share">Share</button>
@@ -180,22 +127,31 @@ export async function renderGear(root: HTMLElement, slugPart: string, params: UR
               <label>Level<input type="number" min="1" max="60" data-base="level" value="${base.level ?? 60}" /></label>
             </div>
           </section>
-          <section class="panel"><h2>Gear totals</h2><dl class="totals" id="totals"></dl></section>
+          <section class="panel"><h2>Character sheet</h2><div class="char-sheet" id="char-sheet" aria-live="polite"></div></section>
+          <section class="panel"><h2>From your gear</h2><dl class="totals" id="totals"></dl></section>
         </div>
       </div>
-      <section class="panel formula-panel">
+      <section class="panel rules-panel">
         <div class="formula-head">
-          <h2>Formula sheet</h2>
-          <button class="btn small ghost" id="reset-sheet">Reset to ${ARCHETYPE[slug]} preset</button>
+          <h2>Rules of thumb</h2>
+          <button class="btn small ghost" id="reset-rules">Reset</button>
         </div>
-        <p class="muted small">One <code>name = formula</code> per line, evaluated top to bottom. Available names:
-          <code>gear_*</code> (${STAT_KEYS.slice(0, 8).join(", ")}, …), <code>base_*</code>, <code>level</code>,
-          <code>mh_min</code>/<code>mh_max</code>/<code>mh_speed</code>/<code>mh_dps</code> (also <code>oh_</code>, <code>ranged_</code>),
-          and <code>min max floor ceil round abs</code>. The presets are Classic Era rules of thumb, not confirmed Forever mechanics.</p>
-        <div class="formula">
-          <textarea id="sheet" spellcheck="false" aria-label="Formula sheet">${esc(sheet)}</textarea>
-          <ol class="formula-results" id="results" aria-live="polite"></ol>
+        <p class="muted small">The character sheet uses these Classic Era values for a level 60 ${esc(clsName.toLowerCase())}. Forever may work differently: if you know better, change them here.</p>
+        <p class="rules-custom" id="rules-custom" hidden>You're using your own formulas, so these don't apply. <button type="button" class="link-btn" id="drop-custom">Go back to the rules of thumb</button></p>
+        <div class="rules-grid" id="rules">
+          ${rules.params
+            .map((x) => `<label><span>${esc(x.label)}</span><input type="number" step="any" min="0" data-rule="${x.key}" value="${ruleValues[x.key]}" />${x.note ? `<small>${esc(x.note)}</small>` : ""}</label>`)
+            .join("")}
         </div>
+        <details class="formula-details" id="formula-details">
+          <summary>Edit the formulas yourself</summary>
+          <p class="muted small">One <code>name = formula</code> per line, top to bottom; each line can use the ones above it. You can also use
+            <code>gear_*</code> (${STAT_KEYS.slice(0, 8).join(", ")}, …), <code>base_*</code>, <code>level</code>,
+            <code>mh_min</code>/<code>mh_max</code>/<code>mh_speed</code>/<code>mh_dps</code> (also <code>oh_</code>, <code>ranged_</code>)
+            and <code>min max floor ceil round abs</code>. New names show up in the character sheet under "Your formulas".</p>
+          <textarea id="sheet" spellcheck="false" aria-label="Formulas">${esc(sheet())}</textarea>
+          <ul class="formula-errors" id="formula-errors" aria-live="polite"></ul>
+        </details>
       </section>
       ${adSlot("leaderboard")}
     </section>`;
@@ -220,6 +176,7 @@ export async function renderGear(root: HTMLElement, slugPart: string, params: UR
       vars[`${prefix}_max`] = d?.max ?? 0;
       vars[`${prefix}_speed`] = d?.speed ?? 0;
       vars[`${prefix}_dps`] = d?.dps ?? 0;
+      vars[`${prefix}_equipped`] = equipped.has(key) ? 1 : 0;
     }
     return vars;
   };
@@ -255,21 +212,26 @@ export async function renderGear(root: HTMLElement, slugPart: string, params: UR
     const t = totals();
     const rows = STAT_KEYS.filter((k) => t[k]).map((k) => `<div><dt>${esc(STAT_LABEL[k])}</dt><dd>${t[k]}</dd></div>`);
     const mh = equipped.get("mh")?.dmg;
-    if (mh) rows.push(`<div><dt>Main hand</dt><dd>${mh.min}–${mh.max} · ${mh.speed.toFixed(2)} · ${mh.dps} DPS</dd></div>`);
+    if (mh) rows.push(`<div class="wide"><dt>Main hand</dt><dd>${mh.min}–${mh.max} · ${mh.speed.toFixed(2)} · ${mh.dps} DPS</dd></div>`);
     root.querySelector("#totals")!.innerHTML = rows.join("") || `<p class="muted small">Equip items to see totals.</p>`;
   };
 
   const drawSheet = () => {
-    const { lines } = runSheet(sheet, inputs());
-    root.querySelector("#results")!.innerHTML = lines
-      .map((l) =>
-        l.name
-          ? `<li class="${l.error ? "err" : ""}" style="--line:${l.line}"><b>${esc(l.name)}</b> ${
-              l.error ? `<span>${esc(l.error)}</span>` : `<span>${fmt(l.value!)}</span>`
-            }</li>`
-          : "",
+    const { groups, errors } = characterSheet(slug, sheet(), inputs());
+    root.querySelector("#char-sheet")!.innerHTML = [...groups.entries()]
+      .map(
+        ([group, rows]) => `<h3>${esc(group)}</h3><dl>${rows
+          .map(
+            (r) => `<div class="${r.error ? "err" : ""}"><dt>${esc(r.label)}${r.how && !r.error ? `<small>${esc(r.how)}</small>` : ""}${
+              r.error ? `<small>${esc(r.error)}</small>` : ""
+            }</dt><dd>${fmtStat(r)}</dd></div>`,
+          )
+          .join("")}</dl>`,
       )
       .join("");
+    root.querySelector("#formula-errors")!.innerHTML = errors.map((e) => `<li>Line ${e.line}: ${esc(e.error!)}</li>`).join("");
+    root.querySelector<HTMLElement>("#rules-custom")!.hidden = custom === null;
+    root.querySelectorAll<HTMLInputElement>("[data-rule]").forEach((i) => (i.disabled = custom !== null));
   };
 
   const update = () => {
@@ -288,17 +250,41 @@ export async function renderGear(root: HTMLElement, slugPart: string, params: UR
     }),
   );
   const textarea = root.querySelector<HTMLTextAreaElement>("#sheet")!;
+  const saveRules = () => store.set(`rules:${slug}`, JSON.stringify(ruleValues));
+  const saveCustom = () => (custom === null ? store.remove(`formulas:${slug}`) : store.set(`formulas:${slug}`, custom));
+  root.querySelectorAll<HTMLInputElement>("[data-rule]").forEach((input) =>
+    input.addEventListener("input", () => {
+      const v = Number(input.value);
+      if (!(v > 0)) return; // ignore blanks and zeros while typing; they'd divide by zero
+      ruleValues[input.dataset.rule!] = v;
+      saveRules();
+      textarea.value = sheet();
+      drawSheet();
+    }),
+  );
   textarea.addEventListener("input", () => {
-    sheet = textarea.value;
-    store.set(`sheet:${slug}`, sheet);
+    // Editing the text makes it the player's own; matching the generated sheet again undoes that.
+    custom = textarea.value === sheetFor(slug, ruleValues) ? null : textarea.value;
+    saveCustom();
     drawSheet();
   });
-  root.querySelector("#reset-sheet")!.addEventListener("click", () => {
-    sheet = PRESETS[ARCHETYPE[slug]];
-    textarea.value = sheet;
-    store.set(`sheet:${slug}`, sheet);
+  const resetRules = () => {
+    custom = null;
+    saveCustom();
+    for (const x of rules.params) ruleValues[x.key] = x.value;
+    saveRules();
+    root.querySelectorAll<HTMLInputElement>("[data-rule]").forEach((i) => (i.value = String(ruleValues[i.dataset.rule!])));
+    textarea.value = sheet();
+    drawSheet();
+  };
+  root.querySelector("#reset-rules")!.addEventListener("click", resetRules);
+  root.querySelector("#drop-custom")!.addEventListener("click", () => {
+    custom = null;
+    saveCustom();
+    textarea.value = sheet();
     drawSheet();
   });
+  if (custom !== null) root.querySelector<HTMLDetailsElement>("#formula-details")!.open = true;
   root.querySelector("#clear")!.addEventListener("click", () => {
     equipped.clear();
     update();
@@ -309,8 +295,6 @@ export async function renderGear(root: HTMLElement, slugPart: string, params: UR
   update();
   fillAds(root);
 }
-
-const fmt = (v: number) => (Math.abs(v) >= 100 || Number.isInteger(v) ? Math.round(v).toLocaleString() : v.toFixed(2));
 
 function statLine(item: Item) {
   const parts = Object.entries(item.stats)

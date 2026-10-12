@@ -264,7 +264,7 @@ export async function resolvePage(req: Request, env: Env): Promise<Page> {
     }
     case "gear": {
       if (a && (!isClassSlug(a) || b)) return notFound();
-      return simple(a ? `/gear/${a}` : "/gear", a ? `${cap(a)} Gear Sandbox for WoW Forever` : "WoW Forever Gear Sandbox", "Equip real World of Warcraft: Forever items and see your stat totals, with formulas you can edit.");
+      return simple(a ? `/gear/${a}` : "/gear", a ? `${cap(a)} Gear Sandbox for WoW Forever` : "WoW Forever Gear Sandbox", "Equip real World of Warcraft: Forever items and see your character sheet: attack power, crit, spell power and more, with rules of thumb you can change.");
     }
     case "professions": {
       if (!a) return simple("/professions", "WoW Forever Professions & Recipes", "Every World of Warcraft: Forever profession recipe with reagents and skill levels, new recipes marked.");

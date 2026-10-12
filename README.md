@@ -19,7 +19,7 @@ All game data is read from the public beta client (via [wago.tools](https://wago
 | `/compare/<class>/<a>/<b>` | Two builds overlaid, with every differing talent and its tooltip at each rank |
 | `/leveling/<class>/<code>` | Level 1–60 plan: talent points, trainer abilities, dungeons opening up |
 | `/legacy/<code>` | Legacy (account-wide) point planner and every way to earn points |
-| `/gear/<class>?i=…` | Gear sandbox: real beta items, stat totals and an editable formula sheet |
+| `/gear/<class>?i=…` | Gear sandbox: real beta items, a character sheet built on editable rules of thumb, and optional hand-written formulas |
 | `/professions/<name>` | Recipe browser with reagents, difficulty and "new in Forever" markers |
 | `/flights/<continent>` | Flight map and route planner: every learnable flight point and route with prices, new ones (and new zones) marked |
 
