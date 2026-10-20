@@ -1,0 +1,25 @@
+{
+  "v": 1,
+  "machine": "desktop-d89svno",
+  "label": "DESKTOP-D89SVNO",
+  "branch": "main",
+  "head": "f90d9ef35cb5645c9092b79b24123b16b502eb8b",
+  "subject": "Add NEXUS.md project manifest",
+  "committedAt": "2026-10-19T15:50:14+02:00",
+  "recent": [
+    {
+      "at": "2026-10-20T08:36:17.418Z",
+      "source": "app",
+      "title": "",
+      "summary": "",
+      "report": ""
+    },
+    {
+      "at": "2026-10-20T08:05:50.605Z",
+      "source": "terminal",
+      "title": "",
+      "summary": "last asked: \"This is the Claude desktop workspace for forge, set up by nexus. Read NEXUS.md, or README.md if there is none, and reply in three short lines: what the project \""
+    }
+  ],
+  "updatedAt": "2026-10-20T08:39:23.067Z"
+}
