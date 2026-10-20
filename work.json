@@ -1,0 +1,19 @@
+{
+  "v": 1,
+  "machine": "machine",
+  "label": "machine",
+  "branch": "main",
+  "head": "f90d9ef35cb5645c9092b79b24123b16b502eb8b",
+  "subject": "Add NEXUS.md project manifest",
+  "committedAt": "2026-10-19T15:50:14+02:00",
+  "recent": [
+    {
+      "at": "2026-10-19T16:58:29.216Z",
+      "source": "app",
+      "title": "forge workspace",
+      "summary": "Forever Forge status summarized; NEXUS.md unchanged",
+      "report": "NEXUS.md was already filled in, with no placeholders and no 'drafted' todo, so I changed nothing and made no commit. - **What it is:** Forever Forge, a theorycrafting and build site for WoW: Forever at wow-forever-forge.com. It has a talent calculator and diffs, an item database, and a gear sandbox. The stack is Vite + TypeScript, Cloudflare Pages Functions + D1, and a Python data pipeline. -"
+    }
+  ],
+  "updatedAt": "2026-10-20T06:55:32.443Z"
+}
