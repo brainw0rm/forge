@@ -13,6 +13,7 @@ import { NEWS_SOURCES, forSource, parseFeed, type NewsItem } from "../shared/new
 const UA = "ForeverForgeNews/1.0 (+https://wow-forever-forge.com/news)";
 const TIMEOUT_MS = 20_000;
 const MAX_BYTES = 8 * 1024 * 1024;
+const BATCH = 25; // headlines per upload: ~250 bytes each, well under the 16 KB body limit
 
 const dry = process.argv.includes("--dry");
 const site = (process.env.SITE_URL || "http://localhost:8788").replace(/\/$/, "");
@@ -55,14 +56,17 @@ if (dry) {
   for (const i of found.sort((a, b) => b.published - a.published)) console.log(`${new Date(i.published).toISOString().slice(0, 16)}  ${i.source.padEnd(14)} ${i.title}`);
 } else {
   if (!secret) throw new Error("Set NOTIFY_SECRET (or add it to .dev.vars for local development).");
-  const res = await fetch(`${site}/api/internal/news`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${secret}`, Origin: site, "Content-Type": "application/json", "User-Agent": UA },
-    body: JSON.stringify({ items: found }),
-  });
-  const text = await res.text();
-  if (!res.ok) throw new Error(`Upload failed: HTTP ${res.status} ${text}`);
-  console.log(`Uploaded to ${site}: ${text}`);
+  // The API takes bodies up to 16 KB, so send the headlines in batches (the server upserts by URL).
+  for (let i = 0; i < Math.max(found.length, 1); i += BATCH) {
+    const res = await fetch(`${site}/api/internal/news`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${secret}`, Origin: site, "Content-Type": "application/json", "User-Agent": UA },
+      body: JSON.stringify({ items: found.slice(i, i + BATCH) }),
+    });
+    const text = await res.text();
+    if (!res.ok) throw new Error(`Upload failed: HTTP ${res.status} ${text}`);
+    console.log(`Uploaded to ${site}: ${text}`);
+  }
 }
 // Only fail the job when every source failed; one publisher being down is normal.
 if (failures === NEWS_SOURCES.length) process.exit(1);
