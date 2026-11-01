@@ -16,10 +16,12 @@ the launch checklist); every push to main deploys automatically. Rule: never ext
   Workers Paid): `public/_routes.json` keeps static files out of the Functions, `OG_IMAGES = "static"` in
   `wrangler.toml` serves one fixed preview card. AdSense is closed and removed from the build. Contact address
   is now brainwormbrood@gmail.com (old wowforeverforge@gmail.com is being deleted).
-- Open question: password hashing (PBKDF2, ~65 ms CPU) exceeds the free plan's 10 ms, so sign-in/sign-up may fail.
+- Password hashing (PBKDF2, ~65 ms CPU) exceeds the free plan's 10 ms. The user chose to just try sign-in after
+  switching plans; if it fails, pause sign-in/sign-up with a clear message or go back to Workers Paid.
 - Both GitHub jobs are enabled again; news runs every 6 hours instead of 2.
 
 ## Todo
+- [ ] After switching to Workers Free: sign in once to check that password checks still get through
 - [ ] Set the `FEEDBACK_EMAIL` Pages secret to the new address (user runs `npx wrangler pages secret put`)
 - [ ] Relaunch on Workers Paid: remove `OG_IMAGES` from `wrangler.toml`, news back to every 2 hours, re-add
       AdSense (`VITE_ADSENSE_CLIENT`) and its privacy text appears automatically
