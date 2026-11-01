@@ -12,15 +12,16 @@ the launch checklist); every push to main deploys automatically. Rule: never ext
 "?" or "not in client yet".
 
 ## Status
-- 2026-11-01: fixed the news job (it failed with HTTP 413 since one feed grew to 50 items; it now uploads in
-  batches of 25) and made the data job skip tests/build when nothing changed (~30 s instead of ~4 min).
-  Both jobs also failed 2026-10-21 to 2026-10-31 because GitHub Actions billing blocked them ("payments failed
-  or spending limit"); minutes reset on Nov 1, but the user should check GitHub billing.
-- The GitHub data job commits "Update game data" every 4 hours, so pull before working.
-- AdSense applied 2026-10-01; `.env.production` still sets `VITE_AD_FALLBACK` (house promos), no slot IDs.
-- Promotion was waiting on the r/wowforever mods to approve a removed Reddit post (as of 2026-10-03).
+- 2026-11-01: the user is taking the site offline and will relaunch later. Both scheduled GitHub workflows
+  (Refresh game data, Refresh news) are disabled; re-enable with `gh workflow enable`. The
+  wowforeverforge@gmail.com account is being deleted; a new contact address comes with the relaunch.
+- Production (Cloudflare Pages + D1, Resend, Ko-fi links) is being shut down by the user; see the relaunch todo.
 
 ## Todo
+- [ ] Relaunch: new contact address in `src/views/legal.ts` (imprint/privacy) and the `FEEDBACK_EMAIL` secret;
+      recreate the Pages project, D1 (migrations, or restore the backup) and secrets (APP_URL, NOTIFY_SECRET,
+      RESEND_API_KEY, MAIL_FROM); point the domain at Cloudflare again; `gh workflow enable` both workflows;
+      re-add the site in Search Console and AdSense; refresh the data first (`npm run data`)
 - [ ] Check GitHub billing (Settings → Billing): Actions were blocked 2026-10-21 to 2026-10-31
 - [ ] Prepare for launch on 2026-11-04: confirm the pipeline switches the phase to `live` when a live Forever
       product appears on wago.tools, and know the `FOREVER_PHASE` override
