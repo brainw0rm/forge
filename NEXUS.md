@@ -24,7 +24,6 @@ the launch checklist); every push to main deploys automatically. Rule: never ext
 
 ## Todo
 - [ ] After switching to Workers Free: sign in once to check that password checks still get through
-- [ ] Set the `FEEDBACK_EMAIL` Pages secret to brainwormbrood@gmail.com (user runs `npx wrangler pages secret put`)
 - [ ] Relaunch on Workers Paid: remove `OG_IMAGES` from `wrangler.toml`, news back to every 2 hours, re-add
       AdSense (`VITE_ADSENSE_CLIENT`) and its privacy text appears automatically
 - [ ] Check GitHub billing (Settings → Billing): Actions were blocked 2026-10-21 to 2026-10-31
