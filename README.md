@@ -159,6 +159,8 @@ A build is the ordered list of points spent, so a link also records the leveling
 
 ## Deploy (Cloudflare Pages + D1)
 
+**Workers Free plan (since 2026-11-01).** `public/_routes.json` sends static files (scripts, data, fonts, images, sitemaps) straight to the CDN, so only page loads and API calls count against the 100,000 Function requests a day. `OG_IMAGES = "static"` in `wrangler.toml` serves `public/og-default.png` (made by `node --import ./scripts/ts-resolve.mjs scripts/write-og-default.ts`) instead of rendering a card per build, which takes ~200 ms of CPU against the free plan's 10 ms. On Workers Paid, remove that variable to render cards again.
+
 1. `npx wrangler d1 create forever-forge`, then put the printed `database_id` in `wrangler.toml`.
 2. `npm run db:migrate` to create the tables in the remote database.
 3. Create the Pages project, either by connecting the Git repo (build command `npm run build`, output `dist`) or with `npm run deploy`. Bind the D1 database as `DB` under Settings → Bindings. SPA fallback is automatic because there's no `404.html`.

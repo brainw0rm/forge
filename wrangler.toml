@@ -3,6 +3,11 @@ name = "forever-forge"
 compatibility_date = "2026-09-01"
 pages_build_output_dir = "dist"
 
+[vars]
+# Workers Free plan (since 2026-11-01): one fixed preview image instead of rendered build cards.
+# Remove this on Workers Paid to render a card per build again.
+OG_IMAGES = "static"
+
 [[d1_databases]]
 binding = "DB"
 database_name = "forever-forge"

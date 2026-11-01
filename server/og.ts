@@ -159,6 +159,39 @@ export function cardSvg(d: CardData): string {
 </svg>`;
 }
 
+/** The site-wide card: pages without their own image, and every link while OG_IMAGES=static. */
+export function defaultCardSvg(): string {
+  const classes = ["#c69b6d", "#f48cba", "#aad372", "#fff468", "#ffffff", "#0070dd", "#3fc7eb", "#8788ee", "#ff7c0a"];
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${CARD_W}" height="${CARD_H}" viewBox="0 0 ${CARD_W} ${CARD_H}" font-family="Inter">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="${C.night}"/>
+      <stop offset=".45" stop-color="${C.deep}"/>
+      <stop offset=".72" stop-color="${C.twilight}"/>
+      <stop offset=".9" stop-color="${C.plum}"/>
+      <stop offset="1" stop-color="${C.peach}"/>
+    </linearGradient>
+    <linearGradient id="shade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="${C.night}" stop-opacity=".92"/>
+      <stop offset="1" stop-color="${C.night}" stop-opacity=".35"/>
+    </linearGradient>
+  </defs>
+  <rect width="${CARD_W}" height="${CARD_H}" fill="url(#sky)"/>
+  <rect width="${CARD_W}" height="${CARD_H}" fill="url(#shade)"/>
+  <rect x="0" y="0" width="${CARD_W}" height="${CARD_H}" fill="none" stroke="${C.bronze}" stroke-opacity=".45" stroke-width="3"/>
+  ${classes.map((c, i) => `<rect x="0" y="${(i * CARD_H) / classes.length}" width="12" height="${CARD_H / classes.length + 1}" fill="${c}"/>`).join("")}
+  <g transform="translate(80 110)">
+    <svg width="120" height="120" viewBox="0 0 48 48">${logoMark("og")}</svg>
+    <text x="146" y="50" font-size="26" font-weight="600" letter-spacing="13" fill="${C.bronze}">FOREVER</text>
+    <text x="143" y="108" font-size="62" font-weight="600" letter-spacing="10" fill="${C.cream}">FORGE</text>
+  </g>
+  <text x="80" y="340" font-size="50" font-weight="700" fill="${C.cream}">WoW Forever talent calculator,</text>
+  <text x="80" y="404" font-size="50" font-weight="700" fill="${C.cream}">builds and item database</text>
+  <text x="80" y="468" font-size="27" fill="${C.mist}">Every talent compared with Classic Era, straight from the game client</text>
+  <text x="80" y="${CARD_H - 58}" font-size="24" fill="${C.gold}">wow-forever-forge.com</text>
+</svg>`;
+}
+
 /** Minimal slice of @resvg/resvg-wasm's API, so tests and the worker can inject it. */
 export interface ResvgModule {
   Resvg: new (

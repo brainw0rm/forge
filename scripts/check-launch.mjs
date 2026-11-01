@@ -7,8 +7,8 @@ for (const file of [".env", ".env.production", ".env.local", ".env.production.lo
   const url = new URL(`../${file}`, import.meta.url);
   if (!existsSync(url)) continue;
   for (const line of readFileSync(url, "utf8").split("\n")) {
-    const m = /^\s*VITE_ADSENSE_CLIENT\s*=\s*(\S+)/.exec(line);
-    if (m && !process.env.VITE_ADSENSE_CLIENT) process.env.VITE_ADSENSE_CLIENT = m[1];
+    const m = /^\s*(VITE_ADSENSE_CLIENT|VITE_AD_FALLBACK)\s*=\s*(\S+)/.exec(line);
+    if (m && !process.env[m[1]]) process.env[m[1]] = m[2];
   }
 }
 
@@ -17,8 +17,9 @@ const legal = readFileSync(new URL("../src/views/legal.ts", import.meta.url), "u
 if (/\[(Full name|Street|contact email|Postal code)/.test(legal)) problems.push("Operator details in src/views/legal.ts are still placeholders (imprint + privacy policy).");
 const wrangler = readFileSync(new URL("../wrangler.toml", import.meta.url), "utf8");
 if (wrangler.includes("00000000-0000-0000-0000-000000000000")) problems.push("wrangler.toml still has the placeholder D1 database_id.");
-if (!process.env.VITE_ADSENSE_CLIENT) problems.push("VITE_ADSENSE_CLIENT is not set: ad slots show \"Ad space\" placeholders (or house promos with VITE_AD_FALLBACK=house) and no ads.txt is generated.");
-else if (!existsSync(new URL("../dist/ads.txt", import.meta.url))) problems.push("dist/ads.txt is missing.");
+// Running without ads on purpose (house promos) is fine.
+if (!process.env.VITE_ADSENSE_CLIENT && process.env.VITE_AD_FALLBACK !== "house") problems.push("VITE_ADSENSE_CLIENT is not set: ad slots show \"Ad space\" placeholders (or house promos with VITE_AD_FALLBACK=house) and no ads.txt is generated.");
+else if (process.env.VITE_ADSENSE_CLIENT && !existsSync(new URL("../dist/ads.txt", import.meta.url))) problems.push("dist/ads.txt is missing.");
 
 if (problems.length) {
   console.warn(`\nLaunch checklist (${problems.length}):\n${problems.map((p) => `  • ${p}`).join("\n")}\n`);

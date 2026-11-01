@@ -7,7 +7,7 @@ const SITE_OPERATOR = {
   street: "Peter-Behrens-Platz 6",
   city: "4020 Linz",
   country: "Austria",
-  email: "wowforeverforge@gmail.com",
+  email: "brainwormbrood@gmail.com",
 };
 const operatorAddress = `${SITE_OPERATOR.street}<br>${SITE_OPERATOR.city}<br>${SITE_OPERATOR.country}`;
 const operatorEmail = `<a href="mailto:${SITE_OPERATOR.email}">${SITE_OPERATOR.email}</a>`;
@@ -48,10 +48,16 @@ export function renderPrivacy(root: HTMLElement) {
       <p>The legal basis is the contract you enter by creating an account (Art. 6(1)(b) GDPR) and our legitimate interest in
         keeping the service secure (Art. 6(1)(f) GDPR).</p>
 
-      <h2>Advertising</h2>
+      ${
+        import.meta.env.VITE_ADSENSE_CLIENT
+          ? `<h2>Advertising</h2>
       <p>Forever Forge is funded by ads served by Google AdSense. Google may use cookies to show and measure ads.
         Personalized ads are only shown if you agree in the consent dialog, and you can change your choice at any time.
-        See <a href="https://policies.google.com/technologies/ads" rel="noopener">how Google uses data for ads</a>.</p>
+        See <a href="https://policies.google.com/technologies/ads" rel="noopener">how Google uses data for ads</a>.</p>`
+          : `<h2>Advertising</h2>
+      <p>Forever Forge shows no third-party ads and loads no ad or tracking scripts. The highlighted boxes on some pages
+        point to other parts of this site or to our Ko-fi page.</p>`
+      }
 
       <h2>Donations</h2>
       <p>The "Support on Ko-fi" links take you to Ko-fi, which handles donations under its own

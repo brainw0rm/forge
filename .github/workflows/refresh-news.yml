@@ -7,8 +7,8 @@ name: Refresh news
 
 on:
   schedule:
-    # Every 2 hours: keeps a private repository within the free 2,000 Actions minutes a month.
-    - cron: "41 */2 * * *"
+    # Every 6 hours while the site is in standby (was every 2): few Actions minutes in a private repo.
+    - cron: "41 */6 * * *"
   workflow_dispatch:
 
 permissions:

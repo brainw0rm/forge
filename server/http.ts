@@ -12,6 +12,9 @@ export interface Env {
   APP_URL?: string;
   /** Shared secret for the internal alert job and for signing unsubscribe links. */
   NOTIFY_SECRET?: string;
+  /** "static": serve public/og-default.png instead of rendering preview cards. Rendering takes
+   * ~200 ms of CPU, more than the Workers Free plan's 10 ms per request (set in wrangler.toml). */
+  OG_IMAGES?: string;
   /** Optional inbox that receives a copy of every "Report a bug" submission. */
   FEEDBACK_EMAIL?: string;
   /** "1" in local development: store mail in dev_outbox and expose /api/dev/outbox. */

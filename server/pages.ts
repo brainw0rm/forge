@@ -36,6 +36,9 @@ interface FlightFile {
   nodes: { name: string; zone: string; continent: number; faction: "alliance" | "horde" | "both"; isNew: boolean }[];
 }
 
+/** Site-wide preview card (scripts/write-og-default.ts); also used for every page while OG_IMAGES=static. */
+const DEFAULT_IMAGE = "/og-default.png";
+
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
 const cap = (s: string) => s[0].toUpperCase() + s.slice(1);
 const PRIVATE = new Set(["account", "admin", "login", "signup", "forgot-password", "reset-password", "verify-email", "unsubscribe"]);
@@ -342,20 +345,17 @@ export function pageHtml(page: Page, req: Request, env: Env): PageHtml {
   const title = oneLine(page.title, 120);
   const description = oneLine(page.description, 300);
   const abs = (p: string) => new URL(p, origin).toString();
+  const image = env.OG_IMAGES === "static" || !page.image ? DEFAULT_IMAGE : page.image;
   const head = [
     noindex ? `<meta name="robots" content="noindex" />` : "",
     page.canonical && !noindex ? `<link rel="canonical" href="${esc(abs(page.canonical))}" />` : "",
     `<meta property="og:type" content="website" />`,
     `<meta property="og:site_name" content="${SITE_NAME}" />`,
-    `<meta name="twitter:card" content="${page.image ? "summary_large_image" : "summary"}" />`,
-    ...(page.image
-      ? [
-          `<meta property="og:image" content="${esc(abs(page.image))}" />`,
-          `<meta property="og:image:width" content="1200" />`,
-          `<meta property="og:image:height" content="630" />`,
-          `<meta name="twitter:image" content="${esc(abs(page.image))}" />`,
-        ]
-      : []),
+    `<meta name="twitter:card" content="summary_large_image" />`,
+    `<meta property="og:image" content="${esc(abs(image))}" />`,
+    `<meta property="og:image:width" content="1200" />`,
+    `<meta property="og:image:height" content="630" />`,
+    `<meta name="twitter:image" content="${esc(abs(image))}" />`,
     title ? `<meta name="twitter:title" content="${esc(title.replace(/ · Forever Forge$/, ""))}" />` : "",
     description ? `<meta name="twitter:description" content="${esc(description)}" />` : "",
     ...(page.jsonLd ?? []).map((d) => `<script type="application/ld+json">${JSON.stringify(d).replace(/</g, "\\u003c")}</script>`),

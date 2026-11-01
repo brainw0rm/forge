@@ -76,6 +76,13 @@ describe("server-rendered pages", () => {
     expect(missing.status).toBe(404);
     expect(missing.head).toContain('<meta name="robots" content="noindex" />');
 
+    // Pages without their own card, and every page with OG_IMAGES=static, use the site-wide card.
+    expect(pageHtml(await resolvePage(get("/races"), env), get("/races"), env).head).toContain("/og-default.png");
+    const staticEnv = { ...env, OG_IMAGES: "static" } as Env;
+    expect(pageHtml(await resolvePage(get("/talents/mage/Z00Z00"), staticEnv), get("/talents/mage/Z00Z00"), staticEnv).head).toContain(
+      '<meta property="og:image" content="https://wow-forever-forge.com/og-default.png" />',
+    );
+
     // Preview deployments are for testing only: noindex, no canonical.
     const previewReq = get("/talents/mage", "abc123.forever-forge.pages.dev");
     const preview = pageHtml(await resolvePage(previewReq, env), previewReq, env);

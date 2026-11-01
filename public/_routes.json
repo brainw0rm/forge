@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "include": [
+    "/*"
+  ],
+  "exclude": [
+    "/assets/*",
+    "/data/*",
+    "/og/Inter_400Regular.ttf",
+    "/og/Inter_600SemiBold.ttf",
+    "/og/Inter_700Bold.ttf",
+    "/og-default.png",
+    "/favicon.svg",
+    "/apple-touch-icon.png",
+    "/logo-email.png",
+    "/robots.txt",
+    "/sitemap.xml",
+    "/sitemap-pages.xml",
+    "/sitemap-items.xml"
+  ]
+}

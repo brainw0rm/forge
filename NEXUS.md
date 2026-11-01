@@ -12,21 +12,20 @@ the launch checklist); every push to main deploys automatically. Rule: never ext
 "?" or "not in client yet".
 
 ## Status
-- 2026-11-01: the user is taking the site offline and will relaunch later. Both scheduled GitHub workflows
-  (Refresh game data, Refresh news) are disabled; re-enable with `gh workflow enable`. The
-  wowforeverforge@gmail.com account is being deleted; a new contact address comes with the relaunch.
-- Production (Cloudflare Pages + D1, Resend, Ko-fi links) is being shut down by the user; see the relaunch todo.
+- 2026-11-01: the site stays online in standby on the Cloudflare Workers Free plan (the user is cancelling
+  Workers Paid): `public/_routes.json` keeps static files out of the Functions, `OG_IMAGES = "static"` in
+  `wrangler.toml` serves one fixed preview card. AdSense is closed and removed from the build. Contact address
+  is now brainwormbrood@gmail.com (old wowforeverforge@gmail.com is being deleted).
+- Open question: password hashing (PBKDF2, ~65 ms CPU) exceeds the free plan's 10 ms, so sign-in/sign-up may fail.
+- Both GitHub jobs are enabled again; news runs every 6 hours instead of 2.
 
 ## Todo
-- [ ] Relaunch: new contact address in `src/views/legal.ts` (imprint/privacy) and the `FEEDBACK_EMAIL` secret;
-      recreate the Pages project, D1 (migrations, or restore the backup) and secrets (APP_URL, NOTIFY_SECRET,
-      RESEND_API_KEY, MAIL_FROM); point the domain at Cloudflare again; `gh workflow enable` both workflows;
-      re-add the site in Search Console and AdSense; refresh the data first (`npm run data`)
+- [ ] Set the `FEEDBACK_EMAIL` Pages secret to the new address (user runs `npx wrangler pages secret put`)
+- [ ] Relaunch on Workers Paid: remove `OG_IMAGES` from `wrangler.toml`, news back to every 2 hours, re-add
+      AdSense (`VITE_ADSENSE_CLIENT`) and its privacy text appears automatically
 - [ ] Check GitHub billing (Settings → Billing): Actions were blocked 2026-10-21 to 2026-10-31
 - [ ] Prepare for launch on 2026-11-04: confirm the pipeline switches the phase to `live` when a live Forever
       product appears on wago.tools, and know the `FOREVER_PHASE` override
-- [ ] Once AdSense is approved: create the ad units, add `VITE_ADSENSE_SLOT_LEADERBOARD/_RECTANGLE/_RAIL` to
-      `.env.production`, remove `VITE_AD_FALLBACK`, and turn on the EU consent message
 - [ ] Check Google Search Console: that all sitemaps are fetched and pages indexed (if not, look at Cloudflare
       Security events for Googlebot)
 - [ ] Release-week promotion: Reddit post leading with talent numbers (once mods approve), class Discords,
