@@ -23,7 +23,8 @@ the launch checklist); every push to main deploys automatically. Rule: never ext
 - Both GitHub jobs are enabled again; news runs every 6 hours instead of 2.
 
 ## Todo
-- [ ] After switching to Workers Free: sign in once to check that password checks still get through
+- [ ] Workers Paid and Images/Stream cancelled 2026-11-01 (may stay active until the billing period ends). After
+      that date, re-run a sign-in check (a made-up username exercises the same PBKDF2 CPU via DUMMY_HASH)
 - [ ] Relaunch on Workers Paid: remove `OG_IMAGES` from `wrangler.toml`, news back to every 2 hours, re-add
       AdSense (`VITE_ADSENSE_CLIENT`) and its privacy text appears automatically
 - [ ] Check GitHub billing (Settings → Billing): Actions were blocked 2026-10-21 to 2026-10-31
