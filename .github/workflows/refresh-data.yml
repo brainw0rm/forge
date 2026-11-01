@@ -36,24 +36,34 @@ jobs:
           FOREVER_PHASE: ${{ vars.FOREVER_PHASE }}
         run: python3 pipeline/build_data.py --refresh
 
+      # Most runs find no new build: stop here so they cost a minute, not five.
+      - name: Check for changes
+        id: diff
+        run: |
+          # meta.json always carries a fresh timestamp; only real data changes count.
+          if git diff --quiet -- public/data ':!public/data/meta.json' && [ -z "$(git ls-files --others --exclude-standard public/data)" ]; then
+            echo "No data changes"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/setup-node@v4
+        if: steps.diff.outputs.changed == 'true'
         with:
           node-version: 22
           cache: npm
 
       - name: Test
+        if: steps.diff.outputs.changed == 'true'
         run: |
           npm ci
           npm test
           npm run build
 
-      - name: Commit if changed
+      - name: Commit
         id: commit
+        if: steps.diff.outputs.changed == 'true'
         run: |
-          # meta.json always carries a fresh timestamp; only commit real data changes.
-          if git diff --quiet -- public/data ':!public/data/meta.json'; then
-            echo "No data changes"; exit 0
-          fi
           git config user.name "forever-forge-bot"
           git config user.email "forever-forge-bot@users.noreply.github.com"
           git add public/data
