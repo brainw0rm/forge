@@ -12,17 +12,16 @@ the launch checklist); every push to main deploys automatically. Rule: never ext
 "?" or "not in client yet".
 
 ## Status
-- Last feature commit 2026-10-12: gear sandbox character sheet with editable rules of thumb. The GitHub data
-  job commits "Update game data" every 4 hours (latest local one 2026-10-10), so pull before working; this
-  clone may be behind origin.
-- Working tree is clean. Production runs on Cloudflare Pages + D1 with Resend email, the news job every 2
-  hours, and Ko-fi links (since 2026-10-03).
-- AdSense applied 2026-10-01 and awaiting review; `.env.production` still sets `VITE_AD_FALLBACK` (house
-  promos) and has no ad slot IDs.
-- Promotion is waiting on the r/wowforever mods to approve a removed Reddit post (as of 2026-10-03; current
-  state unknown).
+- 2026-11-01: fixed the news job (it failed with HTTP 413 since one feed grew to 50 items; it now uploads in
+  batches of 25) and made the data job skip tests/build when nothing changed (~30 s instead of ~4 min).
+  Both jobs also failed 2026-10-21 to 2026-10-31 because GitHub Actions billing blocked them ("payments failed
+  or spending limit"); minutes reset on Nov 1, but the user should check GitHub billing.
+- The GitHub data job commits "Update game data" every 4 hours, so pull before working.
+- AdSense applied 2026-10-01; `.env.production` still sets `VITE_AD_FALLBACK` (house promos), no slot IDs.
+- Promotion was waiting on the r/wowforever mods to approve a removed Reddit post (as of 2026-10-03).
 
 ## Todo
+- [ ] Check GitHub billing (Settings → Billing): Actions were blocked 2026-10-21 to 2026-10-31
 - [ ] Prepare for launch on 2026-11-04: confirm the pipeline switches the phase to `live` when a live Forever
       product appears on wago.tools, and know the `FOREVER_PHASE` override
 - [ ] Once AdSense is approved: create the ad units, add `VITE_ADSENSE_SLOT_LEADERBOARD/_RECTANGLE/_RAIL` to
