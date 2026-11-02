@@ -417,7 +417,8 @@ class SpellDB:
                     i += word.end()
                     if word.group(0) == "proccooldown":
                         v = num(self.aura.get(sid, {}).get("ProcCategoryRecovery")) / 1000
-                        out.append(fmt(v) + " sec")
+                        # Most texts write "$proccooldown sec" themselves; don't add a second "sec".
+                        out.append(fmt(v) if re.match(r"\s*sec\b", text[i:]) else fmt(v) + " sec")
                     continue
                 i = m.end()
                 v = self._var(m.group(1) or sid, m.group(2), int(m.group(3) or 1), depth)

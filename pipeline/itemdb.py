@@ -142,7 +142,8 @@ class ClientItems:
 
 
 def _nums(text: str) -> list[str]:
-    return NUMBER.findall(text)
+    """The numbers in a text, normalized so "1.0" and "1" compare equal."""
+    return [n if n == "?" else f"{float(n):g}" for n in NUMBER.findall(text)]
 
 
 def _same_effect(a: str, b: str) -> bool:
@@ -364,6 +365,8 @@ def build_itemdb(latest_db: SpellDB, era_db: SpellDB, icons: dict[str, str], pro
                 else:
                     entry.pop("makes")
 
+    build_sets(build, era_db, latest_db, item_sets, set_spells, details, skills)
+
     # Items above the level cap (leftovers in the client files) go last in the default order.
     rows.sort(key=lambda row: (row[4] > LEVEL_CAP, -row[3], row[1]))
     write_json(OUT / "items" / "db" / "index.json", {
@@ -384,3 +387,105 @@ def build_itemdb(latest_db: SpellDB, era_db: SpellDB, icons: dict[str, str], pro
                     for c in sorted(class_counts, key=lambda c: classes.get(str(c), ""))],
     })
     return len(details)
+
+
+RANGE = re.compile(r"(\d+(?:\.\d+)?) to (\d+(?:\.\d+)?)")
+
+
+def _same_bonus(cur: str, old: str) -> bool:
+    """Classic Era bonus text vs Forever, ignoring what only differs in how the clients store it:
+    - Forever's spell data has no die rolls, so Classic's "90 to 110" shows there as its middle, "100".
+    - Forever often spells out a proc chance or cooldown that Classic's text leaves out ("has a chance").
+      Extra numbers count as the same bonus as long as every Classic number is still there, in order."""
+    def mid(m: re.Match) -> str:
+        v = (float(m.group(1)) + float(m.group(2))) / 2
+        return str(int(v)) if v == int(v) else str(v)
+    old = RANGE.sub(mid, old)
+    if _same_effect(cur, old):
+        return True
+    nc, no = _nums(cur), _nums(old)
+    if len(no) >= len(nc):
+        return False
+    it = iter(nc)
+    return all(any(x == y or "?" in (x, y) for y in it) for x in no)
+
+
+def build_sets(build: str, era_db: SpellDB, latest_db: SpellDB, item_sets: dict, set_spells: dict,
+               details: dict, skills: dict) -> None:
+    """public/data/sets.json: every item set players can use, with its pieces, bonuses and what
+    changed from Classic Era (bonuses by piece count, pieces added or removed)."""
+    era_sets = {r["ID"]: r for r in load_table(era_db.build, "ItemSet")}
+    era_spells: dict[str, list[dict]] = {}
+    for r in load_table(era_db.build, "ItemSetSpell"):
+        era_spells.setdefault(r["ItemSetID"], []).append(r)
+
+    def members(row: dict) -> list[str]:
+        return [m for m in (row.get(f"ItemID_{i}", "0") for i in range(17)) if m not in ("", "0")]
+
+    def bonuses(rows: list[dict], db: SpellDB) -> list[dict]:
+        out = [{"n": int(num(b["Threshold"])), "text": db.render(b["SpellID"])}
+               for b in sorted(rows, key=lambda b: (int(num(b["Threshold"])), int(num(b["ID"]))))
+               if b["SpellID"] in db.desc]
+        return [b for b in out if b["text"]]
+
+    out = []
+    for sid, row in item_sets.items():
+        pieces = [details[m] for m in members(row) if m in details]
+        # Only sets a player can wear: at least one piece at or below the level cap.
+        if not pieces or min(p["req"] for p in pieces) > LEVEL_CAP:
+            continue
+        cur_b = bonuses(set_spells.get(sid, []), latest_db)
+        entry = {
+            "id": int(sid), "name": row["Name_lang"],
+            "items": [{"id": p["id"], "name": p["name"], "q": p["q"], "icon": p["icon"], "slot": p["slot"],
+                       "ilvl": p["ilvl"], "req": p["req"], "cls": p["cls"], "sub": p["sub"]} for p in pieces],
+            "bonuses": cur_b,
+        }
+        classes = sorted({c for p in pieces for c in p.get("classes", [])})
+        if classes:
+            entry["classes"] = classes
+        if row.get("RequiredSkill") not in (None, "", "0") and row["RequiredSkill"] in skills:
+            entry["skill"] = {"name": skills[row["RequiredSkill"]], "rank": int(num(row["RequiredSkillRank"]))}
+        totals: dict[str, int] = {}
+        armor = 0
+        for p in pieces:
+            for k, v in p.get("stats", {}).items():
+                totals[k] = totals.get(k, 0) + v
+            armor += p.get("armor") or 0
+        entry["stats"] = totals
+        if armor:
+            entry["armor"] = armor
+
+        old = era_sets.get(sid)
+        if old is None:
+            entry["status"] = "new"
+        else:
+            old_b = bonuses(era_spells.get(sid, []), era_db)
+            by_n = lambda bs: {n: [b["text"] for b in bs if b["n"] == n] for n in {b["n"] for b in bs}}  # noqa: E731
+            cn, on = by_n(cur_b), by_n(old_b)
+            for b in cur_b:
+                before = on.get(b["n"], [])
+                if not any(_same_bonus(b["text"], t) for t in before):
+                    b["status"] = "changed" if before else "new"
+                    if before:
+                        b["classic"] = before[0] if len(before) == 1 else " / ".join(before)
+            removed = [b for b in old_b if not any(_same_bonus(t, b["text"]) for t in cn.get(b["n"], []))
+                       and b["n"] not in cn]
+            if removed:
+                entry["removedBonuses"] = removed
+            cur_ids, old_ids = {str(p["id"]) for p in pieces}, set(members(old))
+            added = sorted(int(i) for i in cur_ids - old_ids)
+            gone = sorted(int(i) for i in old_ids - cur_ids)
+            if added:
+                entry["addedItems"] = added
+            if gone:
+                entry["removedItems"] = gone
+            changed = removed or added or gone or any("status" in b for b in cur_b)
+            if old["Name_lang"] != row["Name_lang"]:
+                entry["classicName"] = old["Name_lang"]
+                changed = True
+            entry["status"] = "changed" if changed else "same"
+        out.append(entry)
+
+    out.sort(key=lambda e: (-max(i["ilvl"] for i in e["items"]), e["name"]))
+    write_json(OUT / "sets.json", {"build": build, "classicBuild": era_db.build, "sets": out})
