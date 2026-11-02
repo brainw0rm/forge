@@ -21,6 +21,7 @@ All game data is read from the public beta client (via [wago.tools](https://wago
 | `/legacy/<code>` | Legacy (account-wide) point planner and every way to earn points |
 | `/gear/<class>?i=…` | Gear sandbox: real beta items, a character sheet built on editable rules of thumb, and optional hand-written formulas |
 | `/professions/<name>` | Recipe browser with reagents, difficulty and "new in Forever" markers |
+| `/sets`, `/sets/<id>` | Item sets: pieces, bonuses, stats of all pieces together, and what changed since Classic Era (bonuses, pieces, name) |
 | `/flights/<continent>` | Flight map and route planner: every learnable flight point and route with prices, new ones (and new zones) marked |
 
 The calculator also has a **popularity lens**: each talent is shaded by how many public builds take it, optionally at the level you scrub to. Users can **watch** a class or a saved build to get emailed when a new beta build changes its talents. Share links and build pages have generated **social preview images** (`/og/…`), so they unfurl nicely in Discord and elsewhere.
@@ -189,5 +190,4 @@ These can't be checked from the code:
 ## Ideas for later
 
 - Per-race base stats in the gear sandbox, if a future client ships them. Today they're entered by hand.
-- Set bonuses in the gear sandbox (`ItemSet` and `ItemSetSpell` are in the client).
 - Zone level ranges in the leveling planner, once the client has them.
