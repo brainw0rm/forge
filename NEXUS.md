@@ -23,6 +23,7 @@ the launch checklist); every push to main deploys automatically. Rule: never ext
 - Both GitHub jobs are enabled again; news runs every 6 hours instead of 2.
 
 ## Todo
+- [ ] Item sets: link set bonuses to talent builds (suggest sets whose bonuses touch the build's abilities)
 - [ ] Workers Paid and Images/Stream cancelled 2026-11-01 (may stay active until the billing period ends). After
       that date, re-run a sign-in check (a made-up username exercises the same PBKDF2 CPU via DUMMY_HASH)
 - [ ] Relaunch on Workers Paid: remove `OG_IMAGES` from `wrangler.toml`, news back to every 2 hours, re-add
@@ -34,9 +35,10 @@ the launch checklist); every push to main deploys automatically. Rule: never ext
       Security events for Googlebot)
 - [ ] Release-week promotion: Reddit post leading with talent numbers (once mods approve), class Discords,
       small WoW creators
-- [ ] Gear sandbox: add set bonuses from `ItemSet` / `ItemSetSpell` (README "Ideas for later")
 - [ ] Gear sandbox: per-race base stats if a future client ships them (entered by hand today)
 - [ ] Leveling planner: zone level ranges once the client has them
 - [ ] Responsive check of the new gear sandbox and flight map at 320/375/768/1024/1280 px, signed in and signed out
 - [x] Flight map and route planner from client zone overlays (2026-10-03)
 - [x] Gear sandbox character sheet with editable rules of thumb (2026-10-12)
+- [x] Item sets: /sets explorer with Classic Era comparison, set bonuses counted in the gear sandbox (2026-11-02)
+- [x] WoW interface look: wood-and-gold frames, red buttons, parchment flight map (2026-11-02)

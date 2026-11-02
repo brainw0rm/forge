@@ -1,7 +1,7 @@
 /* Forever Forge
-   Colors are sampled from Blizzard's WoW: Forever page (see the palette below). The look is
-   deliberately quiet: one navy hue family for surfaces, hairline borders, brass for links and
-   active states, and gold only for game elements (maxed talents, ratings). */
+   Colors are sampled from Blizzard's WoW: Forever page (see the palette below): a navy night sky
+   for the page. The "WoW interface layer" at the end of this file puts warm wood-and-gold framed
+   panels, red buttons and gold titles on top, drawn with CSS only (no artwork). */
 
 /* Marcellus draws zero like the letter O; headings take their digits from Inter instead. */
 @font-face {
@@ -1350,3 +1350,119 @@ a.item-chip:hover { text-decoration: none; border-color: var(--border-strong); }
 .gear-set li span { font-variant-numeric: tabular-nums; }
 .gear-set li.on { color: #3fd46f; }
 .gear-set li small { color: var(--muted); font-size: 11.5px; }
+
+/* =====================================================================================
+   WoW interface layer (2026-11): warm wood-and-gold frames, red buttons, gold titles and
+   candlelight, drawn with CSS only (no artwork). Night-blue page, warm "inn" panels on top.
+   ===================================================================================== */
+:root {
+  --trim: #b8913f;         /* frame gold */
+  --trim-light: #e9cd7a;
+  --trim-dark: #5e451b;
+  --wood: #17120d;         /* panel fill, dark oak */
+  --wood-2: #1f1811;
+  --wood-3: #2a2117;
+  --title: #ffd25a;        /* WoW title yellow, softened */
+  --btn-red: #8e2015;
+  --btn-red-dark: #551009;
+
+  --surface: color-mix(in srgb, var(--wood-2) 78%, var(--bg));
+  --surface-2: color-mix(in srgb, var(--wood-3) 80%, var(--bg));
+  --surface-3: color-mix(in srgb, #3a2d1f 80%, var(--bg));
+  --hairline: color-mix(in srgb, var(--trim) 14%, var(--bg));
+  --border: color-mix(in srgb, var(--trim) 24%, var(--bg));
+  --border-strong: color-mix(in srgb, var(--trim) 42%, var(--bg));
+  --brass: var(--trim-light);
+  --radius: 7px;
+  --radius-sm: 5px;
+}
+
+/* Candlelight instead of a cool glow; a faint warm floor at the bottom of the page. */
+.backdrop { background: radial-gradient(60% 100% at 50% 0, color-mix(in srgb, #e0a24a 13%, transparent), transparent 70%); }
+body.is-home .backdrop {
+  background:
+    radial-gradient(40% 55% at 78% 30%, color-mix(in srgb, #e0a24a 9%, transparent), transparent 70%),
+    radial-gradient(80% 80% at 40% 0, color-mix(in srgb, var(--twilight) 24%, transparent), transparent 70%);
+}
+body { background: radial-gradient(120% 60% at 50% 100%, color-mix(in srgb, #3a2412 22%, var(--bg)), var(--bg) 70%) fixed, var(--bg); }
+
+/* Titles in WoW gold with a hard shadow, like the game's frame headers. */
+h1, h2 { color: var(--title); text-shadow: 0 2px 0 rgb(0 0 0 / .55); }
+.hero h1 { color: var(--cream); }
+.class-card h3, .set-head h1, .tree h2 { text-shadow: 0 2px 0 rgb(0 0 0 / .55); }
+
+/* Header: a dark wooden bar with a gold seam. */
+.site-header {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--wood-3) 92%, transparent), color-mix(in srgb, var(--wood) 92%, transparent));
+  border-bottom: 1px solid var(--trim-dark);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--trim-light) 18%, transparent), 0 6px 18px rgb(0 0 0 / .35);
+}
+
+/* Framed panels: gold edge, dark inner bevel, a little light on the top edge. */
+.tree, .panel, .class-card, .set-card, .set-bonus, .hero-showcase, .fm-panel, .fm-map-wrap, .modal,
+.share-post, .support-note, .banner:not(.warn):not(.ok), .tooltip, .item-tooltip, .gear-slot, .auth-card, .menu {
+  background: linear-gradient(180deg, var(--wood-3), var(--wood) 70%);
+  border: 1px solid color-mix(in srgb, var(--trim) 60%, #000);
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / .7), inset 0 1px 0 1px color-mix(in srgb, var(--trim-light) 10%, transparent), 0 8px 22px rgb(0 0 0 / .35);
+}
+.item-tooltip, .tooltip { background: linear-gradient(180deg, #0f1428, #090c19); border-color: color-mix(in srgb, var(--q, #c8ccd8) 45%, #8a8f9e); }
+.set-card { border-top: 2px solid color-mix(in srgb, var(--q) 70%, var(--trim)); }
+.tree header { background: linear-gradient(180deg, color-mix(in srgb, var(--trim) 12%, transparent), transparent); border-bottom-color: color-mix(in srgb, var(--trim) 35%, #000); }
+
+/* Buttons: the game's red button with a gold rim; secondary buttons are dark stone. */
+.btn {
+  background: linear-gradient(180deg, #2f2820, #1c1712);
+  border-color: color-mix(in srgb, var(--trim) 45%, #000);
+  box-shadow: inset 0 1px 0 rgb(255 230 170 / .08), 0 1px 2px rgb(0 0 0 / .5);
+}
+.btn:hover { background: linear-gradient(180deg, #3a3127, #241d16); border-color: var(--trim); }
+.btn.primary {
+  background: linear-gradient(180deg, #b0301f 0%, var(--btn-red) 48%, var(--btn-red-dark) 100%);
+  border-color: var(--trim);
+  color: var(--title); text-shadow: 0 1px 0 rgb(0 0 0 / .7);
+  box-shadow: inset 0 1px 0 rgb(255 210 140 / .35), inset 0 -2px 0 rgb(0 0 0 / .3), 0 2px 8px rgb(0 0 0 / .45);
+}
+.btn.primary:hover { background: linear-gradient(180deg, #c93a26 0%, #a3271a 48%, #63130b 100%); border-color: var(--trim-light); }
+.btn.ghost { background: transparent; box-shadow: none; }
+.btn.ghost:hover { background: color-mix(in srgb, var(--trim) 10%, transparent); }
+
+/* Icons: square, beveled, like action bar buttons. */
+.talent img, .item-row img, .set-pieces img, .set-card-icons img, .hero-classes img, .tree header img, .picker-list img, .gear-slot img {
+  border-radius: 4px;
+}
+.talent { border-radius: 6px; }
+.talent img { box-shadow: inset 0 0 0 1px rgb(0 0 0 / .8); }
+.hero-classes img { box-shadow: 0 0 0 1px color-mix(in srgb, var(--trim) 50%, #000), 0 2px 6px rgb(0 0 0 / .5); }
+
+/* Section rules fade out from gold at the start, like a frame divider. */
+.section-head { border-bottom: 1px solid; border-image: linear-gradient(90deg, var(--trim), color-mix(in srgb, var(--trim) 20%, transparent) 60%, transparent) 1; }
+.class-tabs a.active, .seg a.active { color: var(--title); }
+.class-tabs a.active { box-shadow: inset 0 -2px 0 var(--c, var(--trim)); }
+
+/* Badges and the build badge pick up the warmer frame color. */
+.hero-search input, input, select, textarea { background-color: color-mix(in srgb, #000 35%, var(--wood-2)); border-color: color-mix(in srgb, var(--trim) 30%, #000); }
+/* Gradient-filled text can't carry a text shadow (it shows through the transparent glyphs). */
+.hero h1 { text-shadow: 0 2px 0 rgb(0 0 0 / .45); }
+.hero-accent { text-shadow: none; filter: drop-shadow(0 2px 0 rgb(0 0 0 / .45)); }
+
+/* Flight map as a parchment map: tan land, ink borders and labels, red route like a drawn path. */
+.flights { --fm-land: #c8b07c; --fm-border: #8a6a3c; --fm-ink: #3b2a17; --fm-alliance: #1f5fa8; --fm-horde: #a8231c; --fm-both: #f4ead2; }
+.fm-sea-1 { stop-color: #1b2e47; }
+.fm-sea-2 { stop-color: #0b1424; }
+.fm-coast-glow { fill: color-mix(in srgb, #e8d6a6 18%, transparent); }
+.fm-land { fill: var(--fm-land); }
+.fm-zone-shapes path { fill: var(--fm-land); stroke: var(--fm-border); stroke-width: 1.1; stroke-dasharray: 3 2; }
+.fm-zone-shapes path:nth-child(3n+1) { fill: #cdb684; }
+.fm-zone-shapes path:nth-child(3n+2) { fill: #c2a974; }
+.fm-zone-shapes path.new { fill: #d9b45e; }
+.fm-coast { stroke: #5b4325; stroke-width: 1.6; }
+.fm-zones text { fill: var(--fm-ink); opacity: .62; font-family: var(--display); font-weight: 400; letter-spacing: .14em; }
+.fm-zones text.new { fill: #7a3e00; opacity: .95; }
+.fm-routes line { stroke: #3b2a17; stroke-opacity: .38; }
+.fm-routes line.new { stroke: #8a4b00; stroke-opacity: .85; }
+.fm-routes line.on { stroke: #a8231c; stroke-opacity: 1; stroke-width: 3; }
+.fm-routes line.dim { stroke-opacity: .1; }
+.fm-node circle { stroke: #2a1d10; }
+.fm-node circle.halo { stroke: #8a4b00; }
+.fm-node text { fill: #2a1d10; stroke: #e9dcb8; font-weight: 700; }
+.fm-node.start circle:not(.halo), .fm-node.end circle:not(.halo) { stroke: #a8231c; }
