@@ -1,0 +1,19 @@
+{
+  "v": 1,
+  "machine": "deepthought",
+  "label": "deepthought",
+  "branch": "main",
+  "head": "8d5708770a5454363461be015fbc9191a32a49a0",
+  "subject": "NEXUS: subscriptions cancelled, recheck sign-in after the billing period",
+  "committedAt": "2026-11-01T19:47:41+01:00",
+  "recent": [
+    {
+      "at": "2026-11-02T17:12:00.143Z",
+      "source": "app",
+      "title": "World of Warcraft Forever theorycrafting site",
+      "summary": "setup artifact for two other machines, with copy buttons",
+      "report": ""
+    }
+  ],
+  "updatedAt": "2026-11-02T17:36:29.636Z"
+}
