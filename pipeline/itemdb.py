@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import re
 
-from build_data import OUT, SpellDB, load_table, num, write_json
+from build_data import OUT, SpellDB, load_table, midpoints, num, write_json
 from extras import DAMAGE_SCHOOL, JUNK_ITEM, STATS, ItemMath
 
 SHARDS = 128
@@ -389,18 +389,12 @@ def build_itemdb(latest_db: SpellDB, era_db: SpellDB, icons: dict[str, str], pro
     return len(details)
 
 
-RANGE = re.compile(r"(\d+(?:\.\d+)?) to (\d+(?:\.\d+)?)")
-
-
 def _same_bonus(cur: str, old: str) -> bool:
     """Classic Era bonus text vs Forever, ignoring what only differs in how the clients store it:
     - Forever's spell data has no die rolls, so Classic's "90 to 110" shows there as its middle, "100".
     - Forever often spells out a proc chance or cooldown that Classic's text leaves out ("has a chance").
       Extra numbers count as the same bonus as long as every Classic number is still there, in order."""
-    def mid(m: re.Match) -> str:
-        v = (float(m.group(1)) + float(m.group(2))) / 2
-        return str(int(v)) if v == int(v) else str(v)
-    old = RANGE.sub(mid, old)
+    old = midpoints(old)
     if _same_effect(cur, old):
         return True
     nc, no = _nums(cur), _nums(old)

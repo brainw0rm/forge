@@ -747,10 +747,21 @@ def _seconds(text: str) -> str:
     return UNIT.sub(lambda m: f"{float(m.group(1)) * (60 if m.group(2) == 'min' else 3600):g} sec", text)
 
 
+RANGE = re.compile(r"(\d+(?:\.\d+)?) to (\d+(?:\.\d+)?)")
+
+
+def midpoints(text: str) -> str:
+    """Classic Era die rolls ("93 to 101") as their middle value ("97"). The Forever client's
+    spell data has no die rolls at all, so it shows that middle value for the same effect."""
+    def mid(m: re.Match) -> str:
+        return f"{(float(m.group(1)) + float(m.group(2))) / 2:g}"
+    return RANGE.sub(mid, text)
+
+
 def _numbers_match(cur: dict, old: dict) -> bool:
     """Same rank count and the same numbers in every rank's tooltip (order-insensitive, so
-    rephrased sentences still match; durations normalized to seconds). Values the Forever
-    client leaves blank ("?") are skipped.
+    rephrased sentences still match; durations normalized to seconds). Values either client
+    leaves blank ("?") are skipped, and a Classic range counts as its middle value (see midpoints).
 
     Raw effect fields aren't compared: the Classic Era and Forever clients store the same
     thing differently (e.g. permanent auras as duration -1 vs 0, proc chance 101 vs 0)."""
@@ -758,12 +769,18 @@ def _numbers_match(cur: dict, old: dict) -> bool:
         return False
     for a, b in zip(cur["ranks"], old["ranks"]):
         a, b = _seconds(a), _seconds(b)
+        if not RANGE.search(a):
+            b = midpoints(b)
         na = sorted(abs(float(x)) for x in numbers(a) if x != "?")
         nb = sorted(abs(float(x)) for x in numbers(b) if x != "?")
         tolerance = 1e-6
         if "?" in numbers(a):
             # Can't see every Forever number: require what's visible to appear in Classic.
             if not all(any(abs(x - y) <= tolerance for y in nb) for x in na):
+                return False
+        elif "?" in numbers(b):
+            # Classic hides a value: same count of numbers, and Classic's visible ones all in Forever.
+            if len(numbers(a)) != len(numbers(b)) or not all(any(abs(x - y) <= tolerance for y in na) for x in nb):
                 return False
         elif len(na) != len(nb) or any(abs(x - y) > tolerance for x, y in zip(na, nb)):
             return False
