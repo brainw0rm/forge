@@ -6,6 +6,7 @@
   "exclude": [
     "/assets/*",
     "/data/*",
+    "/models/*",
     "/og/Inter_400Regular.ttf",
     "/og/Inter_600SemiBold.ttf",
     "/og/Inter_700Bold.ttf",

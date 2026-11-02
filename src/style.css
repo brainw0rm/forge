@@ -1466,3 +1466,15 @@ h1, h2 { color: var(--title); text-shadow: 0 2px 0 rgb(0 0 0 / .55); }
 .fm-node circle.halo { stroke: #8a4b00; }
 .fm-node text { fill: #2a1d10; stroke: #e9dcb8; font-weight: 700; }
 .fm-node.start circle:not(.halo), .fm-node.end circle:not(.halo) { stroke: #a8231c; }
+
+/* 3D set viewer (prototype) */
+.set-side { display: grid; gap: 14px; }
+.viewer-panel { padding: 0; overflow: hidden; }
+.viewer-3d { position: relative; aspect-ratio: 3 / 4; width: 100%; max-width: 100%; touch-action: none; cursor: grab;
+  background: radial-gradient(70% 55% at 50% 38%, color-mix(in srgb, #e0a24a 16%, transparent), transparent 70%), linear-gradient(180deg, #141b33, #0b0f1d); }
+.viewer-3d:active { cursor: grabbing; }
+.viewer-3d canvas { display: block; width: 100% !important; height: 100% !important; }
+.viewer-loading { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: 14px; margin: 0; }
+.viewer-note { margin: 0; padding: 10px 14px; font-size: 12.5px; color: var(--muted); border-top: 1px solid color-mix(in srgb, var(--trim) 35%, #000); }
+.viewer-note b { color: var(--title); font-weight: 600; }
+@media (max-width: 960px) { .viewer-3d { aspect-ratio: 4 / 5; max-height: 70vh; } }

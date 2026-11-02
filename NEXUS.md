@@ -23,6 +23,8 @@ the launch checklist); every push to main deploys automatically. Rule: never ext
 - Both GitHub jobs are enabled again; news runs every 6 hours instead of 2.
 
 ## Todo
+- [ ] 3D set viewer prototype (Imperial Plate on a human male, 2026-11-02): decide how to publish the models
+      (public repo vs. separate storage), then more races/genders, weapons, cloaks, more sets
 - [ ] Item sets: link set bonuses to talent builds (suggest sets whose bonuses touch the build's abilities)
 - [ ] Workers Paid and Images/Stream cancelled 2026-11-01 (may stay active until the billing period ends). After
       that date, re-run a sign-in check (a made-up username exercises the same PBKDF2 CPU via DUMMY_HASH)

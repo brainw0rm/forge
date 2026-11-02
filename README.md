@@ -73,6 +73,10 @@ npm test                      # unit tests + API tests against an in-memory D1
    - The map behind it is built in `pipeline/mapshape.py` from the zone maps' explored-area overlays (`WorldMapOverlay`), projected onto the continent: they cover the land, so rasterizing, smoothing and tracing them gives a coastline and zone borders without any map artwork.
    - Item stats come from `ItemSparse` percentages times the `RandPropPoints` item-level budget. Armor comes from `ItemArmor*`, weapon DPS from `ItemDamage*`. Weapons with a special quality modifier show no damage rather than a guess.
 
+## 3D set viewer (prototype)
+
+`scripts/model3d/build_set_model.py <set id> [race] [gender]` builds a static glTF model of a character wearing an item set, straight from the game client files on wago.tools (needs numpy): the body mesh with the right geosets, one body texture layered from skin, face and the armor textures per body section, and helmet and shoulder models at their attachment points. It writes `public/models/set-<id>-<race>-<gender>.glb` and `public/models/index.json`; set pages with a model show it in a three.js viewer (`src/viewer3d.ts`, loaded only there). Bind pose, no animation, one race/gender so far. The models are Blizzard assets, so `public/models/` is not committed to the public repo.
+
 ## Item database
 
 `/items` searches every item in the beta client, about 17,600 of them. Internal test and placeholder items are filtered out. Each item has a page at `/items/<id>` with:

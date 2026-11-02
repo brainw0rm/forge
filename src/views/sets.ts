@@ -7,6 +7,7 @@ import { classColor, clientLabel, getMeta, iconUrl, load, QUALITY_COLOR } from "
 import { GEAR_SLOT, SLOT_NAME, statLine } from "../itemdb";
 import { openShare } from "../share";
 import { diffWords, esc, gameText, setTitle } from "../ui";
+import { getModelIndex, mountViewer } from "../viewer3d";
 
 export interface SetPiece {
   id: number;
@@ -262,6 +263,7 @@ export async function renderSet(root: HTMLElement, id: number) {
           ${adSlot("leaderboard")}
         </div>
         <aside class="set-side">
+          <section class="panel viewer-panel" id="viewer-panel" hidden></section>
           <section class="panel">
             <h2>All pieces together</h2>
             ${statRows.length ? `<dl class="totals">${statRows.join("")}</dl>` : `<p class="muted small">No stats on the pieces themselves.</p>`}
@@ -278,4 +280,23 @@ export async function renderSet(root: HTMLElement, id: number) {
     openShare({ url: `${location.origin}/sets/${s.id}`, text: `${s.name}: set bonuses in WoW Forever` }),
   );
   fillAds(root);
+  showModel(root, s);
+}
+
+/** The 3D view, for sets that have a model built (scripts/model3d). */
+async function showModel(root: HTMLElement, s: ItemSet) {
+  const models = (await getModelIndex())?.sets[String(s.id)];
+  const panel = root.querySelector<HTMLElement>("#viewer-panel");
+  if (!models?.length || !panel) return;
+  panel.hidden = false;
+  panel.innerHTML = `<div class="viewer-3d" id="viewer-3d" role="img" aria-label="${esc(s.name)} on a ${esc(models[0].label)} character, in 3D">
+      <p class="viewer-loading">Loading 3D model…</p></div>
+    <p class="viewer-note"><b>3D preview</b> · ${esc(models[0].label)} · drag to turn, scroll to zoom</p>`;
+  const host = panel.querySelector<HTMLElement>("#viewer-3d")!;
+  try {
+    await mountViewer(host, `/models/${models[0].file}`);
+    host.querySelector(".viewer-loading")?.remove();
+  } catch {
+    host.querySelector(".viewer-loading")!.textContent = "The 3D model couldn't be loaded.";
+  }
 }

@@ -8,3 +8,6 @@ __pycache__/
 .env.local
 .claude/settings.local.json
 .claude/worktrees/
+
+# 3D models built from game files (scripts/model3d): Blizzard assets, not committed to the public repo.
+public/models/
