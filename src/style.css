@@ -1298,3 +1298,55 @@ a.item-chip:hover { text-decoration: none; border-color: var(--border-strong); }
 .fm-zone small { margin-left: auto; color: var(--faint); font-size: 12px; }
 @media (max-width: 960px) { .fm-layout { grid-template-columns: minmax(0, 1fr); } .fm-panel { position: static; } }
 @media (max-width: 640px) { .class-tabs.fm-tabs { grid-template-columns: 1fr 1fr; } }
+
+/* ---------------------------------------------------------------- item sets */
+.set-filters input { width: 100%; max-width: 420px; }
+.sets-page .seg { margin-top: 12px; }
+.set-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 12px; margin-top: 10px; }
+.set-card {
+  display: grid; gap: 8px; align-content: start; padding: 14px 16px; color: var(--text);
+  background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--radius);
+  border-top: 2px solid color-mix(in srgb, var(--q) 70%, transparent);
+}
+.set-card:hover { text-decoration: none; border-color: color-mix(in srgb, var(--q) 45%, var(--border)); }
+.set-card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.set-card-head b { color: var(--q); font-weight: 600; font-size: 15px; line-height: 1.3; }
+.set-card-meta { margin: 0; color: var(--muted); font-size: 13px; }
+.set-card-classes { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.set-card-icons { display: flex; flex-wrap: wrap; gap: 4px; }
+.set-card-icons img { width: 26px; height: 26px; border-radius: 4px; box-shadow: 0 0 0 1px color-mix(in srgb, var(--q) 40%, var(--border)); }
+.set-card-bonus { margin: 0; font-size: 12.5px; color: var(--faint); }
+.set-changed { color: var(--st-tuned); }
+.set-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; flex-wrap: wrap; margin-bottom: 18px; }
+.set-head h1 { color: var(--q); margin: 0 0 6px; font-size: clamp(28px, 5vw, 38px); line-height: 1.12; text-wrap: balance; }
+.set-head p { margin: 0 0 6px; }
+.set-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 28px; align-items: start; }
+.set-side { position: sticky; top: 88px; }
+.set-side .panel p { margin: 10px 0 0; }
+.set-main .section-title:first-child { margin-top: 8px; }
+.set-sub { font-size: 15px; color: var(--muted); margin: 22px 0 10px; }
+.set-bonuses { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.set-bonus { display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 12px; align-items: start; padding: 10px 12px; border: 1px solid var(--hairline); border-radius: var(--radius-sm); background: var(--surface); }
+.set-bonus p { margin: 0; color: #3fd46f; line-height: 1.5; }
+.set-bonus-n { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 50%; font-weight: 700; font-size: 14px; color: var(--gold); border: 1.5px solid color-mix(in srgb, var(--gold) 55%, transparent); font-variant-numeric: tabular-nums; }
+.set-bonus.is-changed { border-color: color-mix(in srgb, var(--st-tuned) 40%, var(--hairline)); }
+.set-bonus.is-new { border-color: color-mix(in srgb, var(--st-new) 40%, var(--hairline)); }
+.set-bonus ins { text-decoration: none; background: color-mix(in srgb, var(--st-tuned) 22%, transparent); color: var(--cream); border-radius: 3px; padding: 0 2px; }
+.set-bonus-was { margin-top: 6px !important; color: var(--muted) !important; font-size: 13.5px; }
+.set-bonus-was span { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; margin-right: 8px; color: var(--faint); }
+.set-bonus-was del { text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--red) 70%, transparent); color: var(--text); }
+.set-bonuses.removed .set-bonus p { color: var(--muted); text-decoration: line-through; }
+.set-pieces { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--hairline); }
+.set-pieces a { display: grid; grid-template-columns: 30px minmax(0, 1fr) 110px 40px 56px; gap: 12px; align-items: center; padding: 7px 4px; border-bottom: 1px solid var(--hairline); color: var(--text); font-size: 14px; }
+.set-pieces a:hover { text-decoration: none; background: var(--surface); }
+.set-pieces img { width: 30px; height: 30px; border-radius: 5px; box-shadow: 0 0 0 1px color-mix(in srgb, var(--q) 45%, var(--border)); }
+.set-piece-name { color: var(--q); font-weight: 550; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.set-piece-slot { color: var(--muted); font-size: 13px; }
+.set-piece-num { color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+@media (max-width: 960px) { .set-layout { grid-template-columns: minmax(0, 1fr); } .set-side { position: static; } }
+@media (max-width: 560px) { .set-pieces a { grid-template-columns: 30px minmax(0, 1fr) 36px 52px; } .set-piece-slot { display: none; } }
+.gear-sets { display: grid; gap: 14px; margin-top: 8px; }
+.gear-set ul { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 4px; font-size: 13.5px; color: var(--faint); }
+.gear-set li span { font-variant-numeric: tabular-nums; }
+.gear-set li.on { color: #3fd46f; }
+.gear-set li small { color: var(--muted); font-size: 11.5px; }

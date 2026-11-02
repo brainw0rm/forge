@@ -31,7 +31,7 @@ const attr = (k: string, label: string): Stat => ({ key: k, label, group: "Attri
 const HEALTH: Stat = { key: "health", label: "Health from Stamina", group: "Defense", formula: "sta * health_per_sta", how: "{health_per_sta} per Stamina" };
 const ARMOR: Stat = { key: "armor", label: "Armor", group: "Defense", formula: "gear_armor + agi * armor_per_agi", how: "Gear armor plus {armor_per_agi} per Agility" };
 const MANA: Stat = { key: "mana", label: "Mana from Intellect", group: "Spell", formula: "int * mana_per_int", how: "{mana_per_int} per Intellect" };
-const HIT: Stat = { key: "hit_pct", label: "Hit chance from gear", group: "Melee", unit: "%", formula: "gear_hit / rating_per_hit", how: "{rating_per_hit} hit rating = 1%" };
+const HIT: Stat = { key: "hit_pct", label: "Hit chance from gear", group: "Melee", unit: "%", formula: "gear_hit / rating_per_hit + bonus_hit_pct", how: "{rating_per_hit} hit rating = 1%, plus set bonuses" };
 const WHITE: Stat = {
   key: "white_dps", label: "Main-hand DPS", group: "Melee", unit: "dps", needs: "mh",
   formula: "((mh_min + mh_max) / 2 + attack_power / 14 * mh_speed) / max(mh_speed, 0.1)",
@@ -40,8 +40,8 @@ const WHITE: Stat = {
 const SPELL: Stat[] = [
   { key: "spell_power", label: "Spell damage", group: "Spell", formula: "gear_sp + gear_spelldmg", how: "From gear" },
   { key: "healing_power", label: "Healing", group: "Spell", formula: "gear_sp + gear_healing", how: "From gear" },
-  { key: "spell_crit_pct", label: "Spell crit chance", group: "Spell", unit: "%", formula: "int / int_per_spell_crit + gear_crit / rating_per_crit", how: "{int_per_spell_crit} Intellect or {rating_per_crit} crit rating = 1%" },
-  { key: "spell_hit_pct", label: "Spell hit from gear", group: "Spell", unit: "%", formula: "gear_hit / rating_per_hit", how: "{rating_per_hit} hit rating = 1%" },
+  { key: "spell_crit_pct", label: "Spell crit chance", group: "Spell", unit: "%", formula: "int / int_per_spell_crit + gear_crit / rating_per_crit + bonus_spell_crit_pct", how: "{int_per_spell_crit} Intellect or {rating_per_crit} crit rating = 1%" },
+  { key: "spell_hit_pct", label: "Spell hit from gear", group: "Spell", unit: "%", formula: "gear_hit / rating_per_hit + bonus_spell_hit_pct", how: "{rating_per_hit} hit rating = 1%, plus set bonuses" },
   { key: "mp5", label: "Mana per 5 sec", group: "Spell", formula: "gear_mp5", how: "From gear" },
 ];
 
@@ -62,7 +62,7 @@ const melee = (agiPerCrit: number, note: string): Archetype => ({
     attr("str", "Strength"), attr("agi", "Agility"), attr("sta", "Stamina"),
     HEALTH, ARMOR,
     { key: "attack_power", label: "Attack power", group: "Melee", formula: "level * 3 - 20 + str * ap_per_str + gear_ap", how: "Level × 3 − 20, plus {ap_per_str} per Strength and gear" },
-    { key: "crit_pct", label: "Crit chance from stats", group: "Melee", unit: "%", formula: "agi / agi_per_crit + gear_crit / rating_per_crit", how: "{agi_per_crit} Agility or {rating_per_crit} crit rating = 1%" },
+    { key: "crit_pct", label: "Crit chance from stats", group: "Melee", unit: "%", formula: "agi / agi_per_crit + gear_crit / rating_per_crit + bonus_crit_pct", how: "{agi_per_crit} Agility or {rating_per_crit} crit rating = 1%" },
     HIT, WHITE,
   ],
 });
@@ -73,7 +73,7 @@ const agile = (agiPerCrit: number, note: string, ranged: boolean): Archetype => 
     attr("str", "Strength"), attr("agi", "Agility"), attr("sta", "Stamina"),
     HEALTH, ARMOR,
     { key: "attack_power", label: "Attack power", group: "Melee", formula: "level * 2 - 20 + str + agi + gear_ap", how: "Level × 2 − 20, plus 1 per Strength and Agility, plus gear" },
-    { key: "crit_pct", label: "Crit chance from stats", group: "Melee", unit: "%", formula: "agi / agi_per_crit + gear_crit / rating_per_crit", how: "{agi_per_crit} Agility or {rating_per_crit} crit rating = 1%" },
+    { key: "crit_pct", label: "Crit chance from stats", group: "Melee", unit: "%", formula: "agi / agi_per_crit + gear_crit / rating_per_crit + bonus_crit_pct", how: "{agi_per_crit} Agility or {rating_per_crit} crit rating = 1%" },
     HIT, WHITE,
     ...(ranged
       ? [{
@@ -98,7 +98,7 @@ const hybrid = (intPerCrit: number): Archetype => ({
     attr("str", "Strength"), attr("agi", "Agility"), attr("sta", "Stamina"), attr("int", "Intellect"),
     HEALTH, ARMOR,
     { key: "attack_power", label: "Attack power", group: "Melee", formula: "level * 3 - 20 + str * ap_per_str + gear_ap", how: "Level × 3 − 20, plus {ap_per_str} per Strength and gear" },
-    { key: "crit_pct", label: "Crit chance from stats", group: "Melee", unit: "%", formula: "agi / agi_per_crit + gear_crit / rating_per_crit", how: "{agi_per_crit} Agility or {rating_per_crit} crit rating = 1%" },
+    { key: "crit_pct", label: "Crit chance from stats", group: "Melee", unit: "%", formula: "agi / agi_per_crit + gear_crit / rating_per_crit + bonus_crit_pct", how: "{agi_per_crit} Agility or {rating_per_crit} crit rating = 1%" },
     WHITE, MANA, ...SPELL.filter((s) => s.key !== "spell_hit_pct"),
   ],
 });

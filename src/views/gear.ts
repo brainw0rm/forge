@@ -7,7 +7,9 @@ import { adSlot, fillAds } from "../ads";
 import { classColor, getItems, getMeta, iconUrl, QUALITY_COLOR, type Item } from "../data";
 import { CLASS_SHEETS, characterSheet, fmtStat, sheetFor } from "../gearstats";
 import { openModal } from "../modal";
+import { parseBonus } from "../setbonus";
 import { openShare } from "../share";
+import { getSets, type ItemSet } from "./sets";
 import { esc, setTitle } from "../ui";
 
 interface Slot {
@@ -93,6 +95,7 @@ export async function renderGear(root: HTMLElement, slugPart: string, params: UR
       if (item) equipped.set(key, item);
     }),
   );
+  const setsById = new Map((await getSets()).sets.map((s) => [s.id, s]));
   const base: Record<string, number> = JSON.parse(store.get(`base:${slug}`) ?? "{}");
   const rules = CLASS_SHEETS[slug];
   const ruleValues: Record<string, number> = { ...Object.fromEntries(rules.params.map((x) => [x.key, x.value])), ...JSON.parse(store.get(`rules:${slug}`) ?? "{}") };
@@ -129,6 +132,7 @@ export async function renderGear(root: HTMLElement, slugPart: string, params: UR
           </section>
           <section class="panel"><h2>Character sheet</h2><div class="char-sheet" id="char-sheet" aria-live="polite"></div></section>
           <section class="panel"><h2>From your gear</h2><dl class="totals" id="totals"></dl></section>
+          <section class="panel" id="set-panel" hidden><h2>Set bonuses</h2><div class="gear-sets" id="gear-sets"></div></section>
         </div>
       </div>
       <section class="panel rules-panel">
@@ -156,12 +160,33 @@ export async function renderGear(root: HTMLElement, slugPart: string, params: UR
       ${adSlot("leaderboard")}
     </section>`;
 
+  /** Sets with at least one piece on, and how many different pieces (two of the same ring count once). */
+  const activeSets = () => {
+    const pieces = new Map<number, Set<number>>();
+    for (const item of equipped.values()) if (item.set && setsById.has(item.set)) pieces.set(item.set, (pieces.get(item.set) ?? new Set()).add(item.id));
+    return [...pieces].map(([id, ids]) => ({ set: setsById.get(id)! as ItemSet, count: ids.size }));
+  };
+  const setBonuses = () => {
+    const stats: Record<string, number> = {};
+    const pct = { hit: 0, crit: 0, spellHit: 0, spellCrit: 0 };
+    for (const { set, count } of activeSets()) {
+      for (const b of set.bonuses) {
+        const e = b.n <= count ? parseBonus(b.text) : null;
+        if (!e) continue;
+        for (const [k, v] of Object.entries(e.stats)) stats[k] = (stats[k] ?? 0) + v;
+        for (const [k, v] of Object.entries(e.pct)) pct[k as keyof typeof pct] += v ?? 0;
+      }
+    }
+    return { stats, pct };
+  };
+
   const totals = () => {
     const t: Record<string, number> = Object.fromEntries(STAT_KEYS.map((k) => [k, 0]));
     for (const item of equipped.values()) {
       for (const [k, v] of Object.entries(item.stats)) t[k] = (t[k] ?? 0) + v;
       if (item.armor) t.armor += item.armor;
     }
+    for (const [k, v] of Object.entries(setBonuses().stats)) t[k] = (t[k] ?? 0) + v;
     return t;
   };
 
@@ -170,6 +195,8 @@ export async function renderGear(root: HTMLElement, slugPart: string, params: UR
     const vars: Record<string, number> = { level: base.level ?? 60 };
     for (const k of STAT_KEYS) vars[`gear_${k}`] = t[k] ?? 0;
     for (const k of BASE_KEYS) vars[`base_${k}`] = base[k] ?? 0;
+    const { pct } = setBonuses();
+    Object.assign(vars, { bonus_hit_pct: pct.hit, bonus_crit_pct: pct.crit, bonus_spell_hit_pct: pct.spellHit, bonus_spell_crit_pct: pct.spellCrit });
     for (const [prefix, key] of [["mh", "mh"], ["oh", "oh"], ["ranged", "ranged"]] as const) {
       const d = equipped.get(key)?.dmg;
       vars[`${prefix}_min`] = d?.min ?? 0;
@@ -234,11 +261,31 @@ export async function renderGear(root: HTMLElement, slugPart: string, params: UR
     root.querySelectorAll<HTMLInputElement>("[data-rule]").forEach((i) => (i.disabled = custom !== null));
   };
 
+  const drawSets = () => {
+    const active = activeSets().filter((a) => a.set.bonuses.length);
+    root.querySelector<HTMLElement>("#set-panel")!.hidden = !active.length;
+    root.querySelector("#gear-sets")!.innerHTML = active
+      .map(
+        ({ set, count }) => `<div class="gear-set">
+          <a href="/sets/${set.id}" data-link><b>${esc(set.name)}</b></a> <span class="muted small">${count}/${set.items.length} pieces</span>
+          <ul>${set.bonuses
+            .map((b) => {
+              const on = b.n <= count;
+              const counted = on && parseBonus(b.text);
+              return `<li class="${on ? "on" : ""}"><span>(${b.n})</span> ${esc(b.text)}${on && !counted ? ` <small>not in the numbers</small>` : ""}</li>`;
+            })
+            .join("")}</ul>
+        </div>`,
+      )
+      .join("");
+  };
+
   const update = () => {
     const qs = [...equipped].map(([k, i]) => `${k}:${i.id}`).join(",");
     history.replaceState(null, "", `/gear/${slug}${qs ? `?i=${qs}` : ""}`);
     drawSlots();
     drawTotals();
+    drawSets();
     drawSheet();
   };
 

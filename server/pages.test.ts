@@ -60,6 +60,16 @@ describe("server-rendered pages", () => {
     expect(page.description).toMatch(/^Flight map and route planner for Kalimdor/);
   });
 
+  it("renders item sets with their bonuses and 404s unknown ones", async () => {
+    const list = await resolvePage(get("/sets"), env);
+    expect(list).toMatchObject({ status: 200, canonical: "/sets" });
+    const id = /href="\/sets\/(\d+)"/.exec(list.body!)![1];
+    const page = await resolvePage(get(`/sets/${id}`), env);
+    expect(page.status).toBe(200);
+    expect(page.body).toContain("Set bonuses");
+    expect((await resolvePage(get("/sets/999999"), env)).status).toBe(404);
+  });
+
   it("keeps private pages out of search results", async () => {
     for (const p of ["/account", "/login", "/admin", "/reset-password"]) expect((await resolvePage(get(p), env)).noindex).toBe(true);
   });

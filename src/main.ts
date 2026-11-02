@@ -24,6 +24,7 @@ import { renderImprint, renderPrivacy, renderUnsubscribe } from "./views/legal";
 import { api } from "./api";
 import { renderProfessions } from "./views/professions";
 import { renderRaces } from "./views/races";
+import { renderSet, renderSetList } from "./views/sets";
 import { renderTalents } from "./views/talents";
 import type { User } from "./api";
 
@@ -77,6 +78,8 @@ async function route() {
         if (!known.includes(parts[1] ?? "")) history.replaceState(null, "", `/flights/${known[0]}${location.search}`);
         return await renderFlights(app, parts[1] ?? "", params);
       }
+      case "sets":
+        return /^\d+$/.test(parts[1] ?? "") ? await renderSet(app, Number(parts[1])) : await renderSetList(app, params);
       case "items":
         return /^\d+$/.test(parts[1] ?? "") ? await renderItem(app, Number(parts[1])) : await renderItemList(app, params);
       case "news":

@@ -113,6 +113,7 @@ export async function renderHome(root: HTMLElement) {
 
     <div class="section-head"><h2>Tools</h2><span class="muted small">No account needed for any of these</span></div>
     <section class="tool-grid">
+      <a class="tool-card" href="/sets" data-link><b>Item sets</b><span>Every set and its bonuses, with what Forever changed since Classic.</span></a>
       <a class="tool-card" href="/items" data-link><b>Item database</b><span>All the items in the game, with stats and what's different from Classic.</span></a>
       <a class="tool-card" href="/compare" data-link><b>Compare builds</b><span>Put two builds side by side and see where they differ.</span></a>
       <a class="tool-card" href="/leveling" data-link><b>Leveling planner</b><span>What you get at each level: talent points, new spells, dungeons.</span></a>

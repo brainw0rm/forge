@@ -32,6 +32,10 @@ export interface Page {
 
 export const SITE_NAME = "Forever Forge";
 const DEFAULT_TITLE = "Forever Forge · WoW Forever talent calculator, builds and item database";
+interface SetFile {
+  sets: { id: number; name: string; status: string; items: { id: number; name: string }[]; bonuses: { n: number; text: string }[] }[];
+}
+
 interface FlightFile {
   nodes: { name: string; zone: string; continent: number; faction: "alliance" | "horde" | "both"; isNew: boolean }[];
 }
@@ -306,6 +310,27 @@ export async function resolvePage(req: Request, env: Env): Promise<Page> {
                 .join("")}</ul>`,
             )
             .join("")}</section>`,
+        },
+      );
+    }
+    case "sets": {
+      const data = await load<SetFile>("/data/sets.json");
+      const sets = data?.sets ?? [];
+      if (!a) {
+        return simple("/sets", "WoW Forever Item Sets", `All ${sets.length} item sets in World of Warcraft: Forever with their set bonuses: ${sets.filter((x) => x.status === "new").length} are new and ${sets.filter((x) => x.status === "changed").length} changed since Classic Era.`, {
+          body: `<section class="page"><h1>WoW Forever item sets</h1><ul>${sets.map((x) => `<li><a href="/sets/${x.id}">${esc(x.name)}</a></li>`).join("")}</ul></section>`,
+        });
+      }
+      const set = /^\d+$/.test(a) ? sets.find((x) => x.id === Number(a)) : undefined;
+      if (!set || b) return notFound();
+      return simple(
+        `/sets/${set.id}`,
+        `${set.name} (WoW Forever set)`,
+        `${set.name}: ${set.items.length} pieces and ${set.bonuses.length} set bonuses in World of Warcraft: Forever${set.status === "new" ? ", new in Forever" : set.status === "changed" ? ", changed since Classic Era" : ""}.`,
+        {
+          body: `<section class="page"><nav><a href="/sets">Item sets</a></nav><h1>${esc(set.name)}</h1>
+            <h2>Set bonuses</h2><ul>${set.bonuses.map((x) => `<li>(${x.n}) Set: ${esc(x.text)}</li>`).join("")}</ul>
+            <h2>Pieces</h2><ul>${set.items.map((x) => `<li><a href="/items/${x.id}">${esc(x.name)}</a></li>`).join("")}</ul></section>`,
         },
       );
     }

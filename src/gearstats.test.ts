@@ -6,6 +6,7 @@ const inputs = (extra: Record<string, number> = {}) => {
   const vars: Record<string, number> = { level: 60 };
   for (const k of ["str", "agi", "sta", "int", "spi", "armor", "ap", "rap", "crit", "hit", "sp", "spelldmg", "healing", "mp5"]) vars[`gear_${k}`] = 0;
   for (const k of ["str", "agi", "sta", "int", "spi"]) vars[`base_${k}`] = 0;
+  for (const k of ["hit", "crit", "spell_hit", "spell_crit"]) vars[`bonus_${k}_pct`] = 0;
   for (const w of ["mh", "oh", "ranged"]) Object.assign(vars, { [`${w}_min`]: 0, [`${w}_max`]: 0, [`${w}_speed`]: 0, [`${w}_dps`]: 0, [`${w}_equipped`]: 0 });
   return { ...vars, ...extra };
 };
