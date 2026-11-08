@@ -79,6 +79,45 @@ export function sandboxLink(s: ItemSet, cls: string) {
   return `/gear/${cls}?i=${parts.join(",")}`;
 }
 
+/** The character screen's slots in the game's order: left column, right column, weapons. */
+const DOLL: { key: string; name: string; types: number[] }[][] = [
+  [
+    { key: "head", name: "Head", types: [1] },
+    { key: "neck", name: "Neck", types: [2] },
+    { key: "shoulder", name: "Shoulder", types: [3] },
+    { key: "back", name: "Back", types: [16] },
+    { key: "chest", name: "Chest", types: [5, 20] },
+    { key: "shirt", name: "Shirt", types: [4] },
+    { key: "tabard", name: "Tabard", types: [19] },
+    { key: "wrist", name: "Wrist", types: [9] },
+  ],
+  [
+    { key: "hands", name: "Hands", types: [10] },
+    { key: "waist", name: "Waist", types: [6] },
+    { key: "legs", name: "Legs", types: [7] },
+    { key: "feet", name: "Feet", types: [8] },
+    { key: "finger1", name: "Finger", types: [11] },
+    { key: "finger2", name: "Finger", types: [11] },
+    { key: "trinket1", name: "Trinket", types: [12] },
+    { key: "trinket2", name: "Trinket", types: [12] },
+  ],
+  [
+    { key: "mh", name: "Main Hand", types: [13, 17, 21] },
+    { key: "oh", name: "Off Hand", types: [14, 22, 23, 13] },
+    { key: "ranged", name: "Ranged", types: [15, 25, 26, 28] },
+  ],
+];
+
+/** Puts each piece in the first free slot that takes it (a second ring goes to the second finger). */
+function dress(items: SetPiece[]) {
+  const worn = new Map<string, SetPiece>();
+  for (const i of items) {
+    const slot = DOLL.flat().find((d) => d.types.includes(i.slot) && !worn.has(d.key));
+    if (slot) worn.set(slot.key, i);
+  }
+  return worn;
+}
+
 // ------------------------------------------------------------------ list
 
 export async function renderSetList(root: HTMLElement, params: URLSearchParams) {
@@ -204,22 +243,46 @@ export async function renderSet(root: HTMLElement, id: number) {
     .map(([k, v]) => `<div><dt>${esc(statLine(k, v).replace(/^[+−]\d+(\.\d+)?\s?/, ""))}</dt><dd>${v > 0 ? "+" : "−"}${Math.abs(v)}</dd></div>`);
   if (s.armor) statRows.unshift(`<div><dt>Armor</dt><dd>${s.armor.toLocaleString()}</dd></div>`);
 
+  const worn = dress(s.items);
+  const slot = (d: (typeof DOLL)[number][number]) => {
+    const i = worn.get(d.key);
+    if (!i) return `<li class="cs-slot is-empty"><span class="cs-icon" title="${d.name}"></span><span class="cs-text"><span class="cs-slotname">${d.name}</span></span></li>`;
+    return `<li class="cs-slot" style="--q:${QUALITY_COLOR[i.q] ?? QUALITY_COLOR[1]}"><a href="/items/${i.id}" data-link title="${esc(i.name)}">
+      <img class="cs-icon" src="${iconUrl(i.icon)}" alt="${esc(i.name)}" />
+      <span class="cs-text"><span class="cs-name">${esc(i.name)}</span>
+        <span class="cs-slotname">${d.name} · ilvl ${i.ilvl}${added.has(i.id) ? ` <span class="badge st-new">New</span>` : ""}</span></span>
+    </a></li>`;
+  };
+  const [left, right, weapons] = DOLL;
+
   root.innerHTML = `
     <section class="page set-page" style="--q:${q}">
       <nav class="crumbs"><a href="/sets" data-link>Item sets</a>${forClass ? ` / <a href="/sets?class=${forClass}" data-link>${esc(className(forClass))}</a>` : ""}</nav>
-      <header class="set-head">
-        <div>
-          <h1>${esc(s.name)}</h1>
-          <p class="muted">${esc([armorType(s), levelRange(s), `${s.items.length} pieces`].filter(Boolean).join(" · "))}${
-            s.skill ? ` · requires ${esc(s.skill.name)} (${s.skill.rank})` : ""
-          }</p>
-          ${s.classes ? `<p class="set-card-classes">${s.classes.map((c) => `<a class="class-pill" href="/talents/${c}" data-link style="--class:${classColor(c)}">${esc(className(c))}</a>`).join("")}</p>` : ""}
+      <div class="char-screen">
+        <header class="cs-head">
+          <div>
+            <h1>${esc(s.name)}</h1>
+            <p class="cs-sub">${esc([armorType(s), levelRange(s), `${s.items.length} pieces`].filter(Boolean).join(" · "))}${
+              s.skill ? ` · requires ${esc(s.skill.name)} (${s.skill.rank})` : ""
+            }</p>
+            ${s.classes ? `<p class="set-card-classes">${s.classes.map((c) => `<a class="class-pill" href="/talents/${c}" data-link style="--class:${classColor(c)}">${esc(className(c))}</a>`).join("")}</p>` : ""}
+          </div>
+          <div class="build-head-actions">
+            <a class="btn primary" href="${sandboxLink(s, forClass ?? ARMOR_CLASS[armorType(s)] ?? "warrior")}" data-link>Try in gear sandbox</a>
+            <button class="btn" id="share">Share</button>
+          </div>
+        </header>
+        <div class="cs-body">
+          <ul class="cs-col cs-left">${left.map(slot).join("")}</ul>
+          <div class="cs-stage" id="cs-stage"></div>
+          <ul class="cs-col cs-right">${right.map(slot).join("")}</ul>
+          <ul class="cs-weapons">${weapons.map(slot).join("")}</ul>
         </div>
-        <div class="build-head-actions">
-          <a class="btn primary" href="${sandboxLink(s, forClass ?? ARMOR_CLASS[armorType(s)] ?? "warrior")}" data-link>Try in gear sandbox</a>
-          <button class="btn" id="share">Share</button>
-        </div>
-      </header>
+        <footer class="cs-foot">
+          ${statRows.length ? `<dl class="cs-stats">${statRows.join("")}</dl>` : `<p class="muted small">No stats on the pieces themselves.</p>`}
+          <p class="muted small">Every piece's stats added up, without the set bonuses.</p>
+        </footer>
+      </div>
       ${
         s.status === "new"
           ? `<div class="banner"><div><strong>New in Forever</strong><p class="muted">Classic Era ${esc(classicBuild)} doesn't have this set.</p></div></div>`
@@ -237,40 +300,30 @@ export async function renderSet(root: HTMLElement, id: number) {
               )}. Compared with Classic Era ${esc(classicBuild)}.</p></div></div>`
             : ""
       }
-      <div class="set-layout">
-        <div class="set-main">
-          <h2 class="section-title">Set bonuses</h2>
-          <ol class="set-bonuses">${s.bonuses.map(bonus).join("")}</ol>
-          ${
-            s.removedBonuses?.length
-              ? `<h3 class="set-sub">Classic bonuses that are gone</h3><ol class="set-bonuses removed">${s.removedBonuses
-                  .map((b) => `<li class="set-bonus"><span class="set-bonus-n">${b.n}</span><div><p>${gameText(b.text)}</p></div></li>`)
-                  .join("")}</ol>`
-              : ""
-          }
-          <h2 class="section-title">Pieces</h2>
-          <ul class="set-pieces">${s.items
-            .map(
-              (i) => `<li><a href="/items/${i.id}" data-link style="--q:${QUALITY_COLOR[i.q] ?? QUALITY_COLOR[1]}">
-                <img src="${iconUrl(i.icon)}" alt="" loading="lazy" />
-                <span class="set-piece-name">${esc(i.name)}</span>
-                <span class="set-piece-slot">${esc(SLOT_NAME[i.slot] ?? "")}</span>
-                <span class="set-piece-num" title="Item level">${i.ilvl}</span>
-                ${added.has(i.id) ? `<span class="badge st-new">New</span>` : `<span></span>`}
-              </a></li>`,
-            )
-            .join("")}</ul>
-          ${adSlot("leaderboard")}
-        </div>
-        <aside class="set-side">
-          <section class="panel viewer-panel" id="viewer-panel" hidden></section>
-          <section class="panel">
-            <h2>All pieces together</h2>
-            ${statRows.length ? `<dl class="totals">${statRows.join("")}</dl>` : `<p class="muted small">No stats on the pieces themselves.</p>`}
-            <p class="muted small">Stats of every piece added up, without the set bonuses.</p>
-          </section>
-        </aside>
+      <h2 class="section-title">Set bonuses</h2>
+      <ol class="set-bonuses">${s.bonuses.map(bonus).join("")}</ol>
+      ${
+        s.removedBonuses?.length
+          ? `<h3 class="set-sub">Classic bonuses that are gone</h3><ol class="set-bonuses removed">${s.removedBonuses
+              .map((b) => `<li class="set-bonus"><span class="set-bonus-n">${b.n}</span><div><p>${gameText(b.text)}</p></div></li>`)
+              .join("")}</ol>`
+          : ""
+      }
+      <div class="set-pieces-list">
+        <h2 class="section-title">Pieces</h2>
+        <ul class="set-pieces">${s.items
+          .map(
+            (i) => `<li><a href="/items/${i.id}" data-link style="--q:${QUALITY_COLOR[i.q] ?? QUALITY_COLOR[1]}">
+              <img src="${iconUrl(i.icon)}" alt="" loading="lazy" />
+              <span class="set-piece-name">${esc(i.name)}</span>
+              <span class="set-piece-slot">${esc(SLOT_NAME[i.slot] ?? "")}</span>
+              <span class="set-piece-num" title="Item level">${i.ilvl}</span>
+              ${added.has(i.id) ? `<span class="badge st-new">New</span>` : `<span></span>`}
+            </a></li>`,
+          )
+          .join("")}</ul>
       </div>
+      ${adSlot("leaderboard")}
       <p class="data-note">Pieces and bonuses come from the game client and are compared with Classic Era ${esc(classicBuild)}. Only numbers count as a change:
         Forever shows Classic's “90 to 110” as its middle value, and often spells out proc chances Classic leaves out.
         <button type="button" class="link-btn" data-report-bug data-kind="data">Something look wrong?</button></p>
@@ -283,16 +336,19 @@ export async function renderSet(root: HTMLElement, id: number) {
   showModel(root, s);
 }
 
-/** The 3D view, for sets that have a model built (scripts/model3d). */
+/** The 3D character in the middle of the screen, for sets that have a model built (scripts/model3d). */
 async function showModel(root: HTMLElement, s: ItemSet) {
   const models = (await getModelIndex())?.sets[String(s.id)];
-  const panel = root.querySelector<HTMLElement>("#viewer-panel");
-  if (!models?.length || !panel) return;
-  panel.hidden = false;
-  panel.innerHTML = `<div class="viewer-3d" id="viewer-3d" role="img" aria-label="${esc(s.name)} on a ${esc(models[0].label)} character, in 3D">
+  const stage = root.querySelector<HTMLElement>("#cs-stage");
+  if (!stage) return;
+  if (!models?.length) {
+    stage.innerHTML = `<p class="cs-stage-empty">No 3D model of this set yet</p>`;
+    return;
+  }
+  stage.innerHTML = `<div class="viewer-3d" id="viewer-3d" role="img" aria-label="${esc(s.name)} on a ${esc(models[0].label)} character, in 3D">
       <p class="viewer-loading">Loading 3D model…</p></div>
-    <p class="viewer-note"><b>3D preview</b> · ${esc(models[0].label)} · drag to turn, scroll to zoom</p>`;
-  const host = panel.querySelector<HTMLElement>("#viewer-3d")!;
+    <p class="cs-stage-note">${esc(models[0].label)} · drag to turn<span class="cs-zoom-hint">, scroll to zoom</span></p>`;
+  const host = stage.querySelector<HTMLElement>("#viewer-3d")!;
   try {
     await mountViewer(host, modelUrl(models[0].file));
     host.querySelector(".viewer-loading")?.remove();
