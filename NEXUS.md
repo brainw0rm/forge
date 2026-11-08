@@ -23,7 +23,8 @@ the launch checklist); every push to main deploys automatically. Rule: never ext
 - Both GitHub jobs are enabled again; news runs every 6 hours instead of 2.
 
 ## Todo
-- [ ] 3D set viewer prototype (Imperial Plate on a human male, 2026-11-02): decide how to publish the models
+- [ ] 3D set models go to R2 (decided 2026-11-08, code ready): enable R2 in the Cloudflare dashboard, run
+      `node scripts/model3d/upload.mjs --setup <zone id>`, then `npm run models:upload`
       (public repo vs. separate storage), then more races/genders, weapons, cloaks, more sets
 - [ ] Item sets: link set bonuses to talent builds (suggest sets whose bonuses touch the build's abilities)
 - [ ] Workers Paid and Images/Stream cancelled 2026-11-01 (may stay active until the billing period ends). After

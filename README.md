@@ -77,6 +77,8 @@ npm test                      # unit tests + API tests against an in-memory D1
 
 `scripts/model3d/build_set_model.py <set id> [race] [gender]` builds a static glTF model of a character wearing an item set, straight from the game client files on wago.tools (needs numpy): the body mesh with the right geosets, one body texture layered from skin, face and the armor textures per body section, and helmet and shoulder models at their attachment points. It writes `public/models/set-<id>-<race>-<gender>.glb` and `public/models/index.json`; set pages with a model show it in a three.js viewer (`src/viewer3d.ts`, loaded only there). Bind pose, no animation, one race/gender so far. The models are Blizzard assets, so `public/models/` is not committed to the public repo.
 
+The live site loads them from the R2 bucket `forever-forge-models` at https://models.wow-forever-forge.com (`VITE_MODELS_URL` in `.env.production`; without it the viewer uses `public/models`, so local builds just work). After building models, upload them with `npm run models:upload` (or `npm run models:upload -- set-321-1-0.glb`; `index.json` always goes last). One-time setup, after enabling R2 in the Cloudflare dashboard: `node scripts/model3d/upload.mjs --setup <zone id>` creates the bucket, sets CORS (`scripts/model3d/r2-cors.json`) and connects the domain. A site with no bucket yet shows no viewer.
+
 ## Item database
 
 `/items` searches every item in the beta client, about 17,600 of them. Internal test and placeholder items are filtered out. Each item has a page at `/items/<id>` with:

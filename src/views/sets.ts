@@ -7,7 +7,7 @@ import { classColor, clientLabel, getMeta, iconUrl, load, QUALITY_COLOR } from "
 import { GEAR_SLOT, SLOT_NAME, statLine } from "../itemdb";
 import { openShare } from "../share";
 import { diffWords, esc, gameText, setTitle } from "../ui";
-import { getModelIndex, mountViewer } from "../viewer3d";
+import { getModelIndex, modelUrl, mountViewer } from "../viewer3d";
 
 export interface SetPiece {
   id: number;
@@ -294,7 +294,7 @@ async function showModel(root: HTMLElement, s: ItemSet) {
     <p class="viewer-note"><b>3D preview</b> · ${esc(models[0].label)} · drag to turn, scroll to zoom</p>`;
   const host = panel.querySelector<HTMLElement>("#viewer-3d")!;
   try {
-    await mountViewer(host, `/models/${models[0].file}`);
+    await mountViewer(host, modelUrl(models[0].file));
     host.querySelector(".viewer-loading")?.remove();
   } catch {
     host.querySelector(".viewer-loading")!.textContent = "The 3D model couldn't be loaded.";

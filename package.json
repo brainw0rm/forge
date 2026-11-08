@@ -15,7 +15,8 @@
     "test": "vitest run",
     "db:migrate": "wrangler d1 migrations apply forever-forge --remote",
     "deploy": "npm run build && node scripts/check-launch.mjs --strict && wrangler pages deploy dist",
-    "make-admin": "node scripts/make-admin.mjs"
+    "make-admin": "node scripts/make-admin.mjs",
+    "models:upload": "node scripts/model3d/upload.mjs"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260929.1",

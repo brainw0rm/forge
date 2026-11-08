@@ -7,9 +7,14 @@ export interface ModelIndex {
   sets: Record<string, { file: string; label: string }[]>;
 }
 
+// The models are Blizzard assets, so they live in an R2 bucket instead of the public repo
+// (scripts/model3d/upload.mjs). Without VITE_MODELS_URL they come from public/models (local builds).
+const MODELS_URL = ((import.meta.env.VITE_MODELS_URL as string | undefined) || "/models").replace(/\/$/, "");
+export const modelUrl = (file: string) => `${MODELS_URL}/${file}`;
+
 let index: Promise<ModelIndex | null> | null = null;
 export const getModelIndex = () =>
-  (index ??= fetch("/models/index.json").then((r) => (r.ok ? (r.json() as Promise<ModelIndex>) : null)).catch(() => null));
+  (index ??= fetch(modelUrl("index.json")).then((r) => (r.ok ? (r.json() as Promise<ModelIndex>) : null)).catch(() => null));
 
 /** Mounts a viewer into `host` and returns a function that tears it down. */
 export async function mountViewer(host: HTMLElement, url: string): Promise<() => void> {

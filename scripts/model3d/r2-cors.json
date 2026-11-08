@@ -1,0 +1,11 @@
+{
+  "rules": [
+    {
+      "allowed": {
+        "origins": ["https://wow-forever-forge.com", "https://www.wow-forever-forge.com", "https://forever-forge.pages.dev", "http://localhost:5173", "http://localhost:5175", "http://localhost:8788"],
+        "methods": ["GET", "HEAD"]
+      },
+      "maxAgeSeconds": 86400
+    }
+  ]
+}
