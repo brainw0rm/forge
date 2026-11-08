@@ -45,5 +45,8 @@ the launch checklist); every push to main deploys automatically. Rule: never ext
 - [x] Gear sandbox character sheet with editable rules of thumb (2026-10-12)
 - [x] Item sets: /sets explorer with Classic Era comparison, set bonuses counted in the gear sandbox (2026-11-02)
 - [x] Set pages as an in-game style character equipment screen around the 3D model (2026-11-08)
+- [x] In-game item tooltips on set pages (hover; tap opens a sheet on phones), torch-lit stone hall behind the 3D
+      character, character screen written mobile-first (2026-11-08)
+- [ ] Gear sandbox: same character-screen layout and item tooltips (mobile-first), maybe with the 3D model later
 - [x] 3D set viewer live: Imperial Plate from the R2 bucket at models.wow-forever-forge.com (2026-11-08)
 - [x] WoW interface look: wood-and-gold frames, red buttons, parchment flight map (2026-11-02)

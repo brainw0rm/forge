@@ -1151,6 +1151,9 @@ a.item-chip:hover { text-decoration: none; border-color: var(--border-strong); }
   .class-tabs a.active { background: var(--surface-2); border-color: color-mix(in srgb, var(--c) 45%, var(--border)); box-shadow: inset 0 -2px 0 var(--c); }
   .prof-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   main { padding: 0 16px 64px; }
+  /* Phones: less empty space above each page, so content starts on the first screen. */
+  .page { padding-top: 20px; }
+  .page h1 { font-size: 32px; }
   .header-inner { padding: 0 16px; }
   .section-head { margin-top: 56px; }
   .parchment { margin-top: 64px; margin-bottom: -64px; padding: 56px 0 64px; }
@@ -1460,70 +1463,90 @@ h1, h2 { color: var(--title); text-shadow: 0 2px 0 rgb(0 0 0 / .55); }
 .fm-node.start circle:not(.halo), .fm-node.end circle:not(.halo) { stroke: #a8231c; }
 
 /* Set page: a character equipment screen. Slot columns left and right of the 3D character, weapons
-   below, stats at the foot, like the in-game character frame (drawn with CSS, no game artwork). */
+   below, stats at the foot, like the in-game character frame (drawn with CSS, no game artwork).
+   Written for phones first: icons only around the character; wide screens add each piece's name. */
 .char-screen {
   margin: 4px 0 24px; border-radius: var(--radius); overflow: hidden;
   background: linear-gradient(180deg, var(--wood-3), var(--wood) 40%);
   border: 1px solid color-mix(in srgb, var(--trim) 70%, #000);
   box-shadow: inset 0 0 0 1px rgb(0 0 0 / .75), inset 0 0 0 3px color-mix(in srgb, var(--trim) 22%, transparent), 0 14px 34px rgb(0 0 0 / .45);
 }
-.cs-head { display: flex; justify-content: space-between; align-items: center; gap: 12px 20px; flex-wrap: wrap; padding: 16px 20px 14px;
+.cs-head { display: flex; justify-content: space-between; align-items: center; gap: 12px 20px; flex-wrap: wrap; padding: 14px 14px 12px;
   background: linear-gradient(180deg, color-mix(in srgb, var(--trim) 16%, transparent), transparent);
   border-bottom: 1px solid color-mix(in srgb, var(--trim) 45%, #000); box-shadow: 0 1px 0 color-mix(in srgb, var(--trim-light) 10%, transparent); }
-.cs-head h1 { color: var(--q); margin: 0 0 4px; font-size: clamp(24px, 4.5vw, 34px); line-height: 1.12; text-wrap: balance; text-shadow: 0 2px 0 rgb(0 0 0 / .6); }
+.cs-head h1 { color: var(--q); margin: 0 0 4px; font-size: clamp(24px, 6vw, 34px); line-height: 1.12; text-wrap: balance; text-shadow: 0 2px 0 rgb(0 0 0 / .6); }
 .cs-sub { margin: 0; color: var(--title); font-size: 14px; }
 .cs-head .set-card-classes { margin: 8px 0 0; }
-.cs-body { display: grid; grid-template-columns: minmax(0, 230px) minmax(0, 1fr) minmax(0, 230px); grid-template-areas: "left stage right" "weapons weapons weapons";
-  gap: 12px 16px; padding: 16px 18px 14px; }
-.cs-col, .cs-weapons { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; align-content: start; }
+.cs-head .build-head-actions { width: 100%; }
+.cs-head .build-head-actions .btn { flex: 1; justify-content: center; min-height: 44px; }
+.cs-body { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "left stage right" "weapons weapons weapons";
+  gap: 8px; padding: 10px 8px; }
+.cs-col, .cs-weapons { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; align-content: start; }
 .cs-left { grid-area: left; }
 .cs-right { grid-area: right; }
 .cs-weapons { grid-area: weapons; display: flex; justify-content: center; gap: 10px; }
-.cs-slot > a, .cs-slot.is-empty { display: flex; align-items: center; gap: 10px; min-width: 0; color: var(--text); }
+.cs-slot > a, .cs-slot.is-empty { display: flex; align-items: center; gap: 10px; min-width: 0; color: var(--text); -webkit-tap-highlight-color: transparent; }
 .cs-slot > a:hover { text-decoration: none; }
 .cs-right .cs-slot > a, .cs-right .cs-slot.is-empty { flex-direction: row-reverse; text-align: right; }
-.cs-icon { flex: none; display: block; width: 46px; height: 46px; border-radius: 4px; background: radial-gradient(circle at 50% 40%, #241d16, #0c0907 75%);
+.cs-icon { flex: none; display: block; width: 42px; height: 42px; border-radius: 4px; background: radial-gradient(circle at 50% 40%, #241d16, #0c0907 75%);
   box-shadow: inset 0 0 0 1px rgb(0 0 0 / .9), 0 0 0 2px color-mix(in srgb, var(--trim) 38%, #000), 0 2px 6px rgb(0 0 0 / .6); }
 img.cs-icon { box-shadow: inset 0 0 0 1px rgb(0 0 0 / .6), 0 0 0 2px color-mix(in srgb, var(--q) 75%, #000), 0 0 10px color-mix(in srgb, var(--q) 30%, transparent), 0 2px 6px rgb(0 0 0 / .6); }
-.cs-slot > a:hover img.cs-icon { filter: brightness(1.15); box-shadow: inset 0 0 0 1px rgb(0 0 0 / .6), 0 0 0 2px var(--q), 0 0 14px color-mix(in srgb, var(--q) 55%, transparent); }
-.cs-text { display: grid; min-width: 0; line-height: 1.3; }
+.cs-slot > a:hover img.cs-icon, .cs-slot > a:focus-visible img.cs-icon {
+  filter: brightness(1.15); box-shadow: inset 0 0 0 1px rgb(0 0 0 / .6), 0 0 0 2px var(--q), 0 0 14px color-mix(in srgb, var(--q) 55%, transparent); }
+.cs-text { display: none; min-width: 0; line-height: 1.3; }
 .cs-name { color: var(--q); font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.cs-slot > a:hover .cs-name { text-decoration: underline; }
 .cs-slotname { color: var(--muted); font-size: 12.5px; white-space: nowrap; }
 .cs-slot.is-empty .cs-slotname { color: var(--faint); }
 .cs-slotname .badge { margin-left: 4px; }
-.cs-weapons .cs-text { display: none; }
-.cs-stage { grid-area: stage; position: relative; min-height: 430px; border-radius: 6px; overflow: hidden;
-  background: radial-gradient(60% 45% at 50% 36%, color-mix(in srgb, #e0a24a 18%, transparent), transparent 70%), linear-gradient(180deg, #141b33, #0b0f1d);
-  box-shadow: inset 0 0 0 1px rgb(0 0 0 / .8), inset 0 0 40px rgb(0 0 0 / .6), 0 0 0 1px color-mix(in srgb, var(--trim) 35%, #000); }
-/* A pool of candlelight on the floor under the character. */
-.cs-stage::after { content: ""; position: absolute; left: 18%; right: 18%; bottom: 6%; height: 9%; border-radius: 50%; pointer-events: none;
-  background: radial-gradient(closest-side, color-mix(in srgb, #ffcf7a 22%, transparent), transparent); }
-.cs-stage-empty { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; padding: 20px; text-align: center; color: var(--faint); font-size: 14px; }
-.cs-stage-note { position: absolute; left: 0; right: 0; bottom: 8px; margin: 0; text-align: center; font-size: 12px; color: var(--muted); pointer-events: none; z-index: 1; text-shadow: 0 1px 2px #000; }
-.cs-foot { padding: 12px 20px 14px; border-top: 1px solid color-mix(in srgb, var(--trim) 35%, #000); background: rgb(0 0 0 / .18); }
+.cs-stage { grid-area: stage; position: relative; min-height: 0; border-radius: 6px; overflow: hidden; background: #0b0a10;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / .8), 0 0 0 1px color-mix(in srgb, var(--trim) 35%, #000); }
+.cs-stage-empty { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; padding: 20px; text-align: center; color: var(--faint); font-size: 14px;
+  background: radial-gradient(60% 45% at 50% 40%, color-mix(in srgb, #e0a24a 10%, transparent), transparent 70%); }
+.cs-stage-note { position: absolute; left: 0; right: 0; bottom: 8px; margin: 0; padding: 0 8px; text-align: center; font-size: 12px; color: var(--muted); pointer-events: none; z-index: 1; text-shadow: 0 1px 2px #000; }
+.cs-zoom-hint { display: none; }
+.cs-foot { padding: 12px 14px 14px; border-top: 1px solid color-mix(in srgb, var(--trim) 35%, #000); background: rgb(0 0 0 / .18); }
 .cs-foot p { margin: 8px 0 0; }
-.cs-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 2px 22px; margin: 0; font-size: 13.5px; }
+.cs-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 2px 22px; margin: 0; font-size: 13.5px; }
 .cs-stats div { display: flex; justify-content: space-between; gap: 8px; padding: 4px 0; border-bottom: 1px solid var(--hairline); }
 .cs-stats dt { color: var(--title); }
 .cs-stats dd { margin: 0; font-weight: 650; font-variant-numeric: tabular-nums; }
-/* Wide screens name every piece next to its slot, so the pieces list below is only for narrow ones. */
-@media (min-width: 900px) { .set-pieces-list { display: none; } }
-@media (max-width: 899px) {
-  .cs-body { grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; padding: 12px; }
-  .cs-text { display: none; }
-  .cs-stage { min-height: 0; }
-  .cs-zoom-hint { display: none; }
+@media (min-width: 421px) {
+  .cs-icon { width: 46px; height: 46px; }
+  .cs-col { gap: 8px; }
+  .cs-body { gap: 10px; padding: 12px; }
+  .cs-head, .cs-foot { padding-left: 20px; padding-right: 20px; }
+  .cs-head .build-head-actions { width: auto; }
 }
-@media (max-width: 420px) {
-  .cs-icon { width: 40px; height: 40px; }
-  .cs-col { gap: 6px; }
-  .cs-body { gap: 8px; padding: 10px 8px; }
-  .cs-head, .cs-foot { padding-left: 14px; padding-right: 14px; }
+/* Wide screens name every piece next to its slot, so the pieces list below is only for narrow ones. */
+@media (min-width: 900px) {
+  .cs-body { grid-template-columns: minmax(0, 230px) minmax(0, 1fr) minmax(0, 230px); gap: 12px 16px; padding: 16px 18px 14px; }
+  .cs-text { display: grid; }
+  .cs-weapons .cs-text { display: none; }
+  .cs-stage { min-height: 430px; }
+  .cs-zoom-hint { display: inline; }
+  .set-pieces-list { display: none; }
 }
 
+/* Item tooltips over icons (src/itemtip.ts): floating beside the icon with a mouse, a sheet on touch. */
+.tip-float { position: fixed; left: 0; top: 0; z-index: 50; width: max-content; max-width: min(330px, calc(100vw - 16px)); pointer-events: none; }
+.tip-sheet { position: fixed; left: 8px; right: 8px; bottom: calc(8px + env(safe-area-inset-bottom)); margin: 0 auto; max-width: 440px; max-height: 75vh; overflow: auto; z-index: 50;
+  animation: tip-up .18s ease-out; }
+@keyframes tip-up { from { transform: translateY(16px); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .tip-sheet { animation: none; } }
+.tip-float .item-tooltip, .tip-sheet .item-tooltip {
+  padding: 10px 12px; font-size: 13.5px; line-height: 1.45; border-radius: 6px; border: 1px solid #9ba1ae;
+  background: linear-gradient(180deg, rgb(16 20 40 / .97), rgb(8 10 22 / .97));
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / .8), 0 10px 30px rgb(0 0 0 / .6);
+}
+.item-tooltip.floating header { margin-bottom: 2px; }
+.item-tooltip .tt-name { color: var(--q); font-size: 15.5px; font-weight: 600; margin: 0; }
+.tt-set-item.on { color: #fff59d; }
+.tt-set-bonus.on { color: var(--tt-green); }
+.tip-sheet-actions { display: flex; gap: 8px; margin-top: 8px; }
+.tip-sheet-actions .btn { flex: 1; justify-content: center; min-height: 44px; }
+
 /* 3D viewer (src/viewer3d.ts), fills the character screen's stage. */
-.viewer-3d { position: absolute; inset: 0; touch-action: none; cursor: grab; }
+.viewer-3d { position: absolute; inset: 0; touch-action: pan-y; cursor: grab; }
 .viewer-3d:active { cursor: grabbing; }
 .viewer-3d canvas { display: block; width: 100% !important; height: 100% !important; }
 .viewer-loading { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: 14px; margin: 0; }

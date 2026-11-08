@@ -5,6 +5,7 @@
 import { adSlot, fillAds, withRail } from "../ads";
 import { classColor, clientLabel, getMeta, iconUrl, load, QUALITY_COLOR } from "../data";
 import { GEAR_SLOT, SLOT_NAME, statLine } from "../itemdb";
+import { attachItemTips } from "../itemtip";
 import { openShare } from "../share";
 import { diffWords, esc, gameText, setTitle } from "../ui";
 import { getModelIndex, modelUrl, mountViewer } from "../viewer3d";
@@ -247,7 +248,7 @@ export async function renderSet(root: HTMLElement, id: number) {
   const slot = (d: (typeof DOLL)[number][number]) => {
     const i = worn.get(d.key);
     if (!i) return `<li class="cs-slot is-empty"><span class="cs-icon" title="${d.name}"></span><span class="cs-text"><span class="cs-slotname">${d.name}</span></span></li>`;
-    return `<li class="cs-slot" style="--q:${QUALITY_COLOR[i.q] ?? QUALITY_COLOR[1]}"><a href="/items/${i.id}" data-link title="${esc(i.name)}">
+    return `<li class="cs-slot" style="--q:${QUALITY_COLOR[i.q] ?? QUALITY_COLOR[1]}"><a href="/items/${i.id}" data-link data-tip-item="${i.id}">
       <img class="cs-icon" src="${iconUrl(i.icon)}" alt="${esc(i.name)}" />
       <span class="cs-text"><span class="cs-name">${esc(i.name)}</span>
         <span class="cs-slotname">${d.name} · ilvl ${i.ilvl}${added.has(i.id) ? ` <span class="badge st-new">New</span>` : ""}</span></span>
@@ -313,7 +314,7 @@ export async function renderSet(root: HTMLElement, id: number) {
         <h2 class="section-title">Pieces</h2>
         <ul class="set-pieces">${s.items
           .map(
-            (i) => `<li><a href="/items/${i.id}" data-link style="--q:${QUALITY_COLOR[i.q] ?? QUALITY_COLOR[1]}">
+            (i) => `<li><a href="/items/${i.id}" data-link data-tip-item="${i.id}" style="--q:${QUALITY_COLOR[i.q] ?? QUALITY_COLOR[1]}">
               <img src="${iconUrl(i.icon)}" alt="" loading="lazy" />
               <span class="set-piece-name">${esc(i.name)}</span>
               <span class="set-piece-slot">${esc(SLOT_NAME[i.slot] ?? "")}</span>
@@ -332,6 +333,7 @@ export async function renderSet(root: HTMLElement, id: number) {
   root.querySelector("#share")!.addEventListener("click", () =>
     openShare({ url: `${location.origin}/sets/${s.id}`, text: `${s.name}: set bonuses in WoW Forever` }),
   );
+  attachItemTips(root, { worn: new Set(s.items.map((i) => i.id)) });
   fillAds(root);
   showModel(root, s);
 }

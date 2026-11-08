@@ -2,24 +2,19 @@
 // tooltip, how it compares with Classic Era, and profession links.
 
 import { adSlot, fillAds, withListAds, withRail } from "../ads";
-import { classColor, clientLabel, getMeta, iconUrl, QUALITY_COLOR } from "../data";
+import { clientLabel, getMeta, iconUrl, QUALITY_COLOR } from "../data";
 import {
-  BIND_TEXT, coins, GEAR_SLOT, getItem, getItemDbMeta, getItemIndex, PRIMARY_STATS, QUALITY_NAME, SLOT_NAME,
-  STAT_NAME, statLine, type ItemDetail, type ItemNumbers, type ItemRow, type ItemSpell,
+  GEAR_SLOT, getItem, getItemDbMeta, getItemIndex, QUALITY_NAME, SLOT_NAME, STAT_NAME, statLine, type ItemDetail, type ItemNumbers,
+  type ItemRow,
 } from "../itemdb";
+import { itemLink, itemTooltip, LEVEL_CAP } from "../itemtip";
 import { openShare } from "../share";
 import { diffWords, esc, gameText, setTitle } from "../ui";
 
 const PAGE = 100;
 /** One in-list ad per this many result rows. */
 const LIST_AD_EVERY = 40;
-const LEVEL_CAP = 60;
 const SORTS = { ilvl: "Item level", req: "Required level", name: "Name" } as const;
-
-const itemLink = (i: { id: number; name: string; q: number; icon?: string }, withIcon = true) =>
-  `<a class="item-link" href="/items/${i.id}" data-link style="--q:${QUALITY_COLOR[i.q] ?? QUALITY_COLOR[1]}">${
-    withIcon && i.icon ? `<img src="${iconUrl(i.icon)}" alt="" loading="lazy" />` : ""
-  }<span>${esc(i.name)}</span></a>`;
 
 // ------------------------------------------------------------------ list
 
@@ -203,68 +198,6 @@ export async function renderItemList(root: HTMLElement, params: URLSearchParams)
 
 // ------------------------------------------------------------------ detail
 
-const cooldown = (s: number) => (s >= 3600 ? `${s / 3600} hour` : s >= 60 ? `${Math.round(s / 60)} min` : `${s} sec`);
-
-function spellLine(sp: ItemSpell) {
-  const prefix = { use: "Use", equip: "Equip", hit: "Chance on hit" }[sp.on];
-  return `<p class="tt-green">${prefix}: ${gameText(sp.text)}${sp.cd ? ` (${cooldown(sp.cd)} Cooldown)` : ""}</p>`;
-}
-
-function money(copper: number) {
-  const [g, s, c] = coins(copper);
-  return [g && `<span class="coin gold">${g}</span>`, s && `<span class="coin silver">${s}</span>`, (c || (!g && !s)) && `<span class="coin copper">${c}</span>`]
-    .filter(Boolean)
-    .join(" ");
-}
-
-function tooltip(d: ItemDetail, typeName: string, classNames: Map<string, string>) {
-  const lines: string[] = [];
-  const add = (html: string, cls = "") => lines.push(`<p${cls ? ` class="${cls}"` : ""}>${html}</p>`);
-  if (d.bind) add(BIND_TEXT[d.bind] ?? "");
-  if (d.unique) add("Unique");
-  if (d.quest) add("This Item Begins a Quest", "tt-gold");
-  const slot = SLOT_NAME[d.slot];
-  if (slot || (d.cls === 2 || d.cls === 4)) lines.push(`<p class="tt-split"><span>${esc(slot ?? "")}</span><span>${esc(typeName)}</span></p>`);
-  if (d.bag) add(`${d.bag} Slot ${d.cls === 11 ? "Quiver" : "Bag"}`);
-  if (d.dmg) {
-    lines.push(`<p class="tt-split"><span>${d.dmg.min} - ${d.dmg.max}${d.school ? ` ${esc(d.school)}` : ""} Damage</span><span>Speed ${d.dmg.speed.toFixed(2)}</span></p>`);
-    if (d.dmg.bonus) add(`+${d.dmg.bonus.min} - ${d.dmg.bonus.max} ${esc(d.dmg.bonus.school)} Damage`);
-    add(`(${d.dmg.dps.toFixed(1)} damage per second)`);
-  } else if (d.dmg === null) {
-    add("Weapon damage isn't derivable from the game client data for this weapon.", "tt-unknown");
-  }
-  if (d.armor) add(`${d.armor} Armor`);
-  for (const k of PRIMARY_STATS) if (d.stats[k]) add(statLine(k, d.stats[k]));
-  if (d.classes) add(`Classes: ${d.classes.map((c) => `<span style="color:${classColor(c)}">${esc(classNames.get(c) ?? c)}</span>`).join(", ")}`);
-  if (d.faction) add(`${d.faction} only`);
-  if (d.races) add(`Races: ${d.races.map(esc).join(", ")}`);
-  if (d.req > 1) add(`Requires Level ${d.req}`);
-  if (d.req > LEVEL_CAP) add(`That's above WoW Forever's level cap of ${LEVEL_CAP}: the item ships in the client files, but no character can use it.`, "tt-unknown");
-  if (d.skill) add(`Requires ${esc(d.skill.name)} (${d.skill.rank})`);
-  if (d.rep) add(`Requires ${esc(d.rep.faction)} - ${esc(d.rep.standing)}`);
-  if (d.pvpRank) add(`Requires PvP rank ${d.pvpRank}`);
-  for (const [k, v] of Object.entries(d.stats)) if (!PRIMARY_STATS.includes(k)) add(`Equip: ${statLine(k, v)}`, "tt-green");
-  for (const o of d.other ?? []) {
-    if ("label" in o) add(`Equip: +? ${esc(o.label)}`, "tt-green");
-    else add(`Equip: a bonus of a type Forever added (#${o.type}) that isn't identified yet`, "tt-unknown");
-  }
-  for (const sp of d.spells ?? []) lines.push(spellLine(sp));
-  if (d.teaches && !(d.spells ?? []).some((s) => s.on === "use")) lines.push(`<p class="tt-green">Use: Teaches you how to make ${itemLink(d.teaches, false)}.</p>`);
-  if (d.set) {
-    lines.push(`<div class="tt-set"><p class="tt-gold">${esc(d.set.name)} (${d.set.items.length} pieces)</p>
-      ${d.set.items.map((i) => `<p class="tt-set-item">${i.id === d.id ? esc(i.name) : itemLink(i, false)}</p>`).join("")}
-      ${d.set.bonuses.map((b) => `<p class="tt-set-bonus">(${b.n}) Set: ${gameText(b.text)}</p>`).join("")}</div>`);
-  }
-  // Forever recipe items repeat "Teaches you how to make X." as their description; the Use line says it already.
-  if (d.flavor && !(d.teaches && /^Teaches you how to /.test(d.flavor))) add(`“${esc(d.flavor)}”`, "tt-flavor");
-  if (d.stack) add(`Max Stack: ${d.stack}`, "tt-muted");
-  if (d.sell) add(`Sell Price: ${money(d.sell)}`, "tt-muted");
-  return `<div class="item-tooltip" style="--q:${QUALITY_COLOR[d.q] ?? QUALITY_COLOR[1]}">
-      <header><img src="${iconUrl(d.icon)}" alt="" /><h1>${esc(d.name)}</h1></header>
-      ${lines.join("")}
-    </div>`;
-}
-
 const RATING_PAIRS: [string, string, string][] = [
   ["critpct", "crit", "Critical strike"], ["hitpct", "hit", "Hit"], ["dodgepct", "dodge", "Dodge"],
   ["parrypct", "parry", "Parry"], ["blockpct", "block", "Block"],
@@ -370,7 +303,7 @@ export async function renderItem(root: HTMLElement, id: number) {
       }</nav>
       <div class="item-layout">
         <div class="item-main">
-          ${tooltip(d, typeName, classNames)}
+          ${itemTooltip(d, typeName, classNames)}
           <div class="item-actions">
             <button class="btn small" id="copy-item">Share</button>
             ${gearSlot ? `<a class="btn small" href="/gear?i=${gearSlot}:${d.id}" data-link>Try in gear sandbox</a>` : ""}
