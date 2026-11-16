@@ -23,8 +23,8 @@ the launch checklist); every push to main deploys automatically. Rule: never ext
 - Both GitHub jobs are enabled again; news runs every 6 hours instead of 2.
 
 ## Todo
-- [ ] 3D set viewer: models for all sets (2 of 154 built: 321, 524; robes and cloaks untested), more
-      races/genders, weapons, cloaks (upload with `npm run models:upload`)
+- [ ] R2 cancelled 2026-11-16 (active until 2026-12-01): 3D viewer and R2 code removed; check the bucket
+      `forever-forge-models` and its `models.` domain are gone from Cloudflare
       (public repo vs. separate storage), then more races/genders, weapons, cloaks, more sets
 - [ ] Item sets: link set bonuses to talent builds (suggest sets whose bonuses touch the build's abilities)
 - [ ] Workers Paid and Images/Stream cancelled 2026-11-01 (may stay active until the billing period ends). After
@@ -47,6 +47,6 @@ the launch checklist); every push to main deploys automatically. Rule: never ext
 - [x] Set pages as an in-game style character equipment screen around the 3D model (2026-11-08)
 - [x] In-game item tooltips on set pages (hover; tap opens a sheet on phones), torch-lit stone hall behind the 3D
       character, character screen written mobile-first (2026-11-08)
-- [ ] Gear sandbox: same character-screen layout and item tooltips (mobile-first), maybe with the 3D model later
+- [ ] Gear sandbox: same character-screen layout and item tooltips (mobile-first)
 - [x] 3D set viewer live: Imperial Plate from the R2 bucket at models.wow-forever-forge.com (2026-11-08)
 - [x] WoW interface look: wood-and-gold frames, red buttons, parchment flight map (2026-11-02)

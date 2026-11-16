@@ -4,11 +4,10 @@
 
 import { adSlot, fillAds, withRail } from "../ads";
 import { classColor, clientLabel, getMeta, iconUrl, load, QUALITY_COLOR } from "../data";
-import { GEAR_SLOT, SLOT_NAME, statLine } from "../itemdb";
+import { GEAR_SLOT, statLine } from "../itemdb";
 import { attachItemTips } from "../itemtip";
 import { openShare } from "../share";
 import { diffWords, esc, gameText, setTitle } from "../ui";
-import { getModelIndex, modelUrl, mountViewer } from "../viewer3d";
 
 export interface SetPiece {
   id: number;
@@ -275,14 +274,14 @@ export async function renderSet(root: HTMLElement, id: number) {
         </header>
         <div class="cs-body">
           <ul class="cs-col cs-left">${left.map(slot).join("")}</ul>
-          <div class="cs-stage" id="cs-stage"></div>
+          <section class="cs-mid" aria-label="Stats">
+            <h2>All pieces together</h2>
+            ${statRows.length ? `<dl class="cs-stats">${statRows.join("")}</dl>` : `<p class="muted small">No stats on the pieces themselves.</p>`}
+            <p class="muted small">Every piece's stats added up, without the set bonuses.</p>
+          </section>
           <ul class="cs-col cs-right">${right.map(slot).join("")}</ul>
           <ul class="cs-weapons">${weapons.map(slot).join("")}</ul>
         </div>
-        <footer class="cs-foot">
-          ${statRows.length ? `<dl class="cs-stats">${statRows.join("")}</dl>` : `<p class="muted small">No stats on the pieces themselves.</p>`}
-          <p class="muted small">Every piece's stats added up, without the set bonuses.</p>
-        </footer>
       </div>
       ${
         s.status === "new"
@@ -310,20 +309,6 @@ export async function renderSet(root: HTMLElement, id: number) {
               .join("")}</ol>`
           : ""
       }
-      <div class="set-pieces-list">
-        <h2 class="section-title">Pieces</h2>
-        <ul class="set-pieces">${s.items
-          .map(
-            (i) => `<li><a href="/items/${i.id}" data-link data-tip-item="${i.id}" style="--q:${QUALITY_COLOR[i.q] ?? QUALITY_COLOR[1]}">
-              <img src="${iconUrl(i.icon)}" alt="" loading="lazy" />
-              <span class="set-piece-name">${esc(i.name)}</span>
-              <span class="set-piece-slot">${esc(SLOT_NAME[i.slot] ?? "")}</span>
-              <span class="set-piece-num" title="Item level">${i.ilvl}</span>
-              ${added.has(i.id) ? `<span class="badge st-new">New</span>` : `<span></span>`}
-            </a></li>`,
-          )
-          .join("")}</ul>
-      </div>
       ${adSlot("leaderboard")}
       <p class="data-note">Pieces and bonuses come from the game client and are compared with Classic Era ${esc(classicBuild)}. Only numbers count as a change:
         Forever shows Classic's “90 to 110” as its middle value, and often spells out proc chances Classic leaves out.
@@ -335,26 +320,4 @@ export async function renderSet(root: HTMLElement, id: number) {
   );
   attachItemTips(root, { worn: new Set(s.items.map((i) => i.id)) });
   fillAds(root);
-  showModel(root, s);
-}
-
-/** The 3D character in the middle of the screen, for sets that have a model built (scripts/model3d). */
-async function showModel(root: HTMLElement, s: ItemSet) {
-  const models = (await getModelIndex())?.sets[String(s.id)];
-  const stage = root.querySelector<HTMLElement>("#cs-stage");
-  if (!stage) return;
-  if (!models?.length) {
-    stage.innerHTML = `<p class="cs-stage-empty">No 3D model of this set yet</p>`;
-    return;
-  }
-  stage.innerHTML = `<div class="viewer-3d" id="viewer-3d" role="img" aria-label="${esc(s.name)} on a ${esc(models[0].label)} character, in 3D">
-      <p class="viewer-loading">Loading 3D model…</p></div>
-    <p class="cs-stage-note">${esc(models[0].label)} · drag to turn<span class="cs-zoom-hint">, scroll to zoom</span></p>`;
-  const host = stage.querySelector<HTMLElement>("#viewer-3d")!;
-  try {
-    await mountViewer(host, modelUrl(models[0].file));
-    host.querySelector(".viewer-loading")?.remove();
-  } catch {
-    host.querySelector(".viewer-loading")!.textContent = "The 3D model couldn't be loaded.";
-  }
 }

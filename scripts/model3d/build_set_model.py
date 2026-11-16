@@ -382,7 +382,7 @@ def build(set_id: int, race: int = 1, gender: int = 0) -> Path:
     OUT.mkdir(parents=True, exist_ok=True)
     path = OUT / f"set-{set_id}-{race}-{gender}.glb"
     out.write(path)
-    # The site's list of available models (src/viewer3d.ts reads it).
+    # A list of the models built so far.
     idx_path = OUT / "index.json"
     idx = json.loads(idx_path.read_text()) if idx_path.exists() else {"sets": {}}
     race_name = next(r["Name_lang"] for r in table("ChrRaces") if r["ID"] == str(race))
