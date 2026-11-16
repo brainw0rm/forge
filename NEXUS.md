@@ -23,9 +23,7 @@ the launch checklist); every push to main deploys automatically. Rule: never ext
 - Both GitHub jobs are enabled again; news runs every 6 hours instead of 2.
 
 ## Todo
-- [ ] R2 cancelled 2026-11-16 (active until 2026-12-01): 3D viewer and R2 code removed; check the bucket
-      `forever-forge-models` and its `models.` domain are gone from Cloudflare
-      (public repo vs. separate storage), then more races/genders, weapons, cloaks, more sets
+- [ ] Gear sandbox: same character-screen layout and item tooltips as the set pages (mobile-first)
 - [ ] Item sets: link set bonuses to talent builds (suggest sets whose bonuses touch the build's abilities)
 - [ ] Workers Paid and Images/Stream cancelled 2026-11-01 (may stay active until the billing period ends). After
       that date, re-run a sign-in check (a made-up username exercises the same PBKDF2 CPU via DUMMY_HASH)
@@ -44,9 +42,9 @@ the launch checklist); every push to main deploys automatically. Rule: never ext
 - [x] Flight map and route planner from client zone overlays (2026-10-03)
 - [x] Gear sandbox character sheet with editable rules of thumb (2026-10-12)
 - [x] Item sets: /sets explorer with Classic Era comparison, set bonuses counted in the gear sandbox (2026-11-02)
-- [x] Set pages as an in-game style character equipment screen around the 3D model (2026-11-08)
+- [x] Set pages as an in-game style character equipment screen (2026-11-08)
 - [x] In-game item tooltips on set pages (hover; tap opens a sheet on phones), torch-lit stone hall behind the 3D
       character, character screen written mobile-first (2026-11-08)
-- [ ] Gear sandbox: same character-screen layout and item tooltips (mobile-first)
 - [x] 3D set viewer live: Imperial Plate from the R2 bucket at models.wow-forever-forge.com (2026-11-08)
+- [x] R2 cancelled (active until 2026-12-01): 3D viewer, R2 code, bucket and `models.` domain removed (2026-11-16)
 - [x] WoW interface look: wood-and-gold frames, red buttons, parchment flight map (2026-11-02)
