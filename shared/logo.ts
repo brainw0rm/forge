@@ -1,38 +1,22 @@
-// The Forever Forge mark: a hammer over an anvil on a night-blue medallion with a gold rim, like a
-// profession emblem in the game's interface. Original artwork. Used by the preview card (server/og.ts);
-// index.html and public/favicon.svg carry the same markup (regenerate with `node scripts/write-logo.ts`).
+// The Forever Forge monogram for the favicon and home-screen icon: a serif F in game gold inside a
+// gold-edged night-blue tile. The site header uses the typed wordmark instead (index.html).
+// Regenerate the icons with `node scripts/write-logo.ts`.
 
 /** Inner markup for a 48×48 viewBox. `id` prefixes gradient ids so several marks can share a page. */
 export function logoMark(id = "ff"): string {
   return `<defs>
     <linearGradient id="${id}-gold" x1="0" y1="0" x2=".3" y2="1">
-      <stop offset="0" stop-color="#fff4c4"/><stop offset=".3" stop-color="#f2c75a"/><stop offset=".55" stop-color="#9c6b16"/>
-      <stop offset=".8" stop-color="#f0c35a"/><stop offset="1" stop-color="#7a5210"/>
+      <stop offset="0" stop-color="#fff4c4"/><stop offset=".35" stop-color="#f2c75a"/><stop offset=".6" stop-color="#9c6b16"/><stop offset="1" stop-color="#e8b84a"/>
     </linearGradient>
-    <linearGradient id="${id}-metal" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#fff6d8"/><stop offset=".45" stop-color="#f1cb6a"/><stop offset="1" stop-color="#a5721c"/>
+    <linearGradient id="${id}-letter" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff6d0"/><stop offset=".5" stop-color="#f5c84f"/><stop offset="1" stop-color="#b07a1c"/>
     </linearGradient>
-    <radialGradient id="${id}-sky" cx=".5" cy=".38" r=".62">
-      <stop offset="0" stop-color="#34559e"/><stop offset=".6" stop-color="#172a5c"/><stop offset="1" stop-color="#0a1230"/>
-    </radialGradient>
-    <radialGradient id="${id}-glow" cx=".5" cy=".62" r=".4">
-      <stop offset="0" stop-color="#ffcf6a" stop-opacity=".55"/><stop offset="1" stop-color="#ffcf6a" stop-opacity="0"/>
-    </radialGradient>
   </defs>
-  <circle cx="24" cy="24" r="23" fill="url(#${id}-gold)"/>
-  <circle cx="24" cy="24" r="20.6" fill="#1b1206"/>
-  <circle cx="24" cy="24" r="19.8" fill="url(#${id}-gold)"/>
-  <circle cx="24" cy="24" r="18.6" fill="url(#${id}-sky)"/>
-  <circle cx="24" cy="29" r="13" fill="url(#${id}-glow)"/>
-  <path fill="#ffe9a8" d="M13.2 13.4l.45 1.1 1.1.45-1.1.45-.45 1.1-.45-1.1-1.1-.45 1.1-.45Z"/>
-  <path fill="#ffe9a8" fill-opacity=".75" d="M35.4 15.2l.35.8.8.35-.8.35-.35.8-.35-.8-.8-.35.8-.35Z"/>
-  <g transform="rotate(-38 26 17)">
-    <rect x="24.9" y="15.5" width="2.4" height="13" rx="1" fill="#6b4419"/>
-    <rect x="19.2" y="10.6" width="13.8" height="5.6" rx="1.2" fill="url(#${id}-metal)" stroke="#5a3a0c" stroke-width=".6"/>
-  </g>
-  <path fill="#ffe08a" d="M30.6 23.4l.9-1.6.3 1.8Zm2.4 1.4l1.7-.8-1.1 1.5Zm-4.9-1.2l-.2-1.9 1 1.6Z"/>
-  <path fill="url(#${id}-metal)" stroke="#4a2f08" stroke-width=".6" stroke-linejoin="round" d="M9.4 27.4c2.8-.6 4.8-.8 6.8-.8H37v2.6c0 .8-.6 1.4-1.4 1.4h-4.1c-1 0-1.6.6-1.6 1.6v1.2h2.3c.8 0 1.4.6 1.4 1.4v1.6H15v-1.6c0-.8.6-1.4 1.4-1.4h2.3v-1.2c0-1-.6-1.6-1.6-1.6-3.3 0-5.9-1.2-7.7-3.2Z"/>
-  <path fill="none" stroke="#fff8e0" stroke-opacity=".7" stroke-width=".55" stroke-linecap="round" d="M17.6 27.2h18.6"/>`;
+  <rect x="1" y="1" width="46" height="46" rx="7" fill="url(#${id}-gold)"/>
+  <rect x="3.2" y="3.2" width="41.6" height="41.6" rx="5" fill="#0a1230"/>
+  <rect x="4.6" y="4.6" width="38.8" height="38.8" rx="4" fill="none" stroke="#f2c75a" stroke-opacity=".35" stroke-width=".8"/>
+  <path fill="url(#${id}-letter)" stroke="#2a1a04" stroke-width=".7" stroke-linejoin="round"
+    d="M13 10H35V18.2H32.6C32.2 15.6 30.9 14.7 28.4 14.7H22.2V22.3H26.8C28.4 22.3 29 21.5 29.2 19.9H31.4V28.9H29.2C29 27.3 28.4 26.5 26.8 26.5H22.2V34.1C22.2 35.3 23.1 35.9 25 36.1V38H13V36.1C14.8 35.9 15.6 35.3 15.6 34.1V13.9C15.6 12.7 14.8 12.1 13 11.9Z"/>`;
 }
 
 /** A standalone SVG file (favicon, previews). */

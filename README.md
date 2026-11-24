@@ -88,7 +88,7 @@ Set the secret once: `openssl rand -hex 32 | npx wrangler pages secret put REPOR
 
 ## Logo and preview card
 
-The medallion (a hammer over an anvil on a night-blue field in a gold rim) is original artwork defined once in `shared/logo.ts`. `node scripts/write-logo.ts` copies it into the header and `public/favicon.svg` and renders the home-screen icon. The preview card is `defaultCardSvg()` in `server/og.ts`, rendered with `node --import ./scripts/ts-resolve.mjs scripts/write-og-default.ts`.
+The header shows a typed wordmark (FOREVER FORGE in gold Cinzel capitals). The favicon and home-screen icon are a serif F monogram in a gold-edged tile, defined once in `shared/logo.ts`. `node scripts/write-logo.ts` copies it into the header and `public/favicon.svg` and renders the home-screen icon. The preview card is `defaultCardSvg()` in `server/og.ts`, rendered with `node --import ./scripts/ts-resolve.mjs scripts/write-og-default.ts`.
 
 ## 3D set models (offline experiment)
 

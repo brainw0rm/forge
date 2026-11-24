@@ -16,7 +16,10 @@ export function professionGrid(list: ProfessionSummary[]) {
   return (["primary", "gathering", "secondary"] as const)
     .map((kind) => {
       const group = list.filter((p) => p.kind === kind);
-      return group.length ? `<h2 class="section-title">${KIND_LABEL[kind]}</h2><div class="prof-tiles">${group.map(card).join("")}</div>` : "";
+      // Columns follow the group's size (6 → 2×3 or 6 across, 4 → 2×2 or 4 across), so no tile sits alone on a row.
+      return group.length
+        ? `<h2 class="section-title">${KIND_LABEL[kind]}</h2><div class="prof-tiles" style="--n:${group.length};--n-mid:${group.length % 3 === 0 ? 3 : 2};--n-phone:${group.length === 3 ? 3 : 2}">${group.map(card).join("")}</div>`
+        : "";
     })
     .join("");
 }

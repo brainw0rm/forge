@@ -1,8 +1,6 @@
 // The site's social preview card (Open Graph image): an SVG template rendered to PNG by
 // scripts/write-og-default.ts into public/og-default.png.
 
-import { logoMark } from "../shared/logo";
-
 export const CARD_W = 1200;
 export const CARD_H = 630;
 
@@ -40,7 +38,8 @@ export function defaultCardSvg(): string {
   <rect width="${CARD_W}" height="${CARD_H}" fill="url(#dusk)"/>
   <rect x="12" y="12" width="${CARD_W - 24}" height="${CARD_H - 24}" rx="10" fill="none" stroke="url(#edge)" stroke-width="5"/>
   <rect x="18" y="18" width="${CARD_W - 36}" height="${CARD_H - 36}" rx="7" fill="none" stroke="#000" stroke-width="2"/>
-  <svg x="800" y="140" width="300" height="300" viewBox="0 0 48 48">${logoMark("og")}</svg>
+  <text x="${CARD_W - 80}" y="140" text-anchor="end" font-size="22" font-weight="700" letter-spacing="14" fill="url(#goldText)">FOREVER</text>
+  <text x="${CARD_W - 80}" y="196" text-anchor="end" font-size="56" font-weight="700" letter-spacing="8" fill="url(#goldText)">FORGE</text>
   <g transform="translate(80 128)">
     <text x="0" y="0" font-size="24" font-weight="700" letter-spacing="7" fill="${C.goldSoft}">WOW FOREVER CRAFTING COMPANION</text>
     <text x="0" y="96" font-size="80" font-weight="700" fill="#f7efdc">Every recipe.</text>
@@ -48,7 +47,7 @@ export function defaultCardSvg(): string {
     <text x="0" y="262" font-size="27" fill="${C.muted}">Reagents, skill-up colors, recipe sources</text>
     <text x="0" y="300" font-size="27" fill="${C.muted}">for every profession, from the game files.</text>
   </g>
-  <text x="80" y="${CARD_H - 62}" font-size="26" font-weight="600" letter-spacing="4" fill="${C.gold}">FOREVER FORGE · wow-forever-forge.com</text>
+  <text x="80" y="${CARD_H - 62}" font-size="26" font-weight="600" letter-spacing="4" fill="${C.gold}">wow-forever-forge.com</text>
 </svg>`;
 }
 

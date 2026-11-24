@@ -19,7 +19,6 @@ export async function renderHome(root: HTMLElement) {
   root.innerHTML = `
     <section class="home">
       <header class="forge-hero">
-        <div class="hero-emblem" aria-hidden="true">${document.querySelector(".logo-mark")?.outerHTML.replace('class="logo-mark"', "") ?? ""}</div>
         <p class="eyebrow">WoW Forever crafting companion</p>
         <h1>Every recipe.<br /><span class="gold-title">Every reagent.</span></h1>
         <p class="lede">All ${total.toLocaleString("en")} crafting recipes of WoW Forever, read straight from the game files: reagents, skill-up colors, tools, stations, recipe items, and what changed since Classic Era.</p>
@@ -34,8 +33,7 @@ export async function renderHome(root: HTMLElement) {
       </header>
       <div id="hits" aria-live="polite"></div>
       <div class="wow-window book">
-        <img class="win-portrait" src="/favicon.svg" alt="" />
-        <header class="win-title"><h2>Professions</h2></header>
+        <header class="win-title plain"><h2>Professions</h2></header>
         <div class="win-pad">${professionGrid(list)}</div>
       </div>
       <section class="features">

@@ -142,8 +142,7 @@ code { font-size: .9em; background: var(--surface-2); padding: 1px 5px; border-r
 .header-inner { max-width: var(--max); margin: 0 auto; padding: 0 6px 0 12px; height: 60px; display: flex; align-items: center; gap: 12px; }
 .logo { display: flex; align-items: center; gap: 10px; }
 .logo:hover { text-decoration: none; }
-.logo-mark { width: 40px; height: 40px; flex: none; filter: drop-shadow(0 2px 4px rgb(0 0 0 / .7)); transition: filter .2s; }
-.logo:hover .logo-mark { filter: drop-shadow(0 0 10px rgb(255 209 0 / .45)); }
+.logo:hover .logo-word { filter: drop-shadow(0 0 8px rgb(255 209 0 / .35)); }
 /* The wordmark: carved gold capitals, like the game's logo. */
 .logo-word { display: grid; line-height: 1; font-family: var(--title); font-weight: 700; text-transform: uppercase; }
 .logo-top, .logo-bottom {
@@ -151,8 +150,8 @@ code { font-size: .9em; background: var(--surface-2); padding: 1px 5px; border-r
   background: linear-gradient(180deg, #fff6d0 10%, #f2c75a 50%, #a8741c 95%); -webkit-background-clip: text; background-clip: text; color: transparent;
   filter: drop-shadow(0 1px 0 #000) drop-shadow(0 0 1px #000);
 }
-.logo-top { font-size: 9.5px; letter-spacing: .5em; margin: 0 0 2px 1px; }
-.logo-bottom { font-size: 21px; letter-spacing: .14em; }
+.logo-top { font-size: 9px; letter-spacing: .32em; margin: 0 0 3px 2px; text-align: justify; text-align-last: justify; }
+.logo-bottom { font-size: 24px; letter-spacing: .16em; margin-right: -.16em; }
 .menu-toggle { margin-left: auto; order: 3; }
 .site-nav {
   display: none; position: absolute; top: 62px; left: 6px; right: 6px; flex-direction: column; padding: 8px;
@@ -184,8 +183,7 @@ code { font-size: .9em; background: var(--surface-2); padding: 1px 5px; border-r
 .header-right .header-bug:hover, .header-right .header-kofi:hover { color: var(--gold); filter: none; }
 @media (min-width: 760px) {
   .header-inner { padding: 0 24px; height: 66px; gap: 28px; }
-  .logo-mark { width: 44px; height: 44px; }
-  .logo-bottom { font-size: 24px; }
+  .logo-bottom { font-size: 27px; }
   .logo-top { font-size: 10px; }
   .header-inner .menu-toggle { display: none; }
   .site-nav { display: flex; position: static; flex-direction: row; gap: 4px; background: none; border: 0; padding: 0; box-shadow: none; }
@@ -409,7 +407,6 @@ ins { background: rgb(78 224 141 / .16); color: #b8f5d2; text-decoration: none; 
 .hero-numbers div { flex: 1 1 28%; min-width: 90px; }
 .hero-numbers dt { color: var(--muted); font-size: 10.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
 .hero-numbers dd { margin: 4px 0 0; font: 400 26px/1 var(--display); color: var(--gold); text-shadow: 0 1px 0 #000; }
-.hero-emblem { display: none; }
 .search-hits { margin-top: 18px; }
 .search-hits ul { list-style: none; margin: 0 !important; padding: 0 8px; display: grid; gap: 1px; }
 .search-hits li a { display: flex; align-items: center; gap: 12px; padding: 7px 8px; border-radius: 4px; color: var(--text); }
@@ -433,14 +430,9 @@ ins { background: rgb(78 224 141 / .16); color: #b8f5d2; text-decoration: none; 
   .hero-numbers dd { font-size: 34px; }
   .features { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
-@media (min-width: 960px) {
-  .hero-emblem { display: block; position: absolute; right: 3%; top: 0; width: 280px; height: 280px; pointer-events: none; }
-  .hero-emblem svg { width: 100%; height: 100%; filter: drop-shadow(0 10px 30px rgb(0 0 0 / .7)) drop-shadow(0 0 50px rgb(255 190 60 / .15)); }
-  .forge-hero > :not(.hero-emblem) { max-width: 640px; }
-}
 
 /* Profession tiles: like spellbook buttons, the icon in a gold frame. */
-.prof-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.prof-tiles { display: grid; grid-template-columns: repeat(var(--n-phone, 2), minmax(0, 1fr)); gap: 8px; }
 .prof-tile {
   display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; padding: 12px 6px 10px; color: var(--text); border-radius: var(--radius);
   background: linear-gradient(180deg, var(--frame-2), var(--frame)); border: 1px solid var(--line); box-shadow: inset 0 0 0 1px rgb(0 0 0 / .6);
@@ -453,7 +445,8 @@ ins { background: rgb(78 224 141 / .16); color: #b8f5d2; text-decoration: none; 
 .pt-meta { font-size: 12px; color: var(--muted); line-height: 1.35; }
 .pt-meta b { color: var(--st-new); font-weight: 600; }
 @media (min-width: 440px) { .prof-tile { flex-direction: row; text-align: left; gap: 12px; padding: 10px 12px; } }
-@media (min-width: 760px) { .prof-tiles { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; } .prof-tile img { width: 44px; height: 44px; } }
+@media (min-width: 760px) { .prof-tiles { grid-template-columns: repeat(var(--n-mid, 3), minmax(0, 1fr)); gap: 10px; } .prof-tile img { width: 44px; height: 44px; } }
+@media (min-width: 1180px) { .prof-tiles { grid-template-columns: repeat(var(--n, 4), minmax(0, 1fr)); } }
 
 /* ---------------------------------------------------------- one profession: the profession window */
 /* The profession window: a round portrait overlapping the top-left corner, a title bar with a close
@@ -479,6 +472,7 @@ ins { background: rgb(78 224 141 / .16); color: #b8f5d2; text-decoration: none; 
 .prof-stats b { color: var(--gold); font-weight: 700; }
 #prof-body > .about-grid { padding: 14px; }
 .win-title h2 { font-size: 22px; }
+.win-title.plain { padding-left: 16px; justify-content: center; }
 .win-pad { padding: 4px 14px 14px; }
 .book { margin-top: 34px; }
 .book .section-title { margin-top: 18px; font-size: 18px; }
