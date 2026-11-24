@@ -238,6 +238,8 @@ export async function resolvePage(req: Request, env: Env): Promise<Page> {
 
     case "list":
       return a ? notFound() : simple("/list", "Crafting list", "Plan what to craft in World of Warcraft: Forever and get the full shopping list of reagents.");
+    case "moderate":
+      return { status: 200, title: "", description: "", canonical: null, noindex: true };
     case "privacy":
       return a ? notFound() : simple("/privacy", "Privacy policy", "How Forever Forge handles your data.");
     case "imprint":

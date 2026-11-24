@@ -12,6 +12,7 @@ All game data is read from the public game client (via [wago.tools](https://wago
 | `/professions` | All professions: crafting, gathering, secondary |
 | `/professions/<name>` | One profession: every recipe as a card (skill-up colors, reagents, station, tools, recipe item), filters (category, new in Forever, changed from Classic, recipe item or not), and "your skill" that colors each recipe orange/yellow/green/grey like the profession window. The About tab has ranks, specializations, stations, tools, cooldowns and, for gathering professions, their materials |
 | `/professions/<name>/<spell id>` | One recipe: reagents for any number of crafts, which reagents are crafted too and the raw materials underneath, skill-up colors, requirements, how to learn it, the made item's tooltip, and the Classic Era difference |
+| `/moderate` | Approve or reject a player's source report (opened from the signed link in the email) |
 | `/list` | Crafting list: recipes you plan to craft and how many, with a shopping list (as written, or broken down to raw materials) you can tick off, copy as text or share as a link |
 | `/items`, `/items/<id>` | Item database: every item with its tooltip, Classic Era comparison, and the recipes that make it or use it |
 | `/privacy`, `/imprint` | Legal pages |
@@ -54,6 +55,11 @@ npm test                      # unit tests + API tests against an in-memory D1
   - Stats come from `ItemSparse` percentages times the `RandPropPoints` item-level budget (`ItemMath` in `pipeline/extras.py`); Classic Era stores final numbers. Forever's new stat types are named and valued only where the budget reproduces Classic's numbers exactly, otherwise "?".
   - Items are compared with Classic Era by ID, or by a unique name when Forever reissued an item. Wording alone never counts as a change.
   - Drop sources and vendors aren't in the client files, so they aren't listed.
+- **Where recipes come from in Classic Era** (`pipeline/classic_sources.py`, `professions/sources-classic.json`): the client has no loot, vendor or trainer data (Blizzard keeps it server-side), so the recipe pages show Classic Era's from the open-source [CMaNGOS Classic database](https://github.com/cmangos/classic-db) (GPL v3; the dump is cached in `pipeline/.cache/cmangos/`), always labeled "Classic Era, community data; WoW Forever may differ":
+  - Drops with chances, worked out by CMaNGOS's loot rules (ungrouped rows roll on their own, one item per group with explicit chances first and the rest shared, references rolled `maxcount` times). Loot shared by more than 12 creatures is summarized as a world drop.
+  - Vendors (with limited supply and faction), quest rewards, chests and containers, and the skill and price trainers teach each recipe at.
+  - Locations come from spawn positions and the Classic client's own maps: each zone map's rectangle (`UiMapAssignment`), and where rectangles overlap, the zone whose explored-area overlays (`WorldMapOverlay` hit rectangles) cover the spot. That also names the subzone ("Tarren Mill, Hillsbrad Foothills").
+  - Its COPYRIGHT note asks that the Blizzard-derived content not be used commercially; with ads back on, reconsider this file.
 - **Meta** (`meta.json`): the build, its phase (beta or live), and class names for item tooltips.
 
 **Rule: never extrapolate game numbers.** What the client doesn't say shows as "?" or "not in the client data".
@@ -73,6 +79,12 @@ The app is a single-page app, so `functions/_middleware.ts` sends every page add
 ## Bug reports
 
 "Report a bug" (header on desktop, menu on phones, footer, and "Something look wrong?" under the data) opens a short form. It sends the message, the page address, browser, screen size and game build. Reports go to the `feedback` table, and by email when `RESEND_API_KEY`, `MAIL_FROM` and `FEEDBACK_EMAIL` are set on the Pages project. Spam is limited per IP and by a honeypot field; reports are deleted after 12 months at the latest.
+
+## Player reports: where recipes drop in Forever
+
+"Where did you find it?" on every recipe page lets players report a source (drop, vendor, quest, trainer, container, other) with the place, zone and a note. Reports are anonymous, rate-limited per IP and honeypotted, and stored in the `source_reports` table (`migrations/0006_source_reports.sql`). Each one is emailed to `FEEDBACK_EMAIL` with Approve and Reject links signed with `REPORT_SECRET` (HMAC); the link opens `/moderate`, which confirms with a POST so mail scanners following links can't decide anything. Approved reports show on the recipe page, identical ones merged with how many players reported them (`GET /api/sources/<profession>/<spell>`, cached 5 minutes). Reports nobody approves are deleted after 90 days.
+
+Set the secret once: `openssl rand -hex 32 | npx wrangler pages secret put REPORT_SECRET --project-name forever-forge`.
 
 ## Logo and preview card
 
@@ -95,5 +107,5 @@ The site runs on the Workers Free plan: `public/_routes.json` sends static files
 
 ## Ideas for later
 
-- Recipe sources (trainer, vendor, drop) if a future client or an allowed data source ships them.
+- A "sold by a vendor" / "drops" filter on profession pages, from the Classic and player-reported sources.
 - A skill-up path: the cheapest recipes to go from one skill to another, from the colors and reagent counts.

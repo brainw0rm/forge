@@ -1,7 +1,8 @@
-// JSON API: the "Report a bug" form. Mounted at /api by functions/api/[[path]].ts.
+// JSON API: the "Report a bug" form and recipe source reports. Mounted at /api by functions/api/[[path]].ts.
 
 import { checkOrigin, fail, HttpError, json, type Env, type Route } from "./http";
 import { feedbackRoutes } from "./routes/feedback";
+import { sourceRoutes } from "./routes/sources";
 
 export type { Env } from "./http";
 
@@ -23,7 +24,7 @@ const devRoutes: Route[] = [
   ],
 ];
 
-const routes: Route[] = [...feedbackRoutes, ...devRoutes];
+const routes: Route[] = [...feedbackRoutes, ...sourceRoutes, ...devRoutes];
 
 export async function handle(req: Request, env: Env): Promise<Response> {
   const path = new URL(req.url).pathname.replace(/^\/api/, "") || "/";

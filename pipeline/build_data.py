@@ -546,12 +546,24 @@ def main() -> None:
     import itemdb
     n_prof = extras.build_professions(latest_db, era_build, icons)
     n_db = itemdb.build_itemdb(latest_db, era_db, icons, json.loads((OUT / "professions" / "index.json").read_text()))
+    # Where recipes come from in Classic Era (the client has no loot, vendor or trainer data).
+    import classic_sources
+    recipe_items, recipe_spells = set(), set()
+    for p in json.loads((OUT / "professions" / "index.json").read_text()):
+        for r in json.loads((OUT / "professions" / f"{p['slug']}.json").read_text())["recipes"]:
+            recipe_spells.add(str(r["spell"]))
+            recipe_items |= {str(i["id"]) for i in r.get("learnedFrom", [])}
+    try:
+        n_src = classic_sources.build_classic_sources(era_build, era_db, recipe_items, recipe_spells)
+    except OSError as err:  # the dump moved or GitHub is down: keep the last file rather than fail the job
+        print(f"Classic sources not rebuilt ({err}); keeping the previous file")
+        n_src = "the previous"
     write_json(OUT / "meta.json", {
         "build": latest, "classicBuild": era_build, "builds": builds, "phase": phase,
         "generated": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "classes": [{"id": cid, "slug": slug, "name": name} for cid, (slug, name) in CLASSES.items()],
     })
-    print(f"Wrote {n_prof} professions and {n_db} items -> {OUT.relative_to(ROOT)}")
+    print(f"Wrote {n_prof} professions, {n_db} items and Classic sources for {n_src} recipe items -> {OUT.relative_to(ROOT)}")
 
 
 if __name__ == "__main__":

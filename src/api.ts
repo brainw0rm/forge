@@ -1,4 +1,4 @@
-// Typed client for the /api endpoints in server/api.ts: only the "Report a bug" form uses it.
+// Typed client for the /api endpoints in server/api.ts: bug reports and recipe source reports.
 
 export class ApiError extends Error {
   constructor(
@@ -35,6 +35,31 @@ export interface FeedbackInput {
   context: Record<string, string>;
 }
 
+export type SourceKind = "drop" | "vendor" | "quest" | "trainer" | "container" | "other";
+
+export interface SourceInput {
+  prof: string;
+  spell: number;
+  kind: SourceKind;
+  place: string;
+  zone: string;
+  note: string;
+  website: string;
+}
+
+/** Approved player reports for a recipe; identical ones merged with how many players reported them. */
+export interface ReportedSource {
+  kind: SourceKind;
+  place: string;
+  zone: string;
+  reports: number;
+  latest: number;
+}
+
 export const api = {
   sendFeedback: (input: FeedbackInput) => call<{ ok: true }>("POST", "/feedback", input),
+  sendSource: (input: SourceInput) => call<{ ok: true }>("POST", "/sources", input),
+  sources: (prof: string, spell: number) => call<{ sources: ReportedSource[] }>("GET", `/sources/${prof}/${spell}`),
+  moderateSource: (id: number, action: string, sig: string) =>
+    call<{ ok: true; status: string; report: { prof: string; spell: number; kind: SourceKind; place: string; zone: string } }>("POST", "/moderate/sources", { id, action, sig }),
 };

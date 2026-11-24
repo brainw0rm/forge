@@ -1,12 +1,15 @@
 // One recipe: what it makes, the reagents (and which of them are crafted themselves, down to the
-// raw materials), the skill-up colors, tools and station, how it's learned, and what changed from Classic.
+// raw materials), the skill-up colors, tools and station, how to get it (player reports and Classic Era
+// sources), and what changed from Classic.
 
 import { adSlot, fillAds } from "../ads";
 import { craftingList, duration, itemIcon, makersOf, qColor, reagentChip, recipeUrl, skillBar } from "../crafting";
-import { getAllProfessions, getMeta, getProfession, greenAt, iconUrl, type ItemRef, type Profession, type Recipe } from "../data";
+import { api } from "../api";
+import { getAllProfessions, getClassicSources, getMeta, getProfession, greenAt, iconUrl, type ItemRef, type Profession, type Recipe } from "../data";
 import { getItem, getItemDbMeta } from "../itemdb";
 import { attachItemTips, itemTooltip } from "../itemtip";
 import { openShare } from "../share";
+import { classicBlock, openSourceReport, reportedHtml } from "../sources";
 import { esc, setTitle, toast } from "../ui";
 
 /** Raw materials for `times` crafts of `r`: crafted reagents are replaced by their own reagents. */
@@ -54,7 +57,7 @@ export async function renderRecipe(root: HTMLElement, slug: string, spell: numbe
         .map((i) => `<li><a href="/items/${i.id}" data-link data-tip-item="${i.id}">${itemIcon(i)}<span style="--q:${qColor(i.q)}">${esc(i.name)}</span></a>${
           i.skill ? `<small>requires ${esc(prof.name)} (${i.skill})</small>` : ""
         }</li>`)
-        .join("")}</ul><p class="muted small">Where it drops or who sells it isn't in the client data.</p>`
+        .join("")}</ul>`
     : r.auto
       ? `<p>Learned automatically when you pick up ${esc(prof.name)}.</p>`
       : `<p>No recipe item in the game files teaches this one.</p>`;
@@ -113,7 +116,14 @@ export async function renderRecipe(root: HTMLElement, slug: string, spell: numbe
               ${cat ? `<div><dt>Category</dt><dd>${esc(cat.name)}</dd></div>` : ""}
             </dl>
           </section>
-          <section class="codex"><h2>How to learn it</h2>${learned}</section>
+          <section class="codex">
+            <h2>How to get it</h2>
+            ${learned}
+            <h3 class="src-head">In WoW Forever <small>reported by players</small></h3>
+            <div id="reported"><p class="muted small">Loading…</p></div>
+            <button type="button" class="btn small src-report" id="report-source">Where did you find it?</button>
+            <div id="classic-sources"></div>
+          </section>
           ${classic}
         </div>
         <aside class="recipe-side">
@@ -167,4 +177,16 @@ export async function renderRecipe(root: HTMLElement, slug: string, spell: numbe
   );
   drawReagents();
   fillAds(root);
+
+  // Where it comes from: approved player reports (live), then Classic Era's sources.
+  const drawReported = () =>
+    api
+      .sources(slug, r.spell)
+      .then(({ sources }) => (root.querySelector("#reported")!.innerHTML = reportedHtml(sources)))
+      .catch(() => (root.querySelector("#reported")!.innerHTML = `<p class="muted small">Player reports couldn't be loaded.</p>`));
+  drawReported();
+  root.querySelector("#report-source")!.addEventListener("click", () => openSourceReport(slug, r.spell, r.name, drawReported));
+  getClassicSources()
+    .then((file) => (root.querySelector("#classic-sources")!.innerHTML = classicBlock(file, r.spell, r.learnedFrom ?? [])))
+    .catch(() => undefined);
 }

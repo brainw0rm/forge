@@ -92,3 +92,50 @@ describe("bug reports", () => {
     expect(res.status).toBe(403);
   });
 });
+
+describe("recipe source reports", () => {
+  it("stores reports as pending, shows them only after a signed approval, and merges duplicates", async () => {
+    const { signReport } = await import("./routes/sources");
+    const withSecret: Env = { ...env, REPORT_SECRET: "report-secret" };
+    const call = async (method: string, path: string, body?: unknown, target: Env = withSecret, ip = `10.1.0.${++ipCounter}`) => {
+      const res = await handle(
+        new Request(`${ORIGIN}/api${path}`, {
+          method,
+          headers: { Origin: ORIGIN, "CF-Connecting-IP": ip, ...(body ? { "Content-Type": "application/json" } : {}) },
+          body: body ? JSON.stringify(body) : undefined,
+        }),
+        target,
+      );
+      return { status: res.status, data: (await res.json()) as any };
+    };
+    const report = (over: Record<string, unknown> = {}) =>
+      call("POST", "/sources", { prof: "tailoring", spell: 3914, kind: "vendor", place: "Borya", zone: "Orgrimmar", note: "", website: "", ...over });
+
+    expect((await report()).status).toBe(201);
+    expect((await report({ place: "  borya " })).status).toBe(201);
+    expect((await report({ kind: "teleport" })).status).toBe(400);
+    expect((await report({ place: "x" })).status).toBe(400);
+    expect((await report({ spell: "abc" })).status).toBe(400);
+    expect((await report({ website: "http://spam.example" })).status).toBe(200);
+
+    // Nothing shows before approval.
+    expect((await call("GET", "/sources/tailoring/3914")).data.sources).toEqual([]);
+
+    const { results } = await env.DB.prepare("SELECT id FROM source_reports WHERE spell = 3914 ORDER BY id").all<{ id: number }>();
+    expect(results).toHaveLength(2);
+    const moderate = async (id: number, action: string, sig?: string) =>
+      call("POST", "/moderate/sources", { id, action, sig: sig ?? (await signReport("report-secret", `${id}:${action}`)) });
+    expect((await moderate(results[0].id, "approve", "0".repeat(64))).status).toBe(403);
+    // A link signed for "reject" can't approve.
+    expect((await moderate(results[0].id, "approve", await signReport("report-secret", `${results[0].id}:reject`))).status).toBe(403);
+    expect((await moderate(results[0].id, "approve")).status).toBe(200);
+    expect((await moderate(results[1].id, "approve")).status).toBe(200);
+
+    const { sources } = (await call("GET", "/sources/tailoring/3914")).data;
+    expect(sources).toHaveLength(1);
+    expect(sources[0]).toMatchObject({ kind: "vendor", zone: "Orgrimmar", reports: 2 });
+
+    // Without the secret, approval is impossible.
+    expect((await call("POST", "/moderate/sources", { id: results[0].id, action: "approve", sig: "x" }, env)).status).toBe(400);
+  });
+});

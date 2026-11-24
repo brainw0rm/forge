@@ -31,6 +31,10 @@ export function renderPrivacy(root: HTMLElement) {
         shown, plus your email address if you enter one. We use it only to fix the problem and, if you asked, to reply.
         Reports are deleted after 12 months at the latest. Your IP address is kept for at most 24 hours to stop spam.</p>
 
+      <p>If you report where you found a recipe ("Where did you find it?"), we store what you write (where it came from, the
+        place and zone, your note) and the date, without your name or email. Once we approve a report it is shown on the recipe
+        page; reports we don't approve are deleted after 90 days. Your IP address is kept for at most 24 hours to stop spam.</p>
+
       <h2>Former accounts</h2>
       <p>Until November 2026 the site offered accounts for saving talent builds. That feature was retired. If you had an
         account and want its data (username, email address, saved builds) deleted now, write to us at ${SITE_OPERATOR.email}.</p>

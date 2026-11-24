@@ -10,8 +10,10 @@ export interface Env {
   MAIL_FROM?: string;
   /** Public site URL used in emailed links; defaults to the request's origin. */
   APP_URL?: string;
-  /** Optional inbox that receives a copy of every "Report a bug" submission. */
+  /** Optional inbox that receives a copy of every "Report a bug" submission and every recipe source report. */
   FEEDBACK_EMAIL?: string;
+  /** Signs the approve/reject links in recipe source report emails. Without it, reports can't be approved. */
+  REPORT_SECRET?: string;
   /** "1" in local development: store mail in dev_outbox and expose /api/dev/outbox. */
   DEV_MAIL_OUTBOX?: string;
 }

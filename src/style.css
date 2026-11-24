@@ -546,6 +546,31 @@ details.raw .reagent-list { margin-top: 8px; }
   .recipe-side { position: sticky; top: 84px; }
 }
 
+/* Where to get it: player reports, then Classic Era sources. */
+.src-head { font-family: var(--display); font-weight: 400; font-size: 17px; margin: 18px 0 8px; }
+.src-head small { font-family: var(--font); font-size: 12px; color: var(--ink-muted); margin-left: 6px; }
+.src-report { margin-top: 10px; color: var(--ink); background: transparent; border-color: var(--ink-faint); box-shadow: none; }
+.src-report:hover { color: var(--ember-deep); border-color: var(--ember-deep); background: rgb(255 122 26 / .1); }
+.src-classic { margin-top: 20px; padding-top: 14px; border-top: 1px solid rgb(107 81 38 / .3); }
+.src-label { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; color: var(--ink-muted) !important; margin-bottom: 8px !important; }
+.tag-classic { background: #5b4a7a; }
+.src-item { font-size: 14px; margin: 14px 0 4px; }
+.src-list { list-style: none; margin: 0 0 8px; padding: 0; display: grid; }
+.src-list li { display: grid; grid-template-columns: 76px minmax(0, 1fr) auto; gap: 4px 10px; align-items: baseline; padding: 7px 0; border-bottom: 1px dotted rgb(107 81 38 / .4); font-size: 14px; }
+.src-kind { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-faint); }
+.src-main { min-width: 0; }
+.src-main small { color: var(--ink-muted); }
+.src-where { display: block; font-size: 12.5px; color: var(--ink-muted); }
+.src-note { display: block; font-size: 12px; color: var(--ink-faint); font-style: italic; }
+.src-chance { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.src-faction { font-size: 10.5px; font-weight: 700; text-transform: uppercase; padding: 0 5px; border-radius: 3px; color: #fff; }
+.src-faction.alliance { background: #2a5a9e; }
+.src-faction.horde { background: #9e2a24; }
+.src-more { display: block !important; color: var(--ink-muted); font-size: 13px; font-style: italic; }
+.moderate { max-width: 520px; }
+.moderate h1 { color: var(--ink); font-size: 26px; margin-bottom: 8px; }
+.moderate .form-actions { margin-top: 16px; }
+
 /* ---------------------------------------------------------- crafting list */
 .list-layout { display: grid; gap: 0; }
 .craft-rows, .mat-rows { list-style: none; margin: 0; padding: 0; display: grid; }

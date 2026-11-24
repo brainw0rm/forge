@@ -11,6 +11,7 @@ import { renderHome } from "./views/home";
 import { renderItem, renderItemList } from "./views/items";
 import { renderImprint, renderPrivacy } from "./views/legal";
 import { renderCraftingList } from "./views/list";
+import { renderModerate } from "./views/moderate";
 import { renderProfession, renderProfessionList } from "./views/professions";
 import { renderRecipe } from "./views/recipe";
 
@@ -46,6 +47,8 @@ async function route() {
         return await renderCraftingList(app, params);
       case "items":
         return /^\d+$/.test(parts[1] ?? "") ? await renderItem(app, Number(parts[1])) : await renderItemList(app, params);
+      case "moderate":
+        return renderModerate(app, params);
       case "privacy":
         return renderPrivacy(app);
       case "imprint":

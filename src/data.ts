@@ -152,3 +152,26 @@ export function difficulty(r: Recipe, skill: number): Difficulty {
   if (skill < r.grey) return "green";
   return "grey";
 }
+
+// ---------------------------------------------------------------- where recipes come from (Classic Era)
+
+/** Classic Era sources of a recipe item, from the open-source CMaNGOS database (pipeline/classic_sources.py). */
+export interface ClassicSources {
+  drops?: { n: string; lvl: string; rank?: string; zones: string[]; chance: number }[];
+  moreDrops?: number;
+  /** Dropped by many creatures through shared loot (a "world drop"). */
+  world?: { creatures: number; lvl: [number, number]; chance: [number, number] };
+  vendors?: { n: string; sub?: string; zones: string[]; faction?: "Alliance" | "Horde"; limited?: true }[];
+  quests?: { t: string; lvl: number; zone?: string; faction?: "Alliance" | "Horde" }[];
+  objects?: { n: string; zones: string[]; chance: number }[];
+}
+
+export interface ClassicSourceFile {
+  source: string;
+  /** Recipe item id -> its sources. */
+  items: Record<string, ClassicSources>;
+  /** Recipe spell id -> the skill (and price in copper) Classic Era trainers teach it at. */
+  trainers: Record<string, { skill: number; cost: number }>;
+}
+
+export const getClassicSources = () => load<ClassicSourceFile>("professions/sources-classic.json");
