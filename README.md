@@ -22,7 +22,7 @@ Item tooltips appear on hover with a mouse and as a sheet on tap on phones (`src
 ## Architecture
 
 - **Frontend:** Vite + TypeScript, no framework (`src/`). Written for phones first; wider screens add to the layout with `min-width` queries.
-- **Look:** an artisan's workshop at night: soot-dark iron, ember glow, brass rivets, and recipes on parchment pinned to the bench. All CSS (`src/style.css`), no Blizzard artwork. Item quality and the skill-up colors are the game's own (inked darker on parchment). Inter and Marcellus are self-hosted.
+- **Look:** a WoW Forever interface: Forever's night-blue sky behind game-style frames (dark panels with gold metal borders), headings in the game's gold, red buttons, edit boxes and tabs like the game's, and the profession page laid out like the in-game profession window (recipe list grouped by category, names in skill-up colors, a detail pane with reagent slots). All CSS (`src/style.css`), no Blizzard artwork; item quality and skill-up colors are the game's own. Inter, Marcellus (interface headings) and Cinzel (logo and big titles) are self-hosted.
 - **Server:** Cloudflare Pages Functions. `functions/_middleware.ts` renders every page address through `server/pages.ts` (see *Search engines*); `functions/api/[[path]].ts` → `server/api.ts` takes bug reports into a **D1** database (`migrations/`).
 - **Ads:** `src/ads.ts` reserves each slot's size up front. Without AdSense (`VITE_ADSENSE_*`, see `.env.example`), `VITE_AD_FALLBACK=house` shows the site's own promos.
 
@@ -88,7 +88,7 @@ Set the secret once: `openssl rand -hex 32 | npx wrangler pages secret put REPOR
 
 ## Logo and preview card
 
-The crest (an eternal flame on an anvil, in a gold-rimmed shield) is original artwork defined once in `shared/logo.ts`. `node scripts/write-logo.ts` copies it into the header and `public/favicon.svg` and renders the home-screen icon. The preview card is `defaultCardSvg()` in `server/og.ts`, rendered with `node --import ./scripts/ts-resolve.mjs scripts/write-og-default.ts`.
+The medallion (a hammer over an anvil on a night-blue field in a gold rim) is original artwork defined once in `shared/logo.ts`. `node scripts/write-logo.ts` copies it into the header and `public/favicon.svg` and renders the home-screen icon. The preview card is `defaultCardSvg()` in `server/og.ts`, rendered with `node --import ./scripts/ts-resolve.mjs scripts/write-og-default.ts`.
 
 ## 3D set models (offline experiment)
 

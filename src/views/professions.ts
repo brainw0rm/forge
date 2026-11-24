@@ -1,8 +1,8 @@
 // Profession pages: the overview of every profession, and one profession's compendium: what it is,
 // its ranks and specializations, and every recipe with filters and the skill-up colors at your skill.
 
-import { adSlot, fillAds, withListAds } from "../ads";
-import { recipeCard, wireAddButtons } from "../crafting";
+import { adSlot, fillAds } from "../ads";
+import { recipeDetail, recipeRow, wireAddButtons } from "../crafting";
 import { difficulty, getMeta, getProfession, getProfessions, iconUrl, KIND_LABEL, type Profession, type ProfessionSummary, type Recipe } from "../data";
 import { attachItemTips } from "../itemtip";
 import { esc, setTitle, toast } from "../ui";
@@ -10,8 +10,8 @@ import { esc, setTitle, toast } from "../ui";
 export function professionGrid(list: ProfessionSummary[]) {
   const card = (p: ProfessionSummary) => `<a class="prof-tile" href="/professions/${p.slug}" data-link>
       <img src="${iconUrl(p.icon)}" alt="" loading="lazy" />
-      <span class="pt-name">${esc(p.name)}</span>
-      <span class="pt-meta">${p.recipes} recipe${p.recipes === 1 ? "" : "s"}${p.new ? ` · <b>${p.new} new</b>` : ""}</span>
+      <span class="pt-text"><span class="pt-name">${esc(p.name)}</span>
+      <span class="pt-meta">${p.recipes} recipe${p.recipes === 1 ? "" : "s"}${p.new ? ` · <b>${p.new} new</b>` : ""}</span></span>
     </a>`;
   return (["primary", "gathering", "secondary"] as const)
     .map((kind) => {
@@ -38,7 +38,7 @@ export async function renderProfessionList(root: HTMLElement) {
 
 // ------------------------------------------------------------------ one profession
 
-const PAGE = 60;
+const PAGE = 200;
 const skillKey = (slug: string) => `ff-skill-${slug}`;
 function readSkill(slug: string): number | null {
   try {
@@ -157,62 +157,96 @@ export async function renderProfession(root: HTMLElement, slug: string, params: 
   wireAddButtons(root, (name) => toast(`${name} added to your crafting list`));
 
   if (tab === "about") {
-    body.innerHTML = about(prof) || `<p class="muted">Nothing more about ${esc(prof.name)} in the game files.</p>`;
+    body.innerHTML = `<div class="about-grid">${about(prof) || `<p class="muted">Nothing more about ${esc(prof.name)} in the game files.</p>`}</div>`;
     return;
   }
 
   body.innerHTML = `
-    <div class="skill-box">
-      <label for="skill">Your ${esc(prof.name)} skill</label>
-      <input id="skill" type="number" inputmode="numeric" min="0" max="450" placeholder="e.g. 150" value="${skill ?? ""}" />
-      <p class="legend"><span class="sk-o">orange</span> always a skill-up · <span class="sk-y">yellow</span> usually · <span class="sk-g">green</span> sometimes · <span class="sk-x">grey</span> never</p>
-    </div>
-    <div class="filters">
-      <input type="search" id="q" value="${esc(f.q)}" placeholder="Search recipes, results, reagents" aria-label="Search recipes" />
-      <div class="filter-row">
-        ${prof.categories.length ? `<select id="cat" aria-label="Category"><option value="">All categories</option>${prof.categories
-          .map((c) => `<option value="${c.id}" ${String(c.id) === f.cat ? "selected" : ""}>${esc(c.name)}</option>`)
-          .join("")}</select>` : ""}
-        <select id="show" aria-label="Show">
-          <option value="">All recipes</option>
-          <option value="skillup" ${f.show === "skillup" ? "selected" : ""}>Skill-ups at my skill</option>
-          <option value="new" ${f.show === "new" ? "selected" : ""}>New in Forever</option>
-          <option value="changed" ${f.show === "changed" ? "selected" : ""}>Changed from Classic</option>
-        </select>
-        <select id="source" aria-label="Learned from">
-          <option value="">Any source</option>
-          <option value="item" ${f.source === "item" ? "selected" : ""}>From a recipe item</option>
-          <option value="other" ${f.source === "other" ? "selected" : ""}>No recipe item</option>
-        </select>
+    <div class="ts-window">
+      <div class="ts-top">
+        <div class="ts-skill">
+          <label for="skill">Your skill</label>
+          <input id="skill" type="number" inputmode="numeric" min="0" max="450" placeholder="–" value="${skill ?? ""}" />
+          <p class="legend"><span class="d d-orange">Orange</span> always a skill-up <span class="d d-yellow">Yellow</span> usually <span class="d d-green">Green</span> sometimes <span class="d d-grey">Grey</span> never</p>
+        </div>
+        <div class="ts-filters">
+          <input type="search" id="q" value="${esc(f.q)}" placeholder="Search recipes, results, reagents" aria-label="Search recipes" />
+          ${prof.categories.length ? `<select id="cat" aria-label="Category"><option value="">All categories</option>${prof.categories
+            .map((c) => `<option value="${c.id}" ${String(c.id) === f.cat ? "selected" : ""}>${esc(c.name)}</option>`)
+            .join("")}</select>` : ""}
+          <select id="show" aria-label="Show">
+            <option value="">All recipes</option>
+            <option value="skillup" ${f.show === "skillup" ? "selected" : ""}>Skill-ups at my skill</option>
+            <option value="new" ${f.show === "new" ? "selected" : ""}>New in Forever</option>
+            <option value="changed" ${f.show === "changed" ? "selected" : ""}>Changed from Classic</option>
+          </select>
+          <select id="source" aria-label="Learned from">
+            <option value="">Any source</option>
+            <option value="item" ${f.source === "item" ? "selected" : ""}>From a recipe item</option>
+            <option value="other" ${f.source === "other" ? "selected" : ""}>No recipe item</option>
+          </select>
+        </div>
+      </div>
+      <div class="ts-body">
+        <div class="ts-listwrap">
+          <p class="ts-count" id="count" aria-live="polite"></p>
+          <ul class="ts-list" id="recipes"></ul>
+          <div class="ts-more"><button class="btn small" id="more" hidden>Show more</button></div>
+        </div>
+        <div class="ts-detail" id="detail"></div>
       </div>
     </div>
-    <p class="result-count" id="count" aria-live="polite"></p>
-    <div class="recipe-grid" id="recipes"></div>
-    <div class="more-row"><button class="btn" id="more" hidden>Show more</button></div>
     ${adSlot("leaderboard")}`;
 
+  // Wide screens show the selected recipe beside the list; phones open the recipe page instead.
+  const wide = matchMedia("(min-width: 980px)");
+  let selected: number | null = Number(params.get("r")) || null;
   let shown = PAGE;
-  let firstDraw = true;
+  const catName = new Map(prof.categories.map((c) => [c.id, c.name]));
+  const catOrder = new Map(prof.categories.map((c, i) => [c.id, i]));
   const draw = () => {
+    if (!body.isConnected) return wide.removeEventListener("change", draw);
     const rows = prof.recipes.filter((r) => matches(r, f, skill));
-    const visible = rows.slice(0, shown);
-    // In-list ads only on the first render; redrawing on every keystroke would re-request them.
-    body.querySelector("#recipes")!.innerHTML = rows.length
-      ? firstDraw
-        ? withListAds(visible, (r) => recipeCard(slug, r, skill), 24)
-        : visible.map((r) => recipeCard(slug, r, skill)).join("")
-      : `<div class="empty"><h3>No recipes match</h3><p>Try another search or filter.</p></div>`;
+    // Grouped under their categories, like the game's list; by skill-up range inside each.
+    const sorted = prof.categories.length
+      ? [...rows].sort((a, b) => (catOrder.get(a.cat ?? -1) ?? 999) - (catOrder.get(b.cat ?? -1) ?? 999))
+      : rows;
+    const visible = sorted.slice(0, shown);
+    if (!selected || !rows.some((r) => r.spell === selected)) selected = visible[0]?.spell ?? null;
+    let lastCat: number | undefined | null = null;
+    body.querySelector("#recipes")!.innerHTML = visible.length
+      ? visible
+          .map((r) => {
+            const head = prof.categories.length && r.cat !== lastCat ? `<li class="ts-group">${esc(catName.get(r.cat ?? -1) ?? "Other")}</li>` : "";
+            lastCat = r.cat;
+            return head + recipeRow(slug, r, skill, wide.matches && r.spell === selected);
+          })
+          .join("")
+      : `<li class="empty"><h3>No recipes match</h3><p>Try another search or filter.</p></li>`;
     body.querySelector("#count")!.textContent = `${rows.length} of ${prof.recipes.length} recipes`;
     body.querySelector<HTMLButtonElement>("#more")!.hidden = rows.length <= shown;
+    drawDetail();
     const qs = new URLSearchParams();
     if (f.q) qs.set("q", f.q);
     if (f.cat) qs.set("cat", f.cat);
     if (f.show) qs.set("show", f.show);
     if (f.source) qs.set("source", f.source);
     history.replaceState(null, "", `/professions/${slug}${qs.size ? `?${qs}` : ""}`);
-    if (firstDraw) fillAds(root);
-    firstDraw = false;
   };
+  const drawDetail = () => {
+    const r = prof.recipes.find((x) => x.spell === selected);
+    body.querySelector("#detail")!.innerHTML = r ? recipeDetail(slug, r, skill) : "";
+  };
+  body.querySelector("#recipes")!.addEventListener("click", (e) => {
+    const row = (e.target as Element).closest<HTMLAnchorElement>("[data-spell]");
+    if (!row || !wide.matches || (e as MouseEvent).metaKey || (e as MouseEvent).ctrlKey) return;
+    e.preventDefault();
+    e.stopPropagation();
+    selected = Number(row.dataset.spell);
+    body.querySelectorAll('.ts-row[aria-current="true"]').forEach((el) => el.removeAttribute("aria-current"));
+    row.setAttribute("aria-current", "true");
+    drawDetail();
+  }, true);
   const refilter = () => {
     shown = PAGE;
     draw();
@@ -237,5 +271,7 @@ export async function renderProfession(root: HTMLElement, slug: string, params: 
     shown += PAGE;
     draw();
   });
+  wide.addEventListener("change", draw);
   draw();
+  fillAds(root);
 }

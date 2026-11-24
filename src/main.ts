@@ -1,5 +1,6 @@
 import "@fontsource-variable/inter";
 import "@fontsource/marcellus";
+import "@fontsource/cinzel/700.css";
 import "./style.css";
 import { loadAdScript } from "./ads";
 import { openBugReport } from "./feedback";

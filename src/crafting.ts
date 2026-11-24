@@ -1,5 +1,5 @@
-// Building blocks shared by the crafting pages: links, skill-up color bars, reagent chips, recipe
-// cards, and the crafting list kept in the browser.
+// Building blocks shared by the crafting pages: links, skill-up color bars, reagent chips, the
+// profession window's list rows and detail pane, and the crafting list kept in the browser.
 
 import { difficulty, greenAt, iconUrl, learnText, QUALITY_COLOR, type Difficulty, type ItemRef, type Profession, type Recipe } from "./data";
 import { esc } from "./ui";
@@ -47,34 +47,47 @@ export const reagentChip = (i: ItemRef, times = 1) =>
   `<a class="reagent" href="/items/${i.id}" data-link data-tip-item="${i.id}" style="--q:${qColor(i.q)}">
     ${itemIcon(i)}<b class="n">${i.count * times > 1 ? i.count * times : ""}</b><span>${esc(i.name)}</span></a>`;
 
-/** One recipe as a parchment card: result, skill colors, reagents, and how it's made. */
-export function recipeCard(slug: string, r: Recipe, skill: number | null) {
+/** One line of the profession window's recipe list: icon and name, the name in its skill-up color at
+ * your skill (or its quality color without one), like the game shows it. */
+export function recipeRow(slug: string, r: Recipe, skill: number | null, selected = false) {
   const out = r.creates;
   const diff = skill === null ? "" : difficulty(r, skill);
-  const facts = [
-    r.station ? `<span><i>Station</i> ${esc(r.station)}</span>` : "",
-    r.tools?.length ? `<span><i>Tools</i> ${esc(r.tools.join(", "))}</span>` : "",
-    r.cooldown ? `<span><i>Cooldown</i> ${duration(r.cooldown)}</span>` : "",
-    r.learnedFrom ? `<span><i>Recipe</i> ${esc(r.learnedFrom[0].name)}</span>` : r.auto ? `<span><i>Learned</i> with the profession</span>` : "",
-  ].filter(Boolean);
-  return `<article class="recipe-card ${diff ? `is-${diff}` : ""}">
-      <a class="rc-head" href="${recipeUrl(slug, r.spell)}" data-link>
-        ${out ? itemIcon(out, "rc-icon") : `<span class="ico rc-icon blank" aria-hidden="true">✦</span>`}
-        <span class="rc-title">
-          <span class="rc-name" ${out ? `style="--q:${qColor(out.q)}"` : ""}>${esc(r.name)}${out && out.count > 1 ? ` <small>×${out.count}</small>` : ""}</span>
-          <span class="rc-badges">${r.new ? `<span class="tag tag-new">New</span>` : ""}${r.classic ? `<span class="tag tag-changed">Changed</span>` : ""}${
-            diff ? `<span class="tag tag-${diff}" title="${DIFFICULTY_LABEL[diff]}">${diff === "unlearnable" ? `needs ${r.learn}` : diff}</span>` : ""
-          }</span>
-        </span>
-      </a>
-      ${skillBar(r)}
-      ${r.desc && !out ? `<p class="rc-desc">${esc(r.desc)}</p>` : ""}
-      <div class="rc-reagents">${r.reagents.map((i) => reagentChip(i)).join("")}</div>
-      <footer class="rc-foot">
-        <span class="rc-facts">${facts.join("")}</span>
-        <button type="button" class="btn small rc-add" data-add="${slug}:${r.spell}" aria-label="Add ${esc(r.name)} to the crafting list">+ List</button>
-      </footer>
-    </article>`;
+  return `<li><a class="ts-row ${diff ? `d-${diff}` : ""}" href="${recipeUrl(slug, r.spell)}" data-link data-spell="${r.spell}" ${
+    selected ? `aria-current="true"` : ""
+  } ${out && !diff ? `style="--q:${qColor(out.q)}"` : ""} ${diff ? `title="${DIFFICULTY_LABEL[diff]}"` : ""}>
+      ${out ? itemIcon(out) : `<span class="ico blank" aria-hidden="true">✦</span>`}
+      <span class="ts-name">${esc(r.name)}${out && out.count > 1 ? ` <small>×${out.count}</small>` : ""}</span>
+      ${r.new ? `<span class="tag tag-new">New</span>` : r.classic ? `<span class="tag tag-changed">Changed</span>` : ""}
+    </a></li>`;
+}
+
+/** The selected recipe beside the list, like the profession window's detail pane. */
+export function recipeDetail(slug: string, r: Recipe, skill: number | null) {
+  const out = r.creates;
+  const diff = skill === null ? "" : difficulty(r, skill);
+  const needs = [r.station, ...(r.tools ?? [])].filter(Boolean) as string[];
+  return `<div class="ts-detail-head">
+      ${out ? itemIcon(out) : `<span class="ico blank" aria-hidden="true">✦</span>`}
+      <div>
+        <h2 ${out ? `style="--q:${qColor(out.q)}"` : ""}>${esc(r.name)}${out && out.count > 1 ? ` <small>×${out.count}</small>` : ""}</h2>
+        <div class="tags">${r.new ? `<span class="tag tag-new">New in Forever</span>` : ""}${r.classic ? `<span class="tag tag-changed">Changed from Classic</span>` : ""}${
+          diff ? `<span class="tag tag-${diff}">${DIFFICULTY_LABEL[diff]}</span>` : ""
+        }</div>
+      </div>
+    </div>
+    ${needs.length ? `<p class="ts-req">Requires: <b>${needs.map(esc).join(", ")}</b></p>` : ""}
+    ${r.cooldown ? `<p class="ts-req">Cooldown: <b>${duration(r.cooldown)}</b></p>` : ""}
+    ${r.desc && !out ? `<p class="ts-desc">${esc(r.desc)}</p>` : ""}
+    ${skillBar(r)}
+    <p class="ts-label">Reagents</p>
+    <div class="reagent-slots">${r.reagents.map((i) => reagentChip(i)).join("") || `<span class="muted">None</span>`}</div>
+    ${r.learnedFrom ? `<p class="ts-req">Taught by: <a href="/items/${r.learnedFrom[0].id}" data-link data-tip-item="${r.learnedFrom[0].id}" style="--q:${qColor(r.learnedFrom[0].q)}" class="q">${esc(r.learnedFrom[0].name)}</a>${
+      r.learnedFrom[0].skill ? ` (${r.learnedFrom[0].skill})` : ""
+    }</p>` : r.auto ? `<p class="ts-req">Learned with the profession.</p>` : ""}
+    <div class="ts-actions">
+      <button type="button" class="btn primary" data-add="${slug}:${r.spell}" aria-label="Add ${esc(r.name)} to the crafting list">Add to crafting list</button>
+      <a class="btn" href="${recipeUrl(slug, r.spell)}" data-link>Full recipe and sources</a>
+    </div>`;
 }
 
 // ---------------------------------------------------------------- crafting list
@@ -123,7 +136,6 @@ export function wireAddButtons(root: HTMLElement, onAdd: (name: string) => void)
     if (!btn) return;
     const [slug, spell] = btn.dataset.add!.split(":");
     craftingList.add(slug, Number(spell));
-    btn.classList.add("added");
     btn.textContent = "✓ Added";
     onAdd(btn.getAttribute("aria-label")?.replace(/^Add | to the crafting list$/g, "") ?? "Recipe");
   });

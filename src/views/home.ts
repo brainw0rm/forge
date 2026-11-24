@@ -19,9 +19,9 @@ export async function renderHome(root: HTMLElement) {
   root.innerHTML = `
     <section class="home">
       <header class="forge-hero">
-        <div class="hero-emblem" aria-hidden="true">${document.querySelector(".logo-mark")?.outerHTML.replace('class="logo-mark"', "") ?? ""}<span class="sparks"></span></div>
+        <div class="hero-emblem" aria-hidden="true">${document.querySelector(".logo-mark")?.outerHTML.replace('class="logo-mark"', "") ?? ""}</div>
         <p class="eyebrow">WoW Forever crafting companion</p>
-        <h1>Every recipe.<br /><span class="ember">Every reagent.</span></h1>
+        <h1>Every recipe.<br /><span class="gold-title">Every reagent.</span></h1>
         <p class="lede">All ${total.toLocaleString("en")} crafting recipes of WoW Forever, read straight from the game files: reagents, skill-up colors, tools, stations, recipe items, and what changed since Classic Era.</p>
         <div class="hero-search">
           <input type="search" id="search" placeholder="Search recipes, results or reagents…" aria-label="Search all recipes" autocomplete="off" />

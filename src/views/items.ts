@@ -169,8 +169,10 @@ export async function renderItemList(root: HTMLElement, params: URLSearchParams)
   };
 
   let timer = 0;
-  form.addEventListener("input", (e) => {
+  // Dropdowns fire "change" (some browsers never fire "input" for them); text fields fire "input".
+  const onField = (e: Event) => {
     const el = e.target as HTMLInputElement | HTMLSelectElement;
+    if ((state as unknown as Record<string, string>)[el.name] === el.value) return;
     (state as unknown as Record<string, string>)[el.name] = el.value;
     if (el.name === "type") {
       state.sub = "";
@@ -182,7 +184,9 @@ export async function renderItemList(root: HTMLElement, params: URLSearchParams)
     listAds = false;
     clearTimeout(timer);
     timer = window.setTimeout(apply, el.name === "search" ? 120 : 0);
-  });
+  };
+  form.addEventListener("input", onField);
+  form.addEventListener("change", onField);
   form.addEventListener("submit", (e) => e.preventDefault());
   root.querySelector(".item-status")!.addEventListener("click", (e) => {
     const a = (e.target as HTMLElement).closest<HTMLAnchorElement>("[data-status]");

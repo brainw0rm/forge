@@ -81,7 +81,7 @@ export async function renderRecipe(root: HTMLElement, slug: string, spell: numbe
         ${out ? itemIcon(out, "hero-icon") : `<img class="ico hero-icon" src="${iconUrl(prof.icon)}" alt="" />`}
         <div>
           <p class="eyebrow">${esc(prof.name)} recipe${r.new ? ` · <span class="tag tag-new">New in Forever</span>` : ""}${r.classic ? ` · <span class="tag tag-changed">Changed</span>` : ""}</p>
-          <h1 style="color:${out ? qColor(out.q) : "inherit"}">${esc(r.name)}</h1>
+          <h1 ${out ? `style="--q:${qColor(out.q)}"` : ""}>${esc(r.name)}</h1>
           ${out && out.count > 1 ? `<p class="muted">Makes ${out.count} at a time</p>` : ""}
         </div>
       </header>
