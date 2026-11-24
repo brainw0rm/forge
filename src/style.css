@@ -163,6 +163,12 @@ code { font-size: .9em; background: var(--surface-2); padding: 1px 5px; border-r
 .build-badge:empty { display: none !important; }
 .build-badge::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--st-new); box-shadow: 0 0 6px var(--st-new); margin-right: 7px; vertical-align: 1px; }
 .header-bug svg, .header-kofi svg { width: 16px; height: 16px; }
+/* Support and Report a bug read like the menu items beside them, not like boxed buttons. */
+.header-right .header-bug, .header-right .header-kofi {
+  background: none; border: 0; box-shadow: none; min-height: 0; gap: 6px;
+  font-family: var(--display); font-size: 15px; font-weight: 400; color: var(--gold-soft); text-shadow: 0 1px 0 #000;
+}
+.header-right .header-bug:hover, .header-right .header-kofi:hover { color: var(--gold); filter: none; }
 @media (min-width: 760px) {
   .header-inner { padding: 0 24px; height: 66px; gap: 28px; }
   .logo-mark { width: 44px; height: 44px; }
@@ -438,15 +444,14 @@ ins { background: rgb(78 224 141 / .16); color: #b8f5d2; text-decoration: none; 
 .prof-hero .lede { margin-top: 4px; font-size: 14.5px; }
 .prof-stats { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 6px; font-size: 13px; color: var(--muted); }
 .prof-stats b { color: var(--gold); font-weight: 700; }
-/* Tabs like the bottom tabs of a game window. */
-.seg-tabs { display: flex; gap: 4px; margin-bottom: -2px; position: relative; z-index: 1; padding-left: 8px; }
-.seg-tabs a {
-  padding: 9px 16px 8px; border-radius: 6px 6px 0 0; color: var(--muted); font-family: var(--display); font-size: 15px;
-  background: linear-gradient(180deg, #161d3d, #0b1022); border: 1px solid var(--line); border-bottom: 0;
-}
-.seg-tabs a:hover { color: var(--gold-soft); text-decoration: none; }
-.seg-tabs a[aria-selected="true"] { color: var(--gold); background: linear-gradient(180deg, #222c5a, var(--frame-2)); border-color: var(--metal-lo); text-shadow: 0 1px 0 #000; }
-
+/* Recipes / Ranks & info: a small switch in the profession's header, not a row of its own. */
+.prof-hero { flex-wrap: wrap; }
+.prof-title { flex: 1 1 260px; min-width: 0; }
+.prof-views { display: flex; gap: 4px; padding: 3px; border-radius: 6px; background: #04060d; box-shadow: inset 0 0 0 1px var(--line); }
+.prof-views a { padding: 7px 14px; border-radius: 4px; font-family: var(--display); font-size: 15px; color: var(--muted); }
+.prof-views a:hover { color: var(--gold-soft); text-decoration: none; }
+.prof-views a[aria-current="page"] { color: var(--gold); background: linear-gradient(180deg, var(--frame-3), var(--frame-2)); box-shadow: inset 0 0 0 1px var(--metal-lo); text-shadow: 0 1px 0 #000; }
+@media (min-width: 760px) { .prof-views { align-self: flex-end; } }
 .ts-window { padding: 0; overflow: hidden; }
 .ts-top { display: grid; gap: 10px; padding: 12px; border-bottom: 1px solid rgb(217 173 79 / .3); background: linear-gradient(180deg, rgb(255 209 0 / .06), transparent); }
 .ts-skill { display: grid; grid-template-columns: auto 92px; align-items: center; gap: 6px 12px; }

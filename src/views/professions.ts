@@ -134,7 +134,7 @@ export async function renderProfession(root: HTMLElement, slug: string, params: 
       <nav class="crumbs"><a href="/professions" data-link>Professions</a> / ${esc(prof.name)}</nav>
       <header class="prof-hero">
         <img class="prof-emblem" src="${iconUrl(prof.icon)}" alt="" />
-        <div>
+        <div class="prof-title">
           <p class="eyebrow">${KIND_LABEL[prof.kind]} profession</p>
           <h1>${esc(prof.name)}</h1>
           <p class="lede">${esc(prof.desc)}</p>
@@ -142,11 +142,11 @@ export async function renderProfession(root: HTMLElement, slug: string, params: 
             summary.changed ? `<span><b>${summary.changed}</b> changed from Classic</span>` : ""
           }</p>
         </div>
+        <nav class="prof-views" aria-label="${esc(prof.name)}">
+          ${prof.recipes.length ? `<a href="/professions/${slug}" data-link ${tab === "recipes" ? `aria-current="page"` : ""}>Recipes</a>` : ""}
+          <a href="/professions/${slug}?tab=about" data-link ${tab === "about" ? `aria-current="page"` : ""}>Ranks &amp; info</a>
+        </nav>
       </header>
-      <nav class="seg-tabs" role="tablist">
-        ${prof.recipes.length ? `<a href="/professions/${slug}" data-link role="tab" aria-selected="${tab === "recipes"}">Recipes</a>` : ""}
-        <a href="/professions/${slug}?tab=about" data-link role="tab" aria-selected="${tab === "about"}">About ${esc(prof.name)}</a>
-      </nav>
       <div id="prof-body"></div>
       <p class="data-note">From the ${meta.phase === "live" ? "game client" : "beta client"}, build ${esc(meta.build)}, compared with Classic Era ${esc(meta.classicBuild)}.
         Where recipe items drop or who sells them isn't in the client data.
