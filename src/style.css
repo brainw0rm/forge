@@ -22,18 +22,18 @@
   /* the game's interface */
   --gold: #ffd100;          /* frame titles and highlights */
   --gold-soft: #f0d27a;
-  /* the frames' grey stone edge */
-  --metal-hi: #e8e8e8;
-  --metal: #9c9c9c;
-  --metal-lo: #4a4a4a;
-  --bronze: #6e6e6e;
+  /* the frames' dark gunmetal edge */
+  --metal-hi: #9a9ea8;
+  --metal: #5c606b;
+  --metal-lo: #2a2d35;
+  --bronze: #8a6a2b;
   /* gold trim (logo, highlights) */
   --trim: #d9ad4f;
   --trim-lo: #7a5418;
-  --frame: #141414;         /* panel fill: the game's dark rock */
-  --frame-2: #1f1f1f;
-  --frame-3: #2b2b2b;
-  --line: #3a3a3a;
+  --frame: #0d0f14;         /* panel fill: near-black with Forever's blue in it */
+  --frame-2: #151822;
+  --frame-3: #1e2230;
+  --line: #2c3142;
   --red: #8f1410;
   --red-hi: #c0301f;
 
@@ -41,12 +41,12 @@
   --surface: var(--frame);
   --surface-2: var(--frame-2);
   --surface-3: var(--frame-3);
-  --hairline: #2a2a2a;
+  --hairline: #1d212d;
   --border: var(--line);
   --border-strong: #4a4a5a;
   --text: #f1ede3;
-  --muted: #b8b8b8;
-  --faint: #858585;
+  --muted: #b3b8c6;
+  --faint: #7e8496;
   --link: var(--gold-soft);
   --cream: #f7efdc;
   --danger: #ff5a4a;
@@ -62,9 +62,10 @@
   --sk-g: #40bf40;
   --sk-x: #808080;
 
-  /* the grey stone edge of the game's frames (the name stayed from the gold version) */
-  --gold-edge: linear-gradient(160deg, var(--metal-hi), var(--metal) 28%, var(--metal-lo) 55%, #b4b4b4 78%, #3a3a3a);
-  --rock: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='r'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.035' numOctaves='4' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 .16 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23r)'/%3E%3C/svg%3E");
+  /* the frames' edge: dark gunmetal (the name stayed from the gold version) */
+  --gold-edge: linear-gradient(160deg, var(--metal-hi), var(--metal) 28%, var(--metal-lo) 55%, #747884 78%, #1f2128);
+  /* a thin gold line just inside every frame's edge */
+  --gold-line: rgb(214 172 82 / .55);
   --radius: 6px;
   --radius-sm: 4px;
   --shadow-lg: 0 24px 64px rgb(0 0 0 / .65);
@@ -118,25 +119,28 @@ code { font-size: .9em; background: var(--surface-2); padding: 1px 5px; border-r
 .loading { padding: 100px 0; text-align: center; color: var(--muted); font-family: var(--display); font-size: 18px; }
 
 /* ---------------------------------------------------------- frames: the game's panel look */
-/* The game's frame: dark rock inside a grey stone edge, black lines either side of it, a soft shadow.
-   One recipe for every frame. */
+/* A frame like the game's current interface: near-black panel, dark gunmetal edge with a thin gold line
+   inside it, black lines either side, a soft shadow. One recipe for every frame. */
 .frame, .codex, .panel, .wow-window, .feature, .banner, .house-ad, .modal, .menu {
-  background: var(--rock) padding-box, linear-gradient(180deg, #1d1d1d, #111 70%) padding-box, var(--gold-edge) border-box;
-  border: 3px solid transparent; border-radius: 5px;
-  box-shadow: 0 0 0 1px #000, inset 0 0 0 1px #000, inset 0 0 0 2px rgb(255 255 255 / .06), inset 0 6px 18px rgb(0 0 0 / .5), 0 12px 32px rgb(0 0 0 / .6);
+  background:
+    radial-gradient(120% 60% at 50% 0, rgb(70 90 150 / .10), transparent 65%) padding-box,
+    linear-gradient(180deg, #141721, #0b0d12 75%) padding-box,
+    var(--gold-edge) border-box;
+  border: 3px solid transparent; border-radius: 6px;
+  box-shadow: 0 0 0 1px #000, inset 0 0 0 1px #000, inset 0 0 0 2px var(--gold-line), inset 0 8px 24px rgb(0 0 0 / .45), 0 14px 36px rgb(0 0 0 / .65);
 }
 
-/* Scrollbars like the game's scroll frames: a grey stone thumb in a black groove. */
-* { scrollbar-color: #6e6e6e #080808; }
+/* Scrollbars like the game's scroll frames: a gunmetal thumb in a black groove. */
+* { scrollbar-color: #4a4f5c #07080b; }
 ::-webkit-scrollbar { width: 12px; height: 12px; }
-::-webkit-scrollbar-track { background: #080808; box-shadow: inset 0 0 0 1px #2a2a2a; }
-::-webkit-scrollbar-thumb { background: linear-gradient(90deg, #4a4a4a, #9a9a9a, #4a4a4a); border-radius: 6px; border: 2px solid #080808; }
+::-webkit-scrollbar-track { background: #07080b; box-shadow: inset 0 0 0 1px #1d212d; }
+::-webkit-scrollbar-thumb { background: linear-gradient(90deg, #2e323d, #5c606b, #2e323d); border-radius: 6px; border: 2px solid #07080b; }
 
 /* ---------------------------------------------------------- header */
 .site-header {
   position: sticky; top: 0; z-index: 30;
-  background: var(--rock), linear-gradient(180deg, #2a2a2a, #121212);
-  box-shadow: 0 2px 0 #000, 0 3px 0 #6a6a6a, 0 4px 0 #000, 0 10px 26px rgb(0 0 0 / .6);
+  background: linear-gradient(180deg, rgb(19 22 32 / .97), rgb(8 9 13 / .97)); backdrop-filter: blur(10px);
+  box-shadow: 0 1px 0 #000, 0 2px 0 var(--gold-line), 0 3px 0 #000, 0 10px 26px rgb(0 0 0 / .6);
 }
 .header-inner { max-width: var(--max); margin: 0 auto; padding: 0 6px 0 12px; height: 60px; display: flex; align-items: center; gap: 12px; }
 .logo { display: flex; align-items: center; gap: 10px; }
@@ -154,7 +158,7 @@ code { font-size: .9em; background: var(--surface-2); padding: 1px 5px; border-r
 .menu-toggle { margin-left: auto; order: 3; }
 .site-nav {
   display: none; position: absolute; top: 62px; left: 6px; right: 6px; flex-direction: column; padding: 8px;
-  background: var(--rock) padding-box, linear-gradient(180deg, var(--frame-2), var(--frame)) padding-box, var(--gold-edge) border-box;
+  background: linear-gradient(180deg, var(--frame-2), var(--frame)) padding-box, var(--gold-edge) border-box;
   border: 2px solid transparent; border-radius: var(--radius); box-shadow: inset 0 0 0 1px #000, var(--shadow-lg);
 }
 .menu-open .site-nav { display: flex; }
@@ -205,7 +209,7 @@ details:not([open]) > .menu { display: none; }
 .menu a, .menu button { text-align: left; background: none; border: 0; padding: 8px 12px; border-radius: var(--radius-sm); color: var(--text); font-size: 14px; cursor: pointer; }
 .menu a:hover, .menu button:hover { background: rgb(255 209 0 / .08); text-decoration: none; }
 
-.site-footer { background: var(--rock), linear-gradient(180deg, #181818, #0a0a0a); box-shadow: 0 -2px 0 #000, 0 -3px 0 #5a5a5a; }
+.site-footer { background: linear-gradient(180deg, #0d0f15, #050608); box-shadow: 0 -1px 0 #000, 0 -2px 0 var(--gold-line); }
 .footer-inner { max-width: var(--max); margin: 0 auto; padding: 32px 16px 40px; display: grid; gap: 18px; }
 .footer-inner b { font-family: var(--title); font-weight: 700; font-size: 16px; letter-spacing: .08em; color: var(--gold); }
 .footer-inner p { color: var(--faint); font-size: 13px; max-width: 560px; margin-top: 6px; }
@@ -220,7 +224,7 @@ details:not([open]) > .menu { display: none; }
   display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px;
   padding: 8px 16px; border-radius: var(--radius-sm); cursor: pointer; font-size: 14px; font-weight: 600; line-height: 1.3; white-space: nowrap;
   color: var(--gold); text-shadow: 0 1px 0 #000;
-  background: linear-gradient(180deg, #4a4a4a, #262626 55%, #161616) padding-box, var(--gold-edge) border-box;
+  background: linear-gradient(180deg, #2c3140, #171a23 55%, #0e1016) padding-box, var(--gold-edge) border-box;
   border: 1px solid transparent; box-shadow: inset 0 1px 0 rgb(255 255 255 / .12), 0 1px 3px rgb(0 0 0 / .7);
   transition: filter .15s, box-shadow .15s;
 }
@@ -241,15 +245,15 @@ details:not([open]) > .menu { display: none; }
 /* The game's edit boxes: black inside a grey-gold edge. */
 input, textarea, select {
   width: 100%; font: inherit; font-size: 16px; color: var(--text); padding: 10px 12px; border-radius: var(--radius-sm);
-  background: #0a0a0a; border: 1px solid #6a6a6a; box-shadow: inset 0 2px 5px rgb(0 0 0 / .8);
+  background: #07080b; border: 1px solid #3a3f50; box-shadow: inset 0 2px 5px rgb(0 0 0 / .8);
   transition: border-color .15s, box-shadow .15s;
 }
 select { cursor: pointer; appearance: none; padding-right: 40px; color: var(--gold);
   background:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 22'%3E%3Crect x='.5' y='.5' width='21' height='21' rx='3' fill='%23241a06' stroke='%23c9a24a'/%3E%3Cpath d='M6 9l5 5 5-5' fill='none' stroke='%23ffd100' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 7px center / 22px,
-    #0a0a0a; }
+    #07080b; }
 /* Options open in the system's own list: give them the panel colors so they're readable everywhere. */
-option, optgroup { background: #141414; color: #f1ede3; }
+option, optgroup { background: #11131a; color: #f1ede3; }
 input::placeholder, textarea::placeholder { color: var(--faint); }
 input:focus, textarea:focus, select:focus { outline: none; border-color: var(--metal); box-shadow: inset 0 2px 5px rgb(0 0 0 / .8), 0 0 0 3px rgb(255 209 0 / .18); }
 textarea { resize: vertical; min-height: 100px; }
@@ -309,7 +313,7 @@ input[type="checkbox"], input[type="radio"] { width: 20px; height: 20px; padding
 .page .lede { font-size: 15.5px; margin-top: 8px; }
 .section-title { font-size: 22px; margin: 32px 0 12px; display: flex; align-items: center; gap: 12px; }
 /* A gold rule after section titles, like the game's frame dividers. */
-.section-title::after { content: ""; flex: 1; height: 2px; background: linear-gradient(90deg, #8a8a8a, #3a3a3a 30%, transparent); }
+.section-title::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--gold-line), rgb(214 172 82 / .15) 40%, transparent); }
 .empty { text-align: center; padding: 44px 20px; border: 1px dashed var(--line); border-radius: var(--radius); display: grid; gap: 10px; justify-items: center; grid-column: 1 / -1; }
 .empty p { color: var(--muted); max-width: 440px; }
 .banner { display: grid; gap: 12px; padding: 14px 16px; margin-bottom: 16px; }
@@ -341,8 +345,8 @@ ins { background: rgb(78 224 141 / .16); color: #b8f5d2; text-decoration: none; 
 .codex > h2, .win-title {
   display: flex; align-items: center; justify-content: center; gap: 12px; text-align: center;
   font-size: 19px; padding: 9px 16px 8px; margin-bottom: 12px;
-  background: linear-gradient(180deg, #4b4b4b, #2c2c2c 45%, #1a1a1a); border-bottom: 2px solid #000;
-  box-shadow: 0 1px 0 #5a5a5a, inset 0 1px 0 rgb(255 255 255 / .18);
+  background: radial-gradient(60% 120% at 50% 100%, rgb(214 172 82 / .12), transparent 70%), linear-gradient(180deg, #1f2331, #10121a);
+  border-bottom: 1px solid #000; box-shadow: 0 1px 0 var(--gold-line), inset 0 1px 0 rgb(255 255 255 / .07);
 }
 .codex > h2::before, .codex > h2::after { content: ""; flex: 1; max-width: 120px; height: 1px; background: linear-gradient(90deg, transparent, var(--metal)); }
 .codex > h2::after { background: linear-gradient(90deg, var(--metal), transparent); }
@@ -356,7 +360,7 @@ ins { background: rgb(78 224 141 / .16); color: #b8f5d2; text-decoration: none; 
 
 /* ---------------------------------------------------------- icons, tags, skill colors */
 /* An item icon in an action-button frame, its edge in the item's quality color. */
-.ico { width: 32px; height: 32px; border-radius: 3px; flex: none; background: #0a0a0a; box-shadow: 0 0 0 1px #000, 0 0 0 2px color-mix(in srgb, var(--q, #8a8a8a) 80%, #000), 0 2px 4px rgb(0 0 0 / .6); }
+.ico { width: 32px; height: 32px; border-radius: 3px; flex: none; background: #07080b; box-shadow: 0 0 0 1px #000, 0 0 0 2px color-mix(in srgb, var(--q, #6b7080) 80%, #000), 0 2px 4px rgb(0 0 0 / .6); }
 .ico.blank { display: grid; place-items: center; color: var(--gold); font-size: 16px; }
 .q { color: var(--q, var(--text)); }
 .tag { display: inline-block; font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 1px 6px; border-radius: 3px; white-space: nowrap; line-height: 1.5; color: var(--muted); box-shadow: inset 0 0 0 1px var(--line); }
@@ -382,8 +386,8 @@ ins { background: rgb(78 224 141 / .16); color: #b8f5d2; text-decoration: none; 
 .skill-bar.none .muted { font-weight: 500; }
 
 /* A reagent: icon with its count in the corner, name in its quality color. */
-.reagent { display: inline-flex; align-items: center; gap: 8px; position: relative; padding: 3px 10px 3px 3px; border-radius: 3px; background: linear-gradient(180deg, #262626, #121212); box-shadow: 0 0 0 1px #000, inset 0 0 0 1px #4a4a4a; color: var(--text); font-size: 13.5px; line-height: 1.25; }
-.reagent:hover { text-decoration: none; background: linear-gradient(180deg, #303030, #1a1a1a); }
+.reagent { display: inline-flex; align-items: center; gap: 8px; position: relative; padding: 3px 10px 3px 3px; border-radius: 3px; background: linear-gradient(180deg, #191c26, #0c0e13); box-shadow: 0 0 0 1px #000, inset 0 0 0 1px #2e3344; color: var(--text); font-size: 13.5px; line-height: 1.25; }
+.reagent:hover { text-decoration: none; background: linear-gradient(180deg, #222636, #12141b); }
 .reagent .n { position: absolute; left: 5px; bottom: 2px; width: 28px; font-size: 11.5px; font-weight: 800; color: #fff; text-align: right; text-shadow: 0 0 2px #000, 0 0 2px #000, 0 1px 1px #000; }
 .reagent span { font-weight: 600; color: var(--q, var(--text)); }
 
@@ -402,7 +406,7 @@ ins { background: rgb(78 224 141 / .16); color: #b8f5d2; text-decoration: none; 
 .hero-search { position: relative; margin-top: 20px; max-width: 620px; }
 .hero-search input {
   padding: 14px 16px 14px 46px; font-size: 16px; border-color: var(--bronze);
-  background: #0a0a0a url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffd100' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") no-repeat 15px 50% / 18px;
+  background: #07080b url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffd100' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") no-repeat 15px 50% / 18px;
 }
 .hero-numbers { display: flex; flex-wrap: wrap; gap: 12px 26px; margin: 22px 0 0; }
 .hero-numbers div { flex: 1 1 28%; min-width: 90px; }
@@ -436,11 +440,11 @@ ins { background: rgb(78 224 141 / .16); color: #b8f5d2; text-decoration: none; 
 .prof-tiles { display: grid; grid-template-columns: repeat(var(--n-phone, 2), minmax(0, 1fr)); gap: 8px; }
 .prof-tile {
   display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; padding: 12px 6px 10px; color: var(--text); border-radius: var(--radius);
-  background: linear-gradient(180deg, var(--frame-2), var(--frame)); border: 1px solid var(--line); box-shadow: inset 0 0 0 1px rgb(0 0 0 / .6);
+  background: linear-gradient(180deg, #171a24, #0c0e13); border: 1px solid #262b39; box-shadow: inset 0 1px 0 rgb(255 255 255 / .04);
   transition: border-color .15s, background .15s;
 }
-.prof-tile:hover { text-decoration: none; border-color: var(--metal); background: linear-gradient(180deg, var(--frame-3), var(--frame-2)); }
-.prof-tile img { width: 40px; height: 40px; border-radius: 4px; flex: none; box-shadow: 0 0 0 1px #000, 0 0 0 2px var(--metal), 0 2px 6px rgb(0 0 0 / .7); }
+.prof-tile:hover { text-decoration: none; border-color: var(--gold-line); background: linear-gradient(180deg, #1e2230, #11131a); }
+.prof-tile img { width: 40px; height: 40px; border-radius: 4px; flex: none; box-shadow: 0 0 0 1px #000, 0 0 0 2px #5c606b, 0 0 0 3px #000, 0 2px 6px rgb(0 0 0 / .7); }
 .pt-text { display: grid; min-width: 0; }
 .pt-name { font-family: var(--display); font-size: 16px; color: var(--gold); text-shadow: 0 1px 0 #000; line-height: 1.2; }
 .pt-meta { font-size: 12px; color: var(--muted); line-height: 1.35; }
@@ -456,14 +460,14 @@ ins { background: rgb(78 224 141 / .16); color: #b8f5d2; text-decoration: none; 
 .wow-window { position: relative; padding: 0 0 4px; margin-top: 14px; }
 .win-portrait {
   position: absolute; left: -6px; top: -16px; z-index: 2; width: 62px; height: 62px; border-radius: 50%;
-  box-shadow: 0 0 0 2px #000, 0 0 0 5px #8e8e8e, 0 0 0 6px #000, 0 6px 14px rgb(0 0 0 / .8);
+  box-shadow: 0 0 0 2px #000, 0 0 0 5px #5c606b, 0 0 0 6px var(--gold-line), 0 0 0 7px #000, 0 6px 14px rgb(0 0 0 / .8);
 }
 .win-title { position: relative; min-height: 46px; padding-left: 70px; padding-right: 46px; margin-bottom: 0; border-radius: 3px 3px 0 0; justify-content: flex-start; }
 .win-title h1 { font-size: 22px; line-height: 1.2; }
 .win-close {
   position: absolute; right: 8px; top: 50%; translate: 0 -50%; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 4px;
   font-size: 14px; font-weight: 800; color: var(--gold); text-shadow: 0 1px 0 #000;
-  background: linear-gradient(180deg, #b3251a, #6e0d08); box-shadow: 0 0 0 1px #000, 0 0 0 2px #8a8a8a, 0 0 0 3px #000, inset 0 1px 0 rgb(255 200 180 / .4);
+  background: linear-gradient(180deg, #b3251a, #6e0d08); box-shadow: 0 0 0 1px #000, 0 0 0 2px #5c606b, 0 0 0 3px #000, inset 0 1px 0 rgb(255 200 180 / .4);
 }
 .win-close:hover { text-decoration: none; filter: brightness(1.2); }
 .win-sub { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 16px; padding: 12px 14px; border-bottom: 1px solid rgb(217 173 79 / .25); }
@@ -492,7 +496,7 @@ ins { background: rgb(78 224 141 / .16); color: #b8f5d2; text-decoration: none; 
 
 /* Recipes / Ranks & info: a small switch in the window's header, not a row of its own. */
 .prof-title { flex: 1 1 260px; min-width: 0; }
-.prof-views { display: flex; gap: 4px; padding: 3px; border-radius: 6px; background: #0a0a0a; box-shadow: inset 0 0 0 1px var(--line); }
+.prof-views { display: flex; gap: 4px; padding: 3px; border-radius: 6px; background: #07080b; box-shadow: inset 0 0 0 1px var(--line); }
 .prof-views a { padding: 7px 14px; border-radius: 4px; font-family: var(--display); font-size: 15px; color: var(--muted); }
 .prof-views a:hover { color: var(--gold-soft); text-decoration: none; }
 .prof-views a[aria-current="page"] { color: var(--gold); background: linear-gradient(180deg, var(--frame-3), var(--frame-2)); box-shadow: inset 0 0 0 1px var(--metal-lo); text-shadow: 0 1px 0 #000; }
@@ -503,7 +507,7 @@ ins { background: rgb(78 224 141 / .16); color: #b8f5d2; text-decoration: none; 
 /* The skill as the game's status bar: blue fill in a gold-edged groove, the number typed right into it. */
 .skillbar {
   position: relative; display: block; height: 30px; border-radius: 4px; overflow: hidden; cursor: text;
-  background: #050505; box-shadow: 0 0 0 1px #000, 0 0 0 3px #7a7a7a, 0 0 0 4px #000, inset 0 2px 6px rgb(0 0 0 / .9);
+  background: #040508; box-shadow: 0 0 0 1px #000, 0 0 0 3px #4a4f5c, 0 0 0 4px #000, 0 0 0 5px var(--gold-line), inset 0 2px 6px rgb(0 0 0 / .9);
 }
 .skillbar-fill { position: absolute; inset: 0 auto 0 0; width: 0; background: linear-gradient(180deg, #4a6cf0, #1c36b4 45%, #0b1a6e); box-shadow: inset 0 1px 0 rgb(255 255 255 / .35); transition: width .25s; }
 .skillbar-text { position: relative; display: flex; align-items: center; justify-content: center; gap: 6px; height: 100%; font-family: var(--display); font-size: 15px; color: #fff; text-shadow: 0 1px 1px #000, 0 0 3px #000; }
@@ -526,7 +530,7 @@ ins { background: rgb(78 224 141 / .16); color: #b8f5d2; text-decoration: none; 
 .ts-group { display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 6px 5px; margin-bottom: 2px; text-align: left; cursor: pointer;
   background: none; border: 0; border-bottom: 1px solid var(--hairline); font-family: var(--display); font-size: 14.5px; color: var(--gold-soft); text-shadow: 0 1px 0 #000; }
 .ts-group:hover { color: var(--gold); }
-.ts-toggle { display: grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; font: 800 13px/1 var(--font); color: #fff; background: radial-gradient(circle at 40% 35%, #e0442e, #7a0f09); box-shadow: 0 0 0 1px #000, 0 0 0 2px #8a8a8a; }
+.ts-toggle { display: grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; font: 800 13px/1 var(--font); color: #fff; background: radial-gradient(circle at 40% 35%, #e0442e, #7a0f09); box-shadow: 0 0 0 1px #000, 0 0 0 2px #5c606b; }
 .ts-row { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 3px; color: var(--q, var(--text)); }
 .ts-row:hover { text-decoration: none; background: rgb(255 255 255 / .06); }
 .ts-row[aria-current="true"] { background: linear-gradient(90deg, rgb(70 120 220 / .55), rgb(70 120 220 / .2)); box-shadow: inset 0 0 0 1px rgb(140 180 255 / .35); }
@@ -587,7 +591,7 @@ ins { background: rgb(78 224 141 / .16); color: #b8f5d2; text-decoration: none; 
 .qty-row label { font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
 .qty-row .btn.primary { flex: 1 1 200px; }
 .stepper { display: inline-flex; align-items: stretch; border-radius: var(--radius-sm); overflow: hidden; box-shadow: 0 0 0 1px var(--bronze); }
-.stepper button { width: 44px; min-height: 44px; border: 0; background: linear-gradient(180deg, #4a4a4a, #1a1a1a); color: var(--gold); font-size: 18px; cursor: pointer; }
+.stepper button { width: 44px; min-height: 44px; border: 0; background: linear-gradient(180deg, #2c3140, #0e1016); color: var(--gold); font-size: 18px; cursor: pointer; }
 .stepper button:hover { filter: brightness(1.25); }
 .stepper input { width: 58px; text-align: center; border-radius: 0; border: 0; padding: 6px; box-shadow: none; -moz-appearance: textfield; appearance: textfield; }
 .stepper input::-webkit-outer-spin-button, .stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
@@ -717,7 +721,7 @@ a.item-row:hover { background: rgb(255 255 255 / .05); text-decoration: none; }
 .cmp-table tbody th { font-weight: 500; color: var(--muted); }
 .cmp-sub { font-size: 14px; margin: 18px 0 4px; }
 .before-after { display: grid; gap: 10px; margin-top: 8px; }
-.before-after p { margin: 0; background: #0a0a0a; border: 1px solid var(--hairline); border-radius: var(--radius-sm); padding: 9px 11px; font-size: 13.5px; color: var(--cream); white-space: pre-line; }
+.before-after p { margin: 0; background: #07080b; border: 1px solid var(--hairline); border-radius: var(--radius-sm); padding: 9px 11px; font-size: 13.5px; color: var(--cream); white-space: pre-line; }
 .before-after .label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--faint); margin-bottom: 4px; }
 .recipe-refs { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .recipe-refs li { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
