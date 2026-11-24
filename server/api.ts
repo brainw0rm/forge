@@ -1,13 +1,7 @@
-// JSON API for accounts, saved builds, ratings and moderation. Mounted at /api by functions/api/[[path]].ts.
+// JSON API: the "Report a bug" form. Mounted at /api by functions/api/[[path]].ts.
 
 import { checkOrigin, fail, HttpError, json, type Env, type Route } from "./http";
-import { accountRoutes } from "./routes/account";
-import { adminRoutes } from "./routes/admin";
-import { buildRoutes } from "./routes/builds";
 import { feedbackRoutes } from "./routes/feedback";
-import { newsRoutes } from "./routes/news";
-import { statsRoutes } from "./routes/stats";
-import { watchRoutes } from "./routes/watches";
 
 export type { Env } from "./http";
 
@@ -29,7 +23,7 @@ const devRoutes: Route[] = [
   ],
 ];
 
-const routes: Route[] = [...accountRoutes, ...buildRoutes, ...statsRoutes, ...watchRoutes, ...newsRoutes, ...feedbackRoutes, ...adminRoutes, ...devRoutes];
+const routes: Route[] = [...feedbackRoutes, ...devRoutes];
 
 export async function handle(req: Request, env: Env): Promise<Response> {
   const path = new URL(req.url).pathname.replace(/^\/api/, "") || "/";

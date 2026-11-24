@@ -4,7 +4,7 @@
 import { adSlot, fillAds, withListAds, withRail } from "../ads";
 import { clientLabel, getMeta, iconUrl, QUALITY_COLOR } from "../data";
 import {
-  GEAR_SLOT, getItem, getItemDbMeta, getItemIndex, QUALITY_NAME, SLOT_NAME, STAT_NAME, statLine, type ItemDetail, type ItemNumbers,
+  getItem, getItemDbMeta, getItemIndex, QUALITY_NAME, SLOT_NAME, STAT_NAME, statLine, type ItemDetail, type ItemNumbers,
   type ItemRow,
 } from "../itemdb";
 import { itemLink, itemTooltip, LEVEL_CAP } from "../itemtip";
@@ -265,7 +265,7 @@ function recipeList(list: ItemDetail["createdBy"], withMakes: boolean) {
   return `<ul class="recipe-refs">${(list ?? [])
     .map(
       (r) => `<li>${withMakes && r.makes ? itemLink(r.makes) : `<span>${esc(r.name)}</span>`}
-        <a class="muted small" href="/professions/${esc(r.prof)}?q=${encodeURIComponent(r.name)}" data-link>${esc(r.profName)}</a></li>`,
+        <a class="muted small" href="/professions/${esc(r.prof)}/${r.spell}" data-link>${esc(r.profName)} recipe</a></li>`,
     )
     .join("")}</ul>`;
 }
@@ -283,7 +283,6 @@ export async function renderItem(root: HTMLElement, id: number) {
   const typeName = cls?.subs.find((s) => s.id === d.sub)?.name ?? cls?.name ?? "";
   const classNames = new Map(siteMeta.classes.map((c) => [c.slug, c.name]));
   setTitle(`${d.name} (WoW Forever item)`, `${d.name}: ${QUALITY_NAME[d.q]} ${typeName.toLowerCase()} in WoW Forever${d.status === "changed" ? ", changed since Classic Era" : d.status === "new" ? ", new in Forever" : ""}.`);
-  const gearSlot = GEAR_SLOT[d.slot];
 
   const status =
     d.status === "new"
@@ -306,7 +305,6 @@ export async function renderItem(root: HTMLElement, id: number) {
           ${itemTooltip(d, typeName, classNames)}
           <div class="item-actions">
             <button class="btn small" id="copy-item">Share</button>
-            ${gearSlot ? `<a class="btn small" href="/gear?i=${gearSlot}:${d.id}" data-link>Try in gear sandbox</a>` : ""}
           </div>
           <dl class="item-facts">
             <div><dt>Item ID</dt><dd>${d.id}</dd></div>

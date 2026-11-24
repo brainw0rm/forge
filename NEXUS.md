@@ -1,50 +1,29 @@
 # forge
 
 ## About
-Forever Forge is a theorycrafting and build site for World of Warcraft: Forever, live at
-https://wow-forever-forge.com since 2026-10-01 (game launch 2026-11-04). It tracks the beta client: every
-talent diffed vs Classic Era and vs each beta build, plus a talent calculator, community builds with accounts,
-item database, leveling planner, gear sandbox, professions, flight map and news. Stack: Vite + TypeScript
-frontend without a framework (`src/`), Cloudflare Pages Functions + D1 API (`functions/`, `server/`,
-`migrations/`), Python stdlib data pipeline (`pipeline/`) reading wago.tools DB2 exports. Commands:
-`npm install`, `npm run data`, `npm run dev` (web :5173 + API :8788), `npm test` (vitest), `npm run build` (prints
-the launch checklist); every push to main deploys automatically. Rule: never extrapolate game numbers; show
-"?" or "not in client yet".
+Forever Forge is a crafting companion for World of Warcraft: Forever at https://wow-forever-forge.com: every
+recipe of every profession from the game client (reagents, skill-up colors, tools, stations, cooldowns, recipe
+items, Classic Era differences), profession pages with "your skill" coloring, a crafting list with raw-material
+breakdown, and the item database. Relaunched as crafting-only on 2026-11-24 (it was a talent/build site before).
+Stack: Vite + TypeScript frontend without a framework (`src/`, mobile-first CSS), Cloudflare Pages Functions
+(`functions/`, `server/`: SEO page rendering + bug-report API on D1), Python stdlib data pipeline (`pipeline/`)
+reading wago.tools DB2 exports. Commands: `npm install`, `npm run data`, `npm run dev`, `npm test`, `npm run
+build`; every push to main deploys. Rule: never extrapolate game numbers; show "?" or "not in the client data".
 
 ## Status
-- 2026-11-01: the site stays online in standby on the Cloudflare Workers Free plan (the user is cancelling
-  Workers Paid): `public/_routes.json` keeps static files out of the Functions, `OG_IMAGES = "static"` in
-  `wrangler.toml` serves one fixed preview card. AdSense is closed and removed from the build. Contact address
-  is now brainwormbrood@gmail.com (imprint, privacy page).
-- 2026-11-01: repo being made public (free unlimited Actions). History was checked for secrets; commit emails
-  must be the GitHub noreply address on every machine, including nexus's snapshot refs (`refs/nexus/work/*`).
-- Password hashing (PBKDF2, ~65 ms CPU) exceeds the free plan's 10 ms. The user chose to just try sign-in after
-  switching plans; if it fails, pause sign-in/sign-up with a clear message or go back to Workers Paid.
-- Both GitHub jobs are enabled again; news runs every 6 hours instead of 2.
+- 2026-11-24: crafting relaunch. Talents, builds, accounts, gear sandbox, sets, flight map, leveling, legacy,
+  news and the 3D viewer were removed; their addresses answer 410 Gone. Look: "artisan's workshop" (iron, ember,
+  brass, parchment recipe cards).
+- The D1 database still holds the old account tables (users, sessions, builds, ratings, watches, news); only
+  `feedback` and `auth_attempts` (rate limit) are used now. Privacy page tells former users to email for deletion.
+- Runs on the Cloudflare Workers Free plan; AdSense closed (house promos). Contact: brainwormbrood@gmail.com.
+- Repo is public: commit emails must be the GitHub noreply address on every machine.
 
 ## Todo
-- [ ] Gear sandbox: same character-screen layout and item tooltips as the set pages (mobile-first)
-- [ ] Item sets: link set bonuses to talent builds (suggest sets whose bonuses touch the build's abilities)
-- [ ] Workers Paid and Images/Stream cancelled 2026-11-01 (may stay active until the billing period ends). After
-      that date, re-run a sign-in check (a made-up username exercises the same PBKDF2 CPU via DUMMY_HASH)
-- [ ] Relaunch on Workers Paid: remove `OG_IMAGES` from `wrangler.toml`, news back to every 2 hours, re-add
-      AdSense (`VITE_ADSENSE_CLIENT`) and its privacy text appears automatically
-- [ ] Check GitHub billing (Settings → Billing): Actions were blocked 2026-10-21 to 2026-10-31
-- [ ] Prepare for launch on 2026-11-04: confirm the pipeline switches the phase to `live` when a live Forever
-      product appears on wago.tools, and know the `FOREVER_PHASE` override
-- [ ] Check Google Search Console: that all sitemaps are fetched and pages indexed (if not, look at Cloudflare
-      Security events for Googlebot)
-- [ ] Release-week promotion: Reddit post leading with talent numbers (once mods approve), class Discords,
-      small WoW creators
-- [ ] Gear sandbox: per-race base stats if a future client ships them (entered by hand today)
-- [ ] Leveling planner: zone level ranges once the client has them
-- [ ] Responsive check of the new gear sandbox and flight map at 320/375/768/1024/1280 px, signed in and signed out
-- [x] Flight map and route planner from client zone overlays (2026-10-03)
-- [x] Gear sandbox character sheet with editable rules of thumb (2026-10-12)
-- [x] Item sets: /sets explorer with Classic Era comparison, set bonuses counted in the gear sandbox (2026-11-02)
-- [x] Set pages as an in-game style character equipment screen (2026-11-08)
-- [x] In-game item tooltips on set pages (hover; tap opens a sheet on phones), torch-lit stone hall behind the 3D
-      character, character screen written mobile-first (2026-11-08)
-- [x] 3D set viewer live: Imperial Plate from the R2 bucket at models.wow-forever-forge.com (2026-11-08)
-- [x] R2 cancelled (active until 2026-12-01): 3D viewer, R2 code, bucket and `models.` domain removed (2026-11-16)
-- [x] WoW interface look: wood-and-gold frames, red buttons, parchment flight map (2026-11-02)
+- [ ] Decide whether to delete the old account data from D1 (drop the account/build tables with a migration)
+- [ ] Remove the Resend/NOTIFY secrets that only served accounts and alerts (NOTIFY_SECRET on Pages, SITE_URL and
+      NOTIFY_SECRET repository secrets); keep RESEND_API_KEY/MAIL_FROM/FEEDBACK_EMAIL for bug reports
+- [ ] Search Console: submit the new sitemap, watch the 410s drop out of the index
+- [ ] Recipe sources (trainer/vendor/drop) if a client or allowed source ships them
+- [ ] Skill-up path planner (cheapest recipes from skill A to B)
+- [x] Crafting companion relaunch with workshop look, mobile-first (2026-11-24)

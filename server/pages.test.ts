@@ -22,13 +22,30 @@ const env = {
 const get = (path: string, host = "wow-forever-forge.com") => new Request(`https://${host}${path}`);
 
 describe("server-rendered pages", () => {
-  it("gives class pages a search-friendly title, canonical address and their talents as text", async () => {
-    const page = await resolvePage(get("/talents/mage"), env);
-    expect(page).toMatchObject({ status: 200, canonical: "/talents/mage", title: "Mage Talent Calculator for WoW Forever · Forever Forge" });
-    expect(page.body).toContain("<h2>Frost</h2>");
-    expect(page.body).toContain("Improved Frostbolt");
-    // Shared build links point search engines at the class page.
-    expect((await resolvePage(get("/talents/mage/Z00Z00"), env)).canonical).toBe("/talents/mage");
+  it("lists every profession on the home page, with recipe counts", async () => {
+    const page = await resolvePage(get("/"), env);
+    expect(page).toMatchObject({ status: 200, canonical: "/" });
+    expect(page.body).toContain('<a href="/professions/blacksmithing">Blacksmithing</a>');
+    expect(page.description).toMatch(/^Every crafting recipe in World of Warcraft: Forever/);
+  });
+
+  it("gives profession pages their recipes as text, and 404s unknown professions", async () => {
+    const page = await resolvePage(get("/professions/blacksmithing"), env);
+    expect(page).toMatchObject({ status: 200, canonical: "/professions/blacksmithing", title: "Blacksmithing Recipes & Guide for WoW Forever · Forever Forge" });
+    expect(page.body).toContain('href="/professions/blacksmithing/16994">Arcanite Reaper</a> (skill 300)');
+    expect((await resolvePage(get("/professions/basket-weaving"), env)).status).toBe(404);
+  });
+
+  it("renders recipes with reagents, the made item and breadcrumbs, and 404s unknown ones", async () => {
+    const page = await resolvePage(get("/professions/blacksmithing/16994"), env);
+    expect(page).toMatchObject({ status: 200, canonical: "/professions/blacksmithing/16994" });
+    expect(page.title).toBe("Arcanite Reaper (Blacksmithing recipe, WoW Forever) · Forever Forge");
+    expect(page.description).toContain("learned at skill 300");
+    expect(page.description).toContain("Arcanite Bar");
+    expect(page.body).toContain('Creates <a href="/items/12784">Arcanite Reaper</a>');
+    expect(JSON.stringify(page.jsonLd)).toContain("BreadcrumbList");
+    expect((await resolvePage(get("/professions/blacksmithing/1"), env)).status).toBe(404);
+    expect((await resolvePage(get("/professions/blacksmithing/16994/x"), env)).status).toBe(404);
   });
 
   it("renders items with their tooltip text and breadcrumbs, and 404s unknown ones", async () => {
@@ -41,37 +58,11 @@ describe("server-rendered pages", () => {
     expect((await resolvePage(get("/items/abc"), env)).status).toBe(404);
   });
 
-  it("returns real status codes: 404 for unknown pages, 301 to the canonical page", async () => {
+  it("answers 410 Gone for the retired tools and 404 for unknown pages", async () => {
     expect((await resolvePage(get("/nope"), env)).status).toBe(404);
-    expect((await resolvePage(get("/talents/paladin/x/y/z"), env)).canonical).toBe("/talents/paladin");
-    expect(await resolvePage(get("/talents"), env)).toMatchObject({ status: 301, redirect: "/talents/warrior" });
-    expect(await resolvePage(get("/talents/notaclass"), env)).toMatchObject({ status: 301, redirect: "/talents/warrior" });
-    expect((await resolvePage(get("/professions/alchemy"), env)).status).toBe(200);
-    expect((await resolvePage(get("/professions/basket-weaving"), env)).status).toBe(404);
-    expect(await resolvePage(get("/flights"), env)).toMatchObject({ status: 301, redirect: "/flights/eastern-kingdoms" });
-    expect((await resolvePage(get("/flights/northrend"), env)).status).toBe(301);
-  });
-
-  it("lists every flight point of a continent, with the new ones called out", async () => {
-    const page = await resolvePage(get("/flights/kalimdor"), env);
-    expect(page).toMatchObject({ status: 200, canonical: "/flights/kalimdor", title: "Kalimdor Flight Paths in WoW Forever · Forever Forge" });
-    expect(page.body).toContain("<h2>Mount Hyjal</h2>");
-    expect(page.body).toContain("Summit of Eternity (both factions, new in Forever)");
-    expect(page.description).toMatch(/^Flight map and route planner for Kalimdor/);
-  });
-
-  it("renders item sets with their bonuses and 404s unknown ones", async () => {
-    const list = await resolvePage(get("/sets"), env);
-    expect(list).toMatchObject({ status: 200, canonical: "/sets" });
-    const id = /href="\/sets\/(\d+)"/.exec(list.body!)![1];
-    const page = await resolvePage(get(`/sets/${id}`), env);
-    expect(page.status).toBe(200);
-    expect(page.body).toContain("Set bonuses");
-    expect((await resolvePage(get("/sets/999999"), env)).status).toBe(404);
-  });
-
-  it("keeps private pages out of search results", async () => {
-    for (const p of ["/account", "/login", "/admin", "/reset-password"]) expect((await resolvePage(get(p), env)).noindex).toBe(true);
+    for (const p of ["/talents/mage", "/builds", "/sets/321", "/flights/kalimdor", "/login", "/account"]) {
+      expect(await resolvePage(get(p), env)).toMatchObject({ status: 410, noindex: true });
+    }
   });
 
   it("builds the head tags, status and noindex rules for the served HTML", async () => {
@@ -80,21 +71,15 @@ describe("server-rendered pages", () => {
     expect(item.head).toContain('<link rel="canonical" href="https://wow-forever-forge.com/items/19019" />');
     expect(item.head).toContain('<script type="application/ld+json">');
     expect(item.head).not.toContain('name="robots"');
+    expect(item.head).toContain('<meta property="og:image" content="https://wow-forever-forge.com/og-default.png" />');
     expect(item.ogUrl).toBe("https://wow-forever-forge.com/items/19019");
 
     const missing = pageHtml(await resolvePage(get("/does-not-exist"), env), get("/does-not-exist"), env);
     expect(missing.status).toBe(404);
     expect(missing.head).toContain('<meta name="robots" content="noindex" />');
 
-    // Pages without their own card, and every page with OG_IMAGES=static, use the site-wide card.
-    expect(pageHtml(await resolvePage(get("/races"), env), get("/races"), env).head).toContain("/og-default.png");
-    const staticEnv = { ...env, OG_IMAGES: "static" } as Env;
-    expect(pageHtml(await resolvePage(get("/talents/mage/Z00Z00"), staticEnv), get("/talents/mage/Z00Z00"), staticEnv).head).toContain(
-      '<meta property="og:image" content="https://wow-forever-forge.com/og-default.png" />',
-    );
-
     // Preview deployments are for testing only: noindex, no canonical.
-    const previewReq = get("/talents/mage", "abc123.forever-forge.pages.dev");
+    const previewReq = get("/professions/alchemy", "abc123.forever-forge.pages.dev");
     const preview = pageHtml(await resolvePage(previewReq, env), previewReq, env);
     expect(preview.noindex).toBe(true);
     expect(preview.head).not.toContain("canonical");

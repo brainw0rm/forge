@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import ast
 import csv
-import difflib
 import json
 import math
 import operator
@@ -40,30 +39,18 @@ def is_forever(version: str) -> bool:
     m = FOREVER_VERSION.match(version)
     return bool(m) and int(m.group(1)) >= 60
 CLASSIC_ERA_PRODUCT = "wow_classic_era"
-MAX_HISTORY = 8  # how many Forever builds to include in the changelog
+MAX_HISTORY = 8  # how many recent Forever builds meta.json lists
 
-# Tables needed to resolve talent tooltips.
+# Tables needed to resolve spell tooltips (recipe effects, ranks, item effects).
 SPELL_TABLES = [
     "Talent", "TalentTab", "SpellName", "Spell", "SpellMisc", "SpellEffect",
     "SpellDuration", "SpellRadius", "SpellAuraOptions", "SpellRange",
     "SpellCooldowns", "SpellTargetRestrictions",
 ]
-# Forever's talents live in the modern trait system (the old Talent table in the
-# Forever client is stale). Rank values come from per-rank curves.
-TRAIT_TABLES = [
-    "TraitTree", "TraitNode", "TraitNodeEntry", "TraitDefinition", "TraitEdge",
-    "TraitNodeXTraitNodeEntry", "TraitNodeGroupXTraitNode", "TraitCond", "TraitNodeGroupXTraitCond",
-    "TraitTreeXTraitCurrency", "TraitCurrency", "TraitCurrencySource", "TraitDefinitionEffectPoints",
-    "CurvePoint", "SpellClassOptions",
-]
-TALENT_CURRENCY_POINTS = 51  # the class-talent trait currency is capped at one point per level 10-60
-TRAIT_GRID = 600  # trait node positions are laid out on a 600-unit grid
-# SpellClassOptions.SpellClassSet -> ClassID
-CLASS_FAMILY = {4: 1, 10: 2, 9: 3, 8: 4, 6: 5, 11: 7, 3: 8, 5: 9, 7: 11}
 
 # Extra tables only needed for the newest build.
 LATEST_TABLES = ["ManifestInterfaceData", "CharBaseInfo", "ChrRaces", "ChrClasses", "SkillLineAbility", "SpellLevels",
-                 "SkillLine", "LFGDungeons", "ContentTuning", "Map", "ItemSparse", "Item", "RandPropPoints",
+                 "SkillLine", "ItemSparse", "Item", "RandPropPoints",
                  "ItemDamageOneHand", "ItemDamageTwoHand", "ItemDamageOneHandCaster", "ItemDamageTwoHandCaster",
                  "ItemArmorTotal", "ItemArmorQuality", "ItemArmorShield", "ArmorLocation", "SpellReagents"]
 
@@ -78,8 +65,6 @@ CLASSES = {
     9: ("warlock", "Warlock"),
     11: ("druid", "Druid"),
 }
-# TalentTab.ClassMask bit -> ClassID
-MASK_TO_CLASS = {1 << (cid - 1): cid for cid in CLASSES}
 
 ALLIANCE = {1, 3, 4, 7, 95}
 HORDE = {2, 5, 6, 8, 96}
@@ -501,348 +486,6 @@ def _safe_eval(node):
 
 # --------------------------------------------------------------------------- talents
 
-def ranks_of(t: dict[str, str]) -> list[str]:
-    return [t[f"SpellRank_{i}"] for i in range(9) if t.get(f"SpellRank_{i}", "0") not in ("0", "")]
-
-
-def tab_class(tab: dict[str, str]) -> int:
-    return MASK_TO_CLASS.get(int(tab["ClassMask"]), 0)
-
-
-def extract_talents(db: SpellDB, era: SpellDB | None = None) -> dict[str, dict]:
-    """Return {talentId: normalized talent} for every talent in the build.
-
-    The Forever beta client only ships the rank-1 spell of most talents, and a few
-    talents ship no spell at all. We never invent numbers:
-      - missing higher ranks are copied from Classic Era only when Forever's rank 1
-        reads identically to Classic's rank 1; otherwise they stay "" (unknown);
-      - a talent with no Forever spell falls back to Classic Era's text.
-    `estimated` is the first rank index that isn't straight from the Forever client.
-    """
-    tabs = {r["ID"]: r for r in db.tabs}
-    out: dict[str, dict] = {}
-    for t in db.talents:
-        tab = tabs.get(t["TabID"])
-        if not tab:
-            continue
-        spells = ranks_of(t)
-        if not spells:
-            continue
-        first = spells[0]
-        source = "forever"
-        if db.has(first):
-            texts = [db.render(first)]
-            name = db.names[first]
-            for k, sid in enumerate(spells[1:], start=2):
-                texts.append(db.render(sid) if db.has(sid) else "")
-            estimated = next((i for i, x in enumerate(texts) if not x), len(texts))
-            if estimated < len(texts):
-                same_as_era = era is not None and era.has(first) and same_text(era.render(first), texts[0])
-                for i in range(estimated, len(texts)):
-                    if same_as_era and era.has(spells[i]):
-                        texts[i] = era.render(spells[i])
-        elif era is not None and era.has(first):
-            source = "classic"
-            name = era.names[first]
-            texts = [era.render(sid) if era.has(sid) else "" for sid in spells]
-            estimated = 0
-        else:
-            source = "missing"
-            name = db.names.get(first) or f"Unknown talent {t['ID']}"
-            texts = ["Tooltip data for this talent is not in the current beta client."] * len(spells)
-            estimated = 0
-        prereq = None
-        if t["PrereqTalent_0"] not in ("0", ""):
-            prereq = {"id": int(t["PrereqTalent_0"]), "rank": int(t["PrereqRank_0"]) + 1}
-        spell_db = db if source == "forever" else (era or db)
-        out[t["ID"]] = {
-            "id": int(t["ID"]),
-            "tab": int(t["TabID"]),
-            "classId": tab_class(tab),
-            "name": name,
-            "tier": int(t["TierID"]),
-            "col": int(t["ColumnIndex"]),
-            "ranks": texts,
-            "estimated": estimated,
-            "source": source,
-            "spells": [int(s) for s in spells],
-            "prereq": prereq,
-            "active": _is_active(spell_db, first),
-            "iconFile": spell_db.misc.get(first, {}).get("SpellIconFileDataID", ""),
-            "effectKeys": spell_db.effect_keys(first),
-        }
-    return out
-
-
-def _clusters(values: list[int], gap: int) -> list[list[int]]:
-    """Group sorted positions into clusters separated by more than `gap`."""
-    out: list[list[int]] = []
-    for v in sorted(set(values)):
-        if out and v - out[-1][-1] <= gap:
-            out[-1].append(v)
-        else:
-            out.append([v])
-    return out
-
-
-def extract_trait_talents(db: SpellDB) -> dict[str, dict]:
-    """Forever class talents from the trait system: {nodeId: normalized talent}.
-
-    Each class has one trait tree holding its three talent trees side by side. Node
-    positions give tier/column, TraitCond gives the points required in that tree,
-    TraitEdge gives prerequisites, and per-rank curves give each rank's numbers.
-    """
-    t = {name: load_table(db.build, name) for name in TRAIT_TABLES}
-    trees_with_points = {r["TraitTreeID"] for r in t["TraitTreeXTraitCurrency"]
-                         if next((c for c in t["TraitCurrency"] if c["ID"] == r["TraitCurrencyID"]), {})
-                         .get("SourcedMax") == str(TALENT_CURRENCY_POINTS)}
-    entries = {r["ID"]: r for r in t["TraitNodeEntry"]}
-    defs = {r["ID"]: r for r in t["TraitDefinition"]}
-    node_entry: dict[str, str] = {}
-    for r in t["TraitNodeXTraitNodeEntry"]:
-        node_entry.setdefault(r["TraitNodeID"], r["TraitNodeEntryID"])
-    curves: dict[str, dict[int, float]] = {}
-    for r in t["CurvePoint"]:
-        curves.setdefault(r["CurveID"], {})[round(num(r["Pos_0"]))] = num(r["Pos_1"])
-    effect_curves: dict[str, dict[int, str]] = {}
-    for r in t["TraitDefinitionEffectPoints"]:
-        effect_curves.setdefault(r["TraitDefinitionID"], {})[int(r["EffectIndex"]) + 1] = r["CurveID"]
-    family = {r["SpellID"]: int(r["SpellClassSet"]) for r in t["SpellClassOptions"]}
-    groups_of: dict[str, list[str]] = {}
-    for r in t["TraitNodeGroupXTraitNode"]:
-        groups_of.setdefault(r["TraitNodeID"], []).append(r["TraitNodeGroupID"])
-    conds = {r["ID"]: r for r in t["TraitCond"]}
-    group_conds: dict[str, list[dict]] = {}
-    for r in t["TraitNodeGroupXTraitCond"]:
-        if r["TraitCondID"] in conds:
-            group_conds.setdefault(r["TraitNodeGroupID"], []).append(conds[r["TraitCondID"]])
-    prereqs: dict[str, str] = {}
-    for r in t["TraitEdge"]:
-        prereqs[r["RightTraitNodeID"]] = r["LeftTraitNodeID"]
-
-    # Talent-table tabs give the tree names/art; match them to node clusters by spell ids.
-    tab_of_spell = {}
-    for r in db.talents:
-        for sid in ranks_of(r):
-            tab_of_spell[sid] = r["TabID"]
-    tabs = {r["ID"]: r for r in db.tabs}
-
-    by_tree: dict[str, list[dict]] = {}
-    for n in t["TraitNode"]:
-        if n["TraitTreeID"] in trees_with_points and n["ID"] in node_entry:
-            by_tree.setdefault(n["TraitTreeID"], []).append(n)
-
-    # One tree per class: the largest one whose spells belong to that class.
-    class_tree: dict[int, str] = {}
-    for tree, nodes in by_tree.items():
-        fams = [family.get(defs[entries[node_entry[n["ID"]]]["TraitDefinitionID"]]["SpellID"]) for n in nodes]
-        fam = max(set(f for f in fams if f), key=fams.count, default=None)
-        cid = CLASS_FAMILY.get(fam or -1)
-        if cid and len(nodes) > len(by_tree.get(class_tree.get(cid, ""), [])):
-            class_tree[cid] = tree
-
-    out: dict[str, dict] = {}
-    for cid, tree in class_tree.items():
-        nodes = by_tree[tree]
-        min_y = min(int(n["PosY"]) for n in nodes)
-        # Clusters are computed from on-grid nodes only (a parked node can sit far away).
-        nodes = [n for n in nodes if (int(n["PosY"]) - min_y) / TRAIT_GRID <= 6.5]
-        clusters = _clusters([int(n["PosX"]) for n in nodes], gap=TRAIT_GRID * 2)
-        for ci, xs in enumerate(clusters):
-            members = [n for n in nodes if xs[0] <= int(n["PosX"]) <= xs[-1]]
-            spells = [defs[entries[node_entry[n["ID"]]]["TraitDefinitionID"]]["SpellID"] for n in members]
-            tab_ids = [tab_of_spell[s_] for s_ in spells if s_ in tab_of_spell]
-            tab_id = max(set(tab_ids), key=tab_ids.count) if tab_ids else None
-            tab = tabs.get(tab_id) if tab_id else None
-            if tab is None:  # fall back to the Talent-table tab order for this class
-                class_tabs = sorted((r for r in db.tabs if tab_class(r) == cid), key=lambda r: int(r["OrderIndex"]))
-                tab = class_tabs[ci] if ci < len(class_tabs) else {"ID": f"{tree}-{ci}", "Name_lang": f"Tree {ci + 1}",
-                                                                    "BackgroundFile": "", "SpellIconID": ""}
-            for n in members:
-                if not 0 <= round((int(n["PosY"]) - min_y) / TRAIT_GRID) <= 6:
-                    continue  # parked off the grid: not part of the playable tree
-                entry = entries[node_entry[n["ID"]]]
-                d = defs[entry["TraitDefinitionID"]]
-                sid = d["SpellID"]
-                max_ranks = max(1, int(entry["MaxRanks"]))
-                rank_curves = effect_curves.get(d["ID"], {})
-                texts = []
-                for rank in range(1, max_ranks + 1):
-                    ov = {idx: curves.get(cv, {}).get(rank) for idx, cv in rank_curves.items()}
-                    ov = {k: v for k, v in ov.items() if v is not None}
-                    texts.append(db.render(sid, overrides=ov))
-                req = 0
-                for g in groups_of.get(n["ID"], []):
-                    for c in group_conds.get(g, []):
-                        req = max(req, int(num(c.get("SpentAmountRequired"))))
-                prereq = None
-                if n["ID"] in prereqs:
-                    left = prereqs[n["ID"]]
-                    left_entry = entries.get(node_entry.get(left, ""), {})
-                    prereq = {"id": int(left), "rank": max(1, int(left_entry.get("MaxRanks", 1)))}
-                icon_file = d["OverrideIcon"] if d["OverrideIcon"] not in ("", "0") else db.misc.get(sid, {}).get("SpellIconFileDataID", "")
-                out[n["ID"]] = {
-                    "id": int(n["ID"]),
-                    "tab": int(tab["ID"]) if str(tab["ID"]).isdigit() else tab["ID"],
-                    "tabInfo": {"name": tab["Name_lang"], "background": tab.get("BackgroundFile", ""),
-                                "iconFile": tab.get("SpellIconID", ""), "order": ci},
-                    "classId": cid,
-                    "name": d["OverrideName_lang"] or db.names.get(sid) or f"Talent {n['ID']}",
-                    "tier": round((int(n["PosY"]) - min_y) / TRAIT_GRID),
-                    "col": round((int(n["PosX"]) - xs[0]) / TRAIT_GRID),
-                    "req": req,
-                    "ranks": texts,
-                    "estimated": max_ranks,
-                    "source": "forever",
-                    "spells": [int(sid)],
-                    "prereq": prereq,
-                    "active": _is_active(db, sid),
-                    "iconFile": icon_file,
-                    "effectKeys": db.effect_keys(sid),
-                }
-    return out
-
-
-def _is_active(db: SpellDB, sid: str) -> bool:
-    """Whether a talent grants a button to press (drawn round, like the game does).
-    Some Forever passives lack SPELL_ATTR0_PASSIVE (0x40), so also require a
-    cooldown, a non-self range or a cast time."""
-    m = db.misc.get(sid)
-    if not m or int(m["Attributes_0"]) & 0x40:
-        return False
-    return db.cooldown_ms(sid) > 0 or m["RangeIndex"] not in ("0", "1") or m["CastingTimeIndex"] not in ("0", "1")
-
-
-NUMBER = re.compile(r"-?\d+(?:\.\d+)?|\?")
-WORDING = [(re.compile(r"\brage points?\b", re.I), "rage"), (re.compile(r"\bhit points\b", re.I), "health"),
-           (re.compile(r"\bsecs\b"), "sec"), (re.compile(r"[^a-z#% ]"), " ")]
-
-
-def skeleton(text: str) -> str:
-    """Text with numbers blanked and cosmetic wording normalized."""
-    out = NUMBER.sub("#", text).lower()
-    for pat, rep in WORDING:
-        out = pat.sub(rep, out)
-    return " ".join(out.split())
-
-
-def numbers(text: str) -> list[str]:
-    return NUMBER.findall(text)
-
-
-def same_text(a: str, b: str) -> bool:
-    """Equal numbers and equal wording, ignoring cosmetic edits like capitalization."""
-    return numbers(a) == numbers(b) and skeleton(a) == skeleton(b)
-
-
-def similarity(a: str, b: str) -> float:
-    return difflib.SequenceMatcher(None, skeleton(a), skeleton(b)).ratio()
-
-
-UNIT = re.compile(r"(\d+(?:\.\d+)?)\s*(min|hour|hours)\b")
-
-
-def _seconds(text: str) -> str:
-    """Express durations in seconds so "1 min" and "60 sec" compare equal."""
-    return UNIT.sub(lambda m: f"{float(m.group(1)) * (60 if m.group(2) == 'min' else 3600):g} sec", text)
-
-
-RANGE = re.compile(r"(\d+(?:\.\d+)?) to (\d+(?:\.\d+)?)")
-
-
-def midpoints(text: str) -> str:
-    """Classic Era die rolls ("93 to 101") as their middle value ("97"). The Forever client's
-    spell data has no die rolls at all, so it shows that middle value for the same effect."""
-    def mid(m: re.Match) -> str:
-        return f"{(float(m.group(1)) + float(m.group(2))) / 2:g}"
-    return RANGE.sub(mid, text)
-
-
-def _numbers_match(cur: dict, old: dict) -> bool:
-    """Same rank count and the same numbers in every rank's tooltip (order-insensitive, so
-    rephrased sentences still match; durations normalized to seconds). Values either client
-    leaves blank ("?") are skipped, and a Classic range counts as its middle value (see midpoints).
-
-    Raw effect fields aren't compared: the Classic Era and Forever clients store the same
-    thing differently (e.g. permanent auras as duration -1 vs 0, proc chance 101 vs 0)."""
-    if len(cur["ranks"]) != len(old["ranks"]):
-        return False
-    for a, b in zip(cur["ranks"], old["ranks"]):
-        a, b = _seconds(a), _seconds(b)
-        if not RANGE.search(a):
-            b = midpoints(b)
-        na = sorted(abs(float(x)) for x in numbers(a) if x != "?")
-        nb = sorted(abs(float(x)) for x in numbers(b) if x != "?")
-        tolerance = 1e-6
-        if "?" in numbers(a):
-            # Can't see every Forever number: require what's visible to appear in Classic.
-            if not all(any(abs(x - y) <= tolerance for y in nb) for x in na):
-                return False
-        elif "?" in numbers(b):
-            # Classic hides a value: same count of numbers, and Classic's visible ones all in Forever.
-            if len(numbers(a)) != len(numbers(b)) or not all(any(abs(x - y) <= tolerance for y in na) for x in nb):
-                return False
-        elif len(na) != len(nb) or any(abs(x - y) > tolerance for x, y in zip(na, nb)):
-            return False
-    return True
-
-
-def _is_subset(small: list, big: list) -> bool:
-    rest = list(big)
-    for k in small:
-        if k not in rest:
-            return False
-        rest.remove(k)
-    return True
-
-
-def classify(cur: dict, old: dict | None) -> tuple[str, list[str]]:
-    """Compare a Forever talent with its Classic Era counterpart by what it does, not how
-    the tooltip is worded.
-
-      unchanged  same effects and the same numbers (the tooltip may be reworded)
-      tuned      same effects, different numbers or rank count
-      expanded   the Classic effects plus something new (extra effect or bonus)
-      reworked   does something different
-      new        no Classic counterpart (or replaces an unrelated Classic talent)
-      moved      unchanged, but sits somewhere else in the tree
-    """
-    if cur["source"] != "forever":
-        return "unverified", []
-    if old is None:
-        return "new", []
-    notes = []
-    renamed = cur["name"] != old["name"]
-    same_core = cur["effectKeys"] == old["effectKeys"]
-    overlap = set(cur["effectKeys"]) & set(old["effectKeys"])
-    if renamed and not overlap and similarity(cur["ranks"][0], old["ranks"][0]) < 0.6:
-        return "new", ["replaces"]
-    if cur["tab"] != old["tab"]:
-        notes.append("moved-tree")
-    elif (cur["tier"], cur["col"]) != (old["tier"], old["col"]):
-        notes.append("moved")
-    if len(cur["ranks"]) != len(old["ranks"]):
-        notes.append("ranks")
-    if renamed:
-        notes.append("renamed")
-    if same_core:
-        if _numbers_match(cur, old):
-            if skeleton(cur["ranks"][-1]) != skeleton(old["ranks"][-1]):
-                notes.append("reworded")
-            return ("moved" if "moved" in notes or "moved-tree" in notes else "unchanged"), notes
-        return "tuned", notes
-    if _is_subset(old["effectKeys"], cur["effectKeys"]):
-        return "expanded", notes
-    return "reworked", notes
-
-
-def match_classic(cur: dict, era_by_spell: dict[tuple, dict], era_by_name: dict[tuple, dict]) -> dict | None:
-    """The Classic Era talent a Forever talent descends from: same rank-1 spell, else same name."""
-    return era_by_spell.get((cur["classId"], cur["spells"][0])) or era_by_name.get((cur["classId"], cur["name"]))
-
-
-# --------------------------------------------------------------------------- icons
-
 def icon_names(build: str) -> dict[str, str]:
     rows = load_table(build, "ManifestInterfaceData")
     out = {}
@@ -853,89 +496,6 @@ def icon_names(build: str) -> dict[str, str]:
 
 
 # --------------------------------------------------------------------------- main
-
-REVIEW_FILE = ROOT / "pipeline" / "classification-review.json"
-
-
-def load_review() -> dict[str, dict]:
-    """Human-reviewed statuses (see the file's note). Keyed by trait node id."""
-    if not REVIEW_FILE.exists():
-        return {}
-    return json.loads(REVIEW_FILE.read_text())["talents"]
-
-
-def build_class_files(latest: SpellDB, era_db: SpellDB, icons: dict[str, str], build: str, era_build: str):
-    review = load_review()
-    stale_reviews = []
-    cur = extract_trait_talents(latest)
-    era = extract_talents(era_db)
-    era_by_name = {(t["classId"], t["name"]): t for t in era.values()}
-    era_by_spell = {(t["classId"], t["spells"][0]): t for t in era.values()}
-    summary = []
-
-    for cid, (slug, cname) in CLASSES.items():
-        mine = [t for t in cur.values() if t["classId"] == cid]
-        tab_infos = sorted({t["tab"]: t["tabInfo"] for t in mine}.items(), key=lambda kv: kv[1]["order"])
-        trees = []
-        counts = {"new": 0, "reworked": 0, "expanded": 0, "tuned": 0, "moved": 0, "unchanged": 0, "unverified": 0}
-        for tab_id, info in tab_infos:
-            talents = []
-            for t in sorted((x for x in mine if x["tab"] == tab_id), key=lambda x: (x["tier"], x["col"])):
-                old = match_classic(t, era_by_spell, era_by_name)
-                status, notes = classify(t, old)
-                reviewed = review.get(str(t["id"]))
-                reason = None
-                if reviewed:
-                    if reviewed["checkedText"] == t["ranks"][-1]:
-                        status, reason = reviewed["status"], reviewed["reason"]
-                        if status == "new" and old and "replaces" not in notes:
-                            notes.append("replaces")
-                    else:
-                        stale_reviews.append(f"{slug}:{t['id']} {t['name']}")
-                counts[status] += 1
-                entry = {k: t[k] for k in ("id", "name", "tier", "col", "req", "ranks", "spells", "prereq",
-                                           "active", "estimated", "source")}
-                entry["icon"] = icons.get(t["iconFile"], "inv_misc_questionmark")
-                entry["status"] = status
-                if reason:
-                    entry["reason"] = reason
-                if notes:
-                    entry["notes"] = notes
-                if old and status != "unchanged":
-                    entry["classic"] = {
-                        "name": old["name"], "ranks": old["ranks"], "tier": old["tier"],
-                        "col": old["col"], "tab": old["tab"],
-                    }
-                talents.append(entry)
-            trees.append({
-                "id": tab_id,
-                "name": info["name"],
-                "background": info["background"],
-                "icon": icons.get(info["iconFile"], "inv_misc_questionmark"),
-                "talents": talents,
-            })
-        # Classic talents that no longer exist in this class.
-        removed = []
-        names_now = {t["name"] for t in mine}
-        spells_now = {t["spells"][0] for t in mine}
-        for old in era.values():
-            if old["classId"] == cid and old["name"] not in names_now and old["spells"][0] not in spells_now:
-                tabname = next((t["Name_lang"] for t in era_db.tabs if int(t["ID"]) == old["tab"]), "")
-                removed.append({"name": old["name"], "tree": tabname, "tier": old["tier"],
-                                "ranks": old["ranks"]})
-        removed.sort(key=lambda r: (r["tree"], r["tier"], r["name"]))
-        payload = {
-            "build": build, "classicBuild": era_build, "classId": cid, "slug": slug,
-            "name": cname, "trees": trees, "removed": removed,
-        }
-        write_json(OUT / "classes" / f"{slug}.json", payload)
-        summary.append({"id": cid, "slug": slug, "name": cname,
-                        "trees": [{"name": tr["name"], "icon": tr["icon"]} for tr in trees],
-                        "counts": counts, "removed": len(removed)})
-    if stale_reviews:
-        print(f"Review needed: {len(stale_reviews)} reviewed talents changed text since review: " + ", ".join(stale_reviews))
-    return summary
-
 
 def build_races(build: str, era_build: str):
     races = {r["ID"]: r for r in load_table(build, "ChrRaces")}
@@ -959,54 +519,6 @@ def build_races(build: str, era_build: str):
     return out
 
 
-def diff_builds(builds: list[str]) -> list[dict]:
-    """Talent-level changelog between consecutive Forever beta builds (newest first)."""
-    entries = []
-    prev_db = None
-    prev_talents: dict[str, dict] = {}
-    for b in builds:
-        db = SpellDB(b)
-        talents = {k: v for k, v in extract_trait_talents(db).items()}
-        if prev_db is not None:
-            changes = []
-            for tid, t in talents.items():
-                old = prev_talents.get(tid)
-                cls = CLASSES.get(t["classId"], ("?",))[0]
-                if old is None:
-                    changes.append({"type": "added", "talent": t["id"], "class": cls, "name": t["name"],
-                                    "after": t["ranks"][-1]})
-                    continue
-                kinds = []
-                if (old["tier"], old["col"], old["tab"]) != (t["tier"], t["col"], t["tab"]):
-                    kinds.append("moved")
-                if old["req"] != t["req"]:
-                    kinds.append("req")
-                if len(old["ranks"]) != len(t["ranks"]):
-                    kinds.append("ranks")
-                if old["name"] != t["name"]:
-                    kinds.append("renamed")
-                if old["prereq"] != t["prereq"]:
-                    kinds.append("prereq")
-                if old["ranks"] != t["ranks"]:
-                    kinds.append("text")
-                if kinds:
-                    changes.append({"type": "changed", "kinds": kinds, "talent": t["id"], "class": cls,
-                                    "name": t["name"], "oldName": old["name"],
-                                    "before": old["ranks"][-1], "after": t["ranks"][-1],
-                                    "beforeRanks": len(old["ranks"]), "afterRanks": len(t["ranks"]),
-                                    "beforePos": [old["tier"], old["col"]], "afterPos": [t["tier"], t["col"]]})
-            for tid, old in prev_talents.items():
-                if tid not in talents:
-                    changes.append({"type": "removed", "talent": old["id"],
-                                    "class": CLASSES.get(old["classId"], ("?",))[0],
-                                    "name": old["name"], "before": old["ranks"][-1]})
-            changes.sort(key=lambda c: (c["class"], c["name"]))
-            entries.append({"build": b, "previous": prev_db.build, "changes": changes})
-        prev_db, prev_talents = db, talents
-    entries.reverse()
-    return entries
-
-
 def write_json(path: Path, data) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")))
@@ -1022,40 +534,24 @@ def main() -> None:
 
     for name in LATEST_TABLES:
         load_table(latest, name)
-    load_table(era_build, "CharBaseInfo")
 
     latest_db = SpellDB(latest)
     era_db = SpellDB(era_build)
     icons = icon_names(latest)
 
-    summary = build_class_files(latest_db, era_db, icons, latest, era_build)
-    races = build_races(latest, era_build)
-    changelog = diff_builds(builds)
+    write_json(OUT / "races.json", build_races(latest, era_build))  # the item database reads it
 
-    write_json(OUT / "races.json", races)  # before the item database, which reads it
-
-    # Imported here: extras.py imports helpers from this module.
+    # Imported here: they import helpers from this module.
     import extras
-    extras.build_leveling(latest_db, icons)
-    extras.build_dungeons(latest)
-    extras.build_legacy(latest_db, icons)
-    n_items = extras.build_items(latest, era_build, icons)
-    n_prof = extras.build_professions(latest_db, era_build, icons)
-    n_nodes, n_paths = extras.build_flights(latest, era_build)
     import itemdb
+    n_prof = extras.build_professions(latest_db, era_build, icons)
     n_db = itemdb.build_itemdb(latest_db, era_db, icons, json.loads((OUT / "professions" / "index.json").read_text()))
-    print(f"Extras: {n_items} gear items, {n_db} items in the database, {n_prof} professions, "
-          f"{n_nodes} flight points, {n_paths} flight routes, leveling, dungeons, legacy")
-
-    write_json(OUT / "changelog.json", changelog)
     write_json(OUT / "meta.json", {
         "build": latest, "classicBuild": era_build, "builds": builds, "phase": phase,
         "generated": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-        "classes": summary,
+        "classes": [{"id": cid, "slug": slug, "name": name} for cid, (slug, name) in CLASSES.items()],
     })
-    total = sum(sum(c["counts"].values()) for c in summary)
-    print(f"Wrote {total} talents for {len(summary)} classes, {len(races)} races, "
-          f"{len(changelog)} changelog entries -> {OUT.relative_to(ROOT)}")
+    print(f"Wrote {n_prof} professions and {n_db} items -> {OUT.relative_to(ROOT)}")
 
 
 if __name__ == "__main__":

@@ -4,17 +4,16 @@
 import { api } from "./api";
 import { getMeta } from "./data";
 import { busy, formError, openModal } from "./modal";
-import { currentUser } from "./session";
 import { esc, toast } from "./ui";
 
 const KINDS = [
   ["bug", "Something is broken", "Part of the site doesn't work right."],
-  ["data", "Wrong game data", "A talent, item or number is off."],
+  ["data", "Wrong game data", "A recipe, item or number is off."],
   ["idea", "Idea or wish", "Something you'd like to see here."],
 ] as const;
 
 export async function openBugReport(kind: string = "bug") {
-  const [user, meta] = await Promise.all([currentUser(), getMeta().catch(() => null)]);
+  const meta = await getMeta().catch(() => null);
   const page = location.pathname + location.search;
   const dlg = openModal(
     "Report a bug",
@@ -31,7 +30,7 @@ export async function openBugReport(kind: string = "bug") {
           placeholder="What were you doing, and what went wrong?"></textarea>
       </label>
       <label>Email <span class="optional">(optional, only if you'd like a reply)</span>
-        <input type="email" name="email" autocomplete="email" maxlength="254" value="${esc(user?.email ?? "")}" />
+        <input type="email" name="email" autocomplete="email" maxlength="254" />
       </label>
       <label class="hp" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off" /></label>
       <p class="fine">This also sends us the page you're on (<code>${esc(page)}</code>), your browser, screen size and the game build. That's all.</p>

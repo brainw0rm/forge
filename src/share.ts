@@ -6,9 +6,9 @@ import { copy, esc } from "./ui";
 
 export interface ShareInfo {
   url: string;
-  /** The line people post with the link, e.g. "Frost Mage 0/31/20 talent build for WoW Forever". */
+  /** The line people post with the link, e.g. "Arcanite Reaper: Blacksmithing recipe in WoW Forever". */
   text: string;
-  /** Preview image path (/og/...), if the link has one. */
+  /** Preview image path, if the link has its own (the site-wide card is used otherwise). */
   image?: string;
 }
 

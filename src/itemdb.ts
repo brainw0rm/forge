@@ -134,12 +134,6 @@ export async function getItem(id: number): Promise<ItemDetail | null> {
 
 export { PRIMARY_STATS, QUALITY_NAME, SLOT_NAME, STAT_NAME, statLine } from "../shared/items";
 
-/** Gear sandbox slot for an item's inventory type (see src/views/gear.ts). */
-export const GEAR_SLOT: Record<number, string> = {
-  1: "head", 2: "neck", 3: "shoulder", 16: "back", 5: "chest", 20: "chest", 9: "wrist", 10: "hands", 6: "waist",
-  7: "legs", 8: "feet", 11: "finger1", 12: "trinket1", 13: "mh", 17: "mh", 21: "mh", 22: "oh", 14: "oh", 23: "oh",
-  15: "ranged", 25: "ranged", 26: "ranged", 28: "ranged",
-};
 
 export const BIND_TEXT: Record<number, string> = {
   1: "Binds when picked up", 2: "Binds when equipped", 3: "Binds when used", 4: "Quest Item", 5: "Quest Item",

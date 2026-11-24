@@ -3,11 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Forever Forge · WoW Forever talent calculator, builds and item database</title>
-    <meta name="description" content="WoW Forever talent calculator, community builds, item database and leveling planner, using the actual game data." />
-    <meta name="theme-color" content="#0b1530" />
+    <title>Forever Forge · WoW Forever crafting recipes and profession guide</title>
+    <meta name="description" content="Every crafting recipe in WoW Forever, straight from the game files: reagents, skill-up colors, tools, recipe items and what changed since Classic Era." />
+    <meta name="theme-color" content="#14100d" />
     <meta property="og:title" content="Forever Forge" />
-    <meta property="og:description" content="WoW Forever talent calculator, community builds and item database, using the actual game data." />
+    <meta property="og:description" content="Every crafting recipe in WoW Forever, straight from the game files." />
     <meta property="og:url" content="https://wow-forever-forge.com/" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -24,24 +24,9 @@
         </a>
         <button class="icon-btn menu-toggle" id="menu-toggle" aria-label="Menu" aria-expanded="false" aria-controls="site-nav">☰</button>
         <nav class="site-nav" id="site-nav" aria-label="Main">
-          <a href="/talents" data-link>Talents</a>
-          <a href="/builds" data-link>Builds</a>
+          <a href="/professions" data-link>Professions</a>
+          <a href="/list" data-link>Crafting list <span class="list-count" id="list-count" hidden></span></a>
           <a href="/items" data-link>Items</a>
-          <a href="/sets" data-link>Sets</a>
-          <details class="nav-menu">
-            <summary>Tools</summary>
-            <div class="menu">
-              <a href="/compare" data-link><b>Compare builds</b><span>Two builds side by side</span></a>
-              <a href="/leveling" data-link><b>Leveling planner</b><span>Talents, abilities and dungeons by level</span></a>
-              <a href="/legacy" data-link><b>Legacy planner</b><span>Spend your 16 account-wide points</span></a>
-              <a href="/gear" data-link><b>Gear sandbox</b><span>Items, stats and editable formulas</span></a>
-              <a href="/professions" data-link><b>Professions</b><span>Every recipe, new ones marked</span></a>
-              <a href="/flights" data-link><b>Flight map</b><span>Route planner, new flight points marked</span></a>
-            </div>
-          </details>
-          <a href="/changes" data-link>Changes</a>
-          <a href="/news" data-link>News</a>
-          <a href="/races" data-link>Races</a>
           <button type="button" class="nav-bug" data-report-bug>Report a bug</button>
           <a class="nav-kofi" data-kofi hidden target="_blank" rel="noopener">Support on Ko-fi</a>
         </nav>
@@ -55,7 +40,6 @@
             <span>Report a bug</span>
           </button>
           <span class="build-badge" id="build-badge" title="Game client build the data comes from"></span>
-          <div class="auth-area" id="auth-area"></div>
         </div>
       </div>
     </header>
@@ -64,11 +48,11 @@
       <div class="footer-inner">
         <div>
           <b>Forever Forge</b>
-          <p>A fan-made theorycrafting site for World of Warcraft: Forever. Not affiliated with Blizzard Entertainment.
+          <p>A fan-made crafting companion for World of Warcraft: Forever. Not affiliated with Blizzard Entertainment.
             Game data from the public game client via <a href="https://wago.tools" rel="noopener">wago.tools</a>.</p>
         </div>
         <nav aria-label="Footer">
-          <a href="/builds" data-link>Community builds</a>
+          <a href="/professions" data-link>Professions</a>
           <a href="/privacy" data-link>Privacy</a>
           <a href="/imprint" data-link>Imprint</a>
           <button type="button" class="link-btn" data-report-bug>Report a bug</button>

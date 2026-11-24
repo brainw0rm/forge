@@ -41,7 +41,7 @@ function adsenseHead(client: string | undefined): Plugin {
 }
 
 /** Writes the static sitemaps from the generated game data: sitemap.xml (index), sitemap-pages.xml
- * and sitemap-items.xml. Community builds come from the database via /sitemap-builds.xml. */
+ * (professions and their recipes) and sitemap-items.xml. */
 function sitemaps(site: string | undefined): Plugin {
   return {
     name: "sitemaps",
@@ -50,21 +50,16 @@ function sitemaps(site: string | undefined): Plugin {
       if (!site) return;
       const dir = options.dir ?? "dist";
       const data = (p: string) => JSON.parse(readFileSync(resolve("public/data", p), "utf8"));
-      const meta = data("meta.json") as { generated: string; classes: { slug: string }[] };
+      const meta = data("meta.json") as { generated: string };
       const lastmod = meta.generated.slice(0, 10);
-      const classes = meta.classes.map((c) => c.slug);
       const professions = (data("professions/index.json") as { slug: string }[]).map((p) => p.slug);
+      const recipes = professions.flatMap((slug) =>
+        (data(`professions/${slug}.json`) as { recipes: { spell: number }[] }).recipes.map((r) => `/professions/${slug}/${r.spell}`),
+      );
       const items = (data("items/db/index.json") as { rows: [number, string, number, number, number][] }).rows
         .filter((r) => r[4] <= 60) // items above the level cap can't be used in the game
         .map((r) => `/items/${r[0]}`);
-      const pages = [
-        "/", "/builds", "/items", "/changes", "/news", "/races", "/legacy", "/gear", "/compare", "/professions",
-        "/flights/eastern-kingdoms", "/flights/kalimdor", "/sets",
-        ...(data("sets.json") as { sets: { id: number }[] }).sets.map((s) => `/sets/${s.id}`),
-        ...classes.flatMap((c) => [`/talents/${c}`, `/changes/classic/${c}`, `/leveling/${c}`, `/gear/${c}`]),
-        ...professions.map((p) => `/professions/${p}`),
-        "/privacy", "/imprint",
-      ];
+      const pages = ["/", "/professions", "/list", "/items", ...professions.map((p) => `/professions/${p}`), ...recipes, "/privacy", "/imprint"];
       const urlset = (paths: string[]) =>
         `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${paths
           .map((p) => `  <url><loc>${site}${p}</loc><lastmod>${lastmod}</lastmod></url>`)
@@ -73,7 +68,7 @@ function sitemaps(site: string | undefined): Plugin {
       writeFileSync(resolve(dir, "sitemap-items.xml"), urlset(items));
       writeFileSync(
         resolve(dir, "sitemap.xml"),
-        `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${["sitemap-pages.xml", "sitemap-items.xml", "sitemap-builds.xml"]
+        `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${["sitemap-pages.xml", "sitemap-items.xml"]
           .map((f) => `  <sitemap><loc>${site}/${f}</loc><lastmod>${lastmod}</lastmod></sitemap>`)
           .join("\n")}\n</sitemapindex>\n`,
       );
@@ -89,7 +84,6 @@ export default defineConfig(({ mode }) => {
     server: {
       proxy: {
         "/api": { target: "http://localhost:8788", changeOrigin: false },
-        "/og": { target: "http://localhost:8788", changeOrigin: false },
       },
     },
     test: {

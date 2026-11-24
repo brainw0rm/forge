@@ -1,8 +1,6 @@
-"""Extra datasets for the leveling planner, Legacy planner, professions, flight map and gear sandbox.
-
-Everything is read from the Forever beta client, except dungeons Blizzard announced that
-aren't in the client yet (pipeline/announced.json, labeled as such on the site).
-"""
+"""Profession data from the Forever client: every recipe with its reagents, skill-up colors, tools,
+stations, cooldowns and recipe items, compared with Classic Era. ItemMath (item stats and damage from
+the client's item budget tables) is shared with pipeline/itemdb.py."""
 
 from __future__ import annotations
 
@@ -11,313 +9,8 @@ import re
 from pathlib import Path
 
 from build_data import (
-    CLASSES, OUT, SpellDB, extract_trait_talents, load_table, num, write_json,
+    OUT, SpellDB, load_table, num, write_json,
 )
-
-HERE = Path(__file__).resolve().parent
-
-# --------------------------------------------------------------------------- leveling
-
-# ChrClasses id -> class-ability skill lines (SkillLine CategoryID 7), from the client.
-CLASS_BIT = {cid: 1 << (cid - 1) for cid in CLASSES}
-
-
-def build_leveling(db: SpellDB, icons: dict[str, str]):
-    sla = load_table(db.build, "SkillLineAbility")
-    levels = {r["SpellID"]: r for r in load_table(db.build, "SpellLevels") if r["DifficultyID"] == "0"}
-    subtext = {r["ID"]: r["NameSubtext_lang"] for r in load_table(db.build, "Spell")}
-    talents = extract_trait_talents(db)
-    talent_node_by_spell = {str(t["spells"][0]): t["id"] for t in talents.values()}
-    supersedes = {r["Spell"]: r["SupercedesSpell"] for r in sla if r["SupercedesSpell"] not in ("0", "")}
-
-    def root(spell: str) -> str:
-        seen = set()
-        while spell in supersedes and spell not in seen:
-            seen.add(spell)
-            spell = supersedes[spell]
-        return spell
-
-    for cid, (slug, _name) in CLASSES.items():
-        bit = CLASS_BIT[cid]
-        abilities = []
-        seen: set[tuple] = set()
-        for r in sla:
-            # Trainer abilities carry the class bit; talent ranks (mask 0) come from the talent itself.
-            if not int(r["ClassMask"] or 0) & bit or r["AcquireMethod"] != "0":
-                continue
-            sid = r["Spell"]
-            lv = int(num(levels.get(sid, {}).get("BaseLevel")))
-            if lv < 1 or lv > 60 or not db.names.get(sid):
-                continue
-            key = (db.names[sid], subtext.get(sid, ""), lv)
-            if key in seen:
-                continue
-            seen.add(key)
-            misc = db.misc.get(sid, {})
-            entry = {
-                "level": lv,
-                "name": db.names[sid],
-                "rank": subtext.get(sid, ""),
-                "icon": icons.get(misc.get("SpellIconFileDataID", ""), "inv_misc_questionmark"),
-                "passive": bool(int(misc.get("Attributes_0", "0") or 0) & 0x40),
-            }
-            node = talent_node_by_spell.get(root(sid))
-            if node:
-                entry["talent"] = node  # only trainable if the build has this talent
-            abilities.append(entry)
-        abilities.sort(key=lambda a: (a["level"], a["name"]))
-        write_json(OUT / "leveling" / f"{slug}.json", {"abilities": abilities})
-
-
-def build_dungeons(build: str):
-    lfg = load_table(build, "LFGDungeons")
-    tuning = {r["ID"]: r for r in load_table(build, "ContentTuning")}
-    maps = {r["ID"]: r for r in load_table(build, "Map")}
-    announced = json.loads((HERE / "announced.json").read_text())
-    by_name = {a["name"].lower(): a for a in announced["dungeons"]}
-    out = []
-    for r in lfg:
-        if r["TypeID"] != "0":  # 0 = dungeon/raid entries; others are zones and battlegrounds
-            continue
-        ct = tuning.get(r["ContentTuningID"], {})
-        min_level = int(num(ct.get("MinLevelSquish")))
-        if not min_level:
-            continue
-        m = maps.get(r["MapID"], {})
-        entry = {
-            "name": r["Name_lang"],
-            "minLevel": min_level,
-            "kind": "raid" if m.get("InstanceType") == "2" or min_level >= 60 and "Blackrock Spire" not in r["Name_lang"] else "dungeon",
-            "source": "client",
-            "isNew": int(r["ID"]) > 3000,
-        }
-        a = by_name.pop(r["Name_lang"].lower(), None)
-        if a:
-            entry["announced"] = {"min": a["min"], "max": a["max"]}
-        out.append(entry)
-    for a in by_name.values():  # announced but not in the client yet
-        out.append({"name": a["name"], "minLevel": a["min"], "maxLevel": a["max"], "kind": a["kind"],
-                    "source": "announced", "isNew": True, **({"size": a["size"]} if "size" in a else {})})
-    out.sort(key=lambda d: (d["minLevel"], d["name"]))
-    write_json(OUT / "dungeons.json", {"source": announced["source"], "dungeons": out})
-
-
-# --------------------------------------------------------------------------- flight paths
-
-CONTINENT_MAPS = {"0": "1415", "1": "1414"}  # world map ID -> continent UiMap
-CONTINENT_NAMES = {"0": "Eastern Kingdoms", "1": "Kalimdor"}
-MAP_ASPECT = 2 / 3  # continent maps are 3:2
-# Internal nodes: transports, quest flights, retired ("zzOLD") and placeholder entries.
-NOT_A_FLIGHT_POINT = re.compile(r"^(zz|Generic|Quest Path|Transport)", re.I)
-
-
-def build_flights(build: str, era_build: str):
-    """Flight points, routes and a drawn map per continent, marked new where Classic Era doesn't
-    have them. Positions are 0..1 across the continent's map."""
-    import mapshape
-
-    era_nodes = {r["ID"] for r in load_table(era_build, "TaxiNodes")}
-    era_paths = {(r["FromTaxiNode"], r["ToTaxiNode"]) for r in load_table(era_build, "TaxiPath")}
-    era_maps = {r["ID"] for r in load_table(era_build, "UiMap")}
-    ui_maps = {r["ID"]: r for r in load_table(build, "UiMap")}
-    assign: dict[str, list[dict]] = {}
-    for r in load_table(build, "UiMapAssignment"):
-        assign.setdefault(r["UiMapID"], []).append(r)
-
-    def region(ui_map: str, map_id: str):
-        a = next((r for r in assign.get(ui_map, []) if r["MapID"] == map_id), None)
-        if not a:
-            return None
-        return ((num(a[k]) for k in ("Region_0", "Region_1", "Region_3", "Region_4")),
-                (num(a[k]) for k in ("UiMin_0", "UiMin_1", "UiMax_0", "UiMax_1")))
-
-    def projector(ui_map: str, map_id: str):
-        (min_x, min_y, max_x, max_y), (u0, v0, u1, v1) = (tuple(g) for g in region(ui_map, map_id))
-        # World X points north and Y west; the map's x grows east and y south.
-        return lambda x, y: (round(u0 + (max_y - y) / (max_y - min_y) * (u1 - u0), 4),
-                             round(v0 + (max_x - x) / (max_x - min_x) * (v1 - v0), 4))
-
-    proj = {c: projector(m, c) for c, m in CONTINENT_MAPS.items()}
-
-    nodes = {}
-    for r in load_table(build, "TaxiNodes"):
-        c = r["ContinentID"]
-        # Players learn a flight point by setting its bit; nodes without one aren't learnable.
-        if c not in proj or r["CharacterBitNumber"] == "0" or NOT_A_FLIGHT_POINT.match(r["Name_lang"]):
-            continue
-        flags = int(num(r["Flags"]))
-        alliance = bool(flags & 1) or (not flags & 3 and r["MountCreatureID_1"] != "0")
-        horde = bool(flags & 2) or (not flags & 3 and r["MountCreatureID_0"] != "0")
-        place, _, zone = r["Name_lang"].rpartition(", ")
-        x, y = proj[c](num(r["Pos_0"]), num(r["Pos_1"]))
-        nodes[r["ID"]] = {
-            "id": int(r["ID"]), "name": place or zone, "zone": zone, "continent": int(c),
-            "faction": "both" if alliance and horde else "alliance" if alliance else "horde",
-            "x": x, "y": y, "isNew": r["ID"] not in era_nodes,
-        }
-
-    # Flight distance along the actual path, in yards: the route planner looks for the shortest trip.
-    points: dict[str, list[tuple[int, float, float]]] = {}
-    for r in load_table(build, "TaxiPathNode"):
-        points.setdefault(r["PathID"], []).append((int(r["NodeIndex"]), num(r["Loc_0"]), num(r["Loc_1"])))
-
-    def length(path_id: str) -> int | None:
-        pts = sorted(points.get(path_id, []))
-        if len(pts) < 2:
-            return None
-        return round(sum(((b[1] - a[1]) ** 2 + (b[2] - a[2]) ** 2) ** 0.5 for a, b in zip(pts, pts[1:])))
-
-    paths: dict[tuple[str, str], dict] = {}
-    for r in load_table(build, "TaxiPath"):
-        a, b = r["FromTaxiNode"], r["ToTaxiNode"]
-        if a not in nodes or b not in nodes or a == b:
-            continue
-        key = (a, b) if int(a) < int(b) else (b, a)
-        p = paths.setdefault(key, {"a": int(key[0]), "b": int(key[1]), "isNew": True})
-        # Price (copper) and distance can differ by direction.
-        d = "AB" if (a, b) == key else "BA"
-        p["cost" + d] = int(r["Cost"])
-        if (dist := length(r["ID"])) is not None:
-            p["dist" + d] = dist
-        p["isNew"] = p["isNew"] and (a, b) not in era_paths
-
-    # The map: the zone maps' explored-area overlays, projected onto the continent, cover the land.
-    art_maps: dict[str, list[str]] = {}
-    for r in load_table(build, "UiMapXMapArt"):
-        art_maps.setdefault(r["UiMapArtID"], []).append(r["UiMapID"])
-    art_style = {r["ID"]: r["UiMapArtStyleID"] for r in load_table(build, "UiMapArt")}
-    canvas = {r["UiMapArtStyleID"]: (num(r["LayerWidth"]), num(r["LayerHeight"]))
-              for r in load_table(build, "UiMapArtStyleLayer") if r["LayerIndex"] == "0"}
-    rects: dict[str, list[tuple]] = {c: [] for c in CONTINENT_MAPS}
-    for o in load_table(build, "WorldMapOverlay"):
-        size = canvas.get(art_style.get(o["UiMapArtID"], ""))
-        for um in art_maps.get(o["UiMapArtID"], []):
-            m = ui_maps.get(um)
-            c = next((c for c, cm in CONTINENT_MAPS.items() if m and m["ParentUiMapID"] == cm and m["Type"] == "3"), None)
-            reg = region(um, c) if c and size else None
-            if not reg:
-                continue
-            (min_x, min_y, max_x, max_y), (u0, v0, u1, v1) = (tuple(g) for g in reg)
-
-            def to_map(px: float, py: float, c=c, b=(min_x, min_y, max_x, max_y, u0, v0, u1, v1)):
-                mnx, mny, mxx, mxy, a0, b0, a1, b1 = b
-                u, v = (px / size[0] - a0) / (a1 - a0), (py / size[1] - b0) / (b1 - b0)
-                return proj[c](mxx - v * (mxx - mnx), mxy - u * (mxy - mny))
-
-            ox, oy = num(o["OffsetX"]), num(o["OffsetY"])
-            art = (*to_map(ox, oy), *to_map(ox + num(o["TextureWidth"]), oy + num(o["TextureHeight"])))
-            hit = (*to_map(num(o["HitRectLeft"]), num(o["HitRectTop"])), *to_map(num(o["HitRectRight"]), num(o["HitRectBottom"])))
-            # The hit area counts twice: the artwork bleeds into neighboring zones, the hit area doesn't.
-            rects[c] += [(m["Name_lang"], *art), (m["Name_lang"], *hit)]
-
-    continents, zones = [], []
-    for c, name in CONTINENT_NAMES.items():
-        land, shapes, labels = mapshape.build(rects[c], MAP_ASPECT)
-        continents.append({"id": int(c), "name": name, "land": land})
-        new_maps = {m["Name_lang"] for m in ui_maps.values() if m["ParentUiMapID"] == CONTINENT_MAPS[c] and m["ID"] not in era_maps}
-        for z, shape in shapes.items():
-            x, y = labels[z]
-            zones.append({"name": z, "continent": int(c), "x": x, "y": y, "isNew": z in new_maps, "shape": shape})
-
-    write_json(OUT / "flights.json", {
-        "continents": continents,
-        "nodes": sorted(nodes.values(), key=lambda n: (n["continent"], n["zone"], n["name"], n["id"])),
-        "paths": list(paths.values()),
-        "zones": sorted(zones, key=lambda z: z["name"]),
-    })
-    return len(nodes), len(paths)
-
-
-# --------------------------------------------------------------------------- legacy
-
-LEGACY_CURRENCY_MAX = "16"
-LEGACY_GRID = 750
-# The client has no names for the three Legacy trees; these describe their contents.
-LEGACY_LABELS = ["Craft & commerce", "Adventure", "Valor & renown"]
-
-
-def build_legacy(db: SpellDB, icons: dict[str, str]):
-    t = {name: load_table(db.build, name) for name in (
-        "TraitNode", "TraitNodeEntry", "TraitDefinition", "TraitEdge", "TraitNodeXTraitNodeEntry",
-        "TraitNodeGroupXTraitNode", "TraitCond", "TraitNodeGroupXTraitCond", "TraitTreeXTraitCurrency",
-        "TraitCurrency", "TraitCurrencySource", "TraitDefinitionEffectPoints", "CurvePoint")}
-    currency = next(c for c in t["TraitCurrency"] if c["SourcedMax"] == LEGACY_CURRENCY_MAX)
-    trees = sorted(r["TraitTreeID"] for r in t["TraitTreeXTraitCurrency"] if r["TraitCurrencyID"] == currency["ID"])
-    entries = {r["ID"]: r for r in t["TraitNodeEntry"]}
-    defs = {r["ID"]: r for r in t["TraitDefinition"]}
-    node_entries: dict[str, list[str]] = {}
-    for r in sorted(t["TraitNodeXTraitNodeEntry"], key=lambda r: int(r.get("_Index") or 0)):
-        node_entries.setdefault(r["TraitNodeID"], []).append(r["TraitNodeEntryID"])
-    curves: dict[str, dict[int, float]] = {}
-    for r in t["CurvePoint"]:
-        curves.setdefault(r["CurveID"], {})[round(num(r["Pos_0"]))] = num(r["Pos_1"])
-    effect_curves: dict[str, dict[int, str]] = {}
-    for r in t["TraitDefinitionEffectPoints"]:
-        effect_curves.setdefault(r["TraitDefinitionID"], {})[int(r["EffectIndex"]) + 1] = r["CurveID"]
-    conds = {r["ID"]: r for r in t["TraitCond"]}
-    group_conds: dict[str, list[dict]] = {}
-    for r in t["TraitNodeGroupXTraitCond"]:
-        if r["TraitCondID"] in conds:
-            group_conds.setdefault(r["TraitNodeGroupID"], []).append(conds[r["TraitCondID"]])
-    groups_of: dict[str, list[str]] = {}
-    for r in t["TraitNodeGroupXTraitNode"]:
-        groups_of.setdefault(r["TraitNodeID"], []).append(r["TraitNodeGroupID"])
-    prereq = {r["RightTraitNodeID"]: r["LeftTraitNodeID"] for r in t["TraitEdge"]}
-
-    def choice(entry_id: str) -> dict | None:
-        e = entries[entry_id]
-        d = defs.get(e["TraitDefinitionID"])
-        if not d:
-            return None
-        sid = d["SpellID"]
-        name = d["OverrideName_lang"] or db.names.get(sid)
-        if not name or not db.desc.get(sid):
-            return None
-        max_ranks = max(1, int(e["MaxRanks"]))
-        texts = []
-        for rank in range(1, max_ranks + 1):
-            ov = {i: curves.get(c, {}).get(rank) for i, c in effect_curves.get(d["ID"], {}).items()}
-            texts.append(db.render(sid, overrides={k: v for k, v in ov.items() if v is not None}))
-        icon_file = d["OverrideIcon"] if d["OverrideIcon"] not in ("", "0") else db.misc.get(sid, {}).get("SpellIconFileDataID", "")
-        return {"entry": int(entry_id), "name": name, "ranks": texts,
-                "icon": icons.get(icon_file, "inv_misc_questionmark")}
-
-    out_trees = []
-    for i, tree in enumerate(trees):
-        nodes = [n for n in t["TraitNode"] if n["TraitTreeID"] == tree]
-        built = []
-        for n in nodes:
-            options = [c for c in (choice(e) for e in node_entries.get(n["ID"], [])) if c]
-            if not options:
-                continue  # nodes without a spell
-            placeholder = all(o["name"] == "Unknown" for o in options)
-            if n["Type"] == "1" and len(options) > 1:
-                # Tiered node: each entry is the next rank of the same bonus.
-                options = [{**options[0], "ranks": [o["ranks"][0] for o in options]}]
-            req = 0
-            for g in groups_of.get(n["ID"], []):
-                for c in group_conds.get(g, []):
-                    req = max(req, int(num(c.get("SpentAmountRequired"))))
-            built.append({"id": int(n["ID"]), "x": int(n["PosX"]), "y": int(n["PosY"]), "req": req,
-                          "prereq": int(prereq[n["ID"]]) if n["ID"] in prereq else None,
-                          "choice": len(options) > 1, "options": options,
-                          **({"placeholder": True} if placeholder else {})})
-        min_x = min(n["x"] for n in built)
-        min_y = min(n["y"] for n in built)
-        for n in built:
-            n["col"] = round((n.pop("x") - min_x) / LEGACY_GRID)
-            n["row"] = round((n.pop("y") - min_y) / LEGACY_GRID)
-        built.sort(key=lambda n: (n["row"], n["col"]))
-        out_trees.append({"id": int(tree), "label": LEGACY_LABELS[i] if i < len(LEGACY_LABELS) else f"Tree {i + 1}",
-                          "nodes": built})
-
-    sources = [
-        {"requirement": r["Requirement_lang"], "amount": int(num(r["Amount"])), "achievement": int(num(r["AchievementID"]))}
-        for r in sorted(t["TraitCurrencySource"], key=lambda r: (int(num(r["OrderIndex"])), r["Requirement_lang"]))
-        if r["TraitCurrencyID"] == currency["ID"] and r["Requirement_lang"]
-    ]
-    write_json(OUT / "legacy.json", {"cap": int(currency["SourcedMax"]), "labelsAreOurs": True,
-                                      "trees": out_trees, "sources": sources})
 
 
 # --------------------------------------------------------------------------- items
@@ -430,103 +123,178 @@ class ItemMath:
         return {"min": round(avg * (1 - var / 2)), "max": round(avg * (1 + var / 2)), "speed": round(delay, 2), "dps": round(dps, 1)}
 
 
-def build_items(build: str, era_build: str, icons: dict[str, str]):
-    """Equippable items by slot, for the gear sandbox."""
-    sparse = load_table(build, "ItemSparse")
-    item = {r["ID"]: r for r in load_table(build, "Item")}
-    math = ItemMath(build)
-    classic_ids = {r["ID"] for r in load_table(era_build, "ItemSparse")}
-
-    out: dict[str, list] = {}
-    for r in sparse:
-        inv = int(num(r["InventoryType"]))
-        quality = int(num(r["OverallQualityID"]))
-        ilvl = int(num(r["ItemLevel"]))
-        it = item.get(r["ID"])
-        if inv not in EQUIP_SLOTS or not it or quality < 1 or not r["Display_lang"] or ilvl < 5:
-            continue
-        if JUNK_ITEM.search(r["Display_lang"]):
-            continue
-        stats = math.stats(r)
-        entry = {"id": int(r["ID"]), "name": r["Display_lang"], "q": quality, "ilvl": ilvl,
-                 "req": int(num(r["RequiredLevel"])), "slot": inv, "cls": int(it["ClassID"]),
-                 "sub": int(it["SubclassID"]),
-                 "icon": icons.get(it["IconFileDataID"], "inv_misc_questionmark"), "stats": stats}
-        if r["ID"] not in classic_ids:
-            entry["new"] = True
-        if int(num(r["ItemSet"])):
-            entry["set"] = int(num(r["ItemSet"]))
-        armor = math.armor(r, it)
-        if armor:
-            entry["armor"] = armor
-        dmg = math.damage(r, it, stats)
-        if dmg is not False:
-            entry["dmg"] = dmg
-        out.setdefault(str(inv), []).append(entry)
-
-    for inv, items in out.items():
-        items.sort(key=lambda x: (-x["ilvl"], x["name"]))
-        write_json(OUT / "items" / f"slot-{inv}.json", items)
-    write_json(OUT / "items" / "index.json", {k: len(v) for k, v in sorted(out.items(), key=lambda kv: int(kv[0]))})
-    return sum(len(v) for v in out.values())
-
-
 # --------------------------------------------------------------------------- professions
 
 PROFESSION_CATEGORIES = {"11": "primary", "9": "secondary"}
+GATHERING = {"herbalism", "mining", "skinning", "fishing"}
+# Items the game files file under a gathering profession's material type (ItemSubClass of Trade Goods).
+GATHERED_TYPES = {"herbalism": ["9"], "mining": ["7"], "skinning": ["6"], "fishing": ["8"]}
+RANK_NAMES = ["Apprentice", "Journeyman", "Expert", "Artisan", "Master", "Grand Master"]
 
 
 def build_professions(db: SpellDB, era_build: str, icons: dict[str, str]):
-    lines = {r["ID"]: r for r in load_table(db.build, "SkillLine") if r["CategoryID"] in PROFESSION_CATEGORIES}
-    sla = load_table(db.build, "SkillLineAbility")
-    era_recipes = {(r["SkillLine"], r["Spell"]) for r in load_table(era_build, "SkillLineAbility")}
-    reagents = {r["SpellID"]: r for r in load_table(db.build, "SpellReagents")}
-    sparse = {r["ID"]: r for r in load_table(db.build, "ItemSparse")}
-    item = {r["ID"]: r for r in load_table(db.build, "Item")}
+    """Every profession with its recipes and everything the client says about crafting them: skill
+    ranges, reagents, tools, crafting station, cooldown, the recipe items that teach them, recipe
+    categories, ranks and specializations, and what changed from Classic Era."""
+    from itemdb import ClientItems  # itemdb imports this module
+
+    build = db.build
+    lines = {r["ID"]: r for r in load_table(build, "SkillLine") if r["CategoryID"] in PROFESSION_CATEGORIES}
+    sla = load_table(build, "SkillLineAbility")
+    era_sla = {(r["SkillLine"], r["Spell"]): r for r in load_table(era_build, "SkillLineAbility")}
+    reagents = {r["SpellID"]: r for r in load_table(build, "SpellReagents")}
+    era_reagents = {r["SpellID"]: r for r in load_table(era_build, "SpellReagents")}
+    spell = {r["ID"]: r for r in load_table(build, "Spell")}
+    totems = {r["SpellID"]: r for r in load_table(build, "SpellTotems")}
+    totem_names = {r["ID"]: r["Name_lang"] for r in load_table(build, "TotemCategory")}
+    focus = {r["SpellID"]: r["RequiresSpellFocus"] for r in load_table(build, "SpellCastingRequirements")}
+    focus_names = {r["ID"]: r["Name_lang"] for r in load_table(build, "SpellFocusObject")}
+    categories = {r["ID"]: r for r in load_table(build, "TradeSkillCategory")}
+    items = ClientItems(build, db)
+    subclasses = {(r["ClassID"], r["SubClassID"]): r["DisplayName_lang"] or r["VerboseName_lang"] for r in load_table(build, "ItemSubClass")}
 
     def item_ref(item_id: str, count: int = 1):
-        s = sparse.get(item_id)
-        it = item.get(item_id, {})
-        return {"id": int(item_id), "name": s["Display_lang"] if s else f"Item {item_id}", "count": count,
-                "q": int(num(s["OverallQualityID"])) if s else 1,
-                "icon": icons.get(it.get("IconFileDataID", ""), "inv_misc_questionmark")}
+        s = items.sparse.get(item_id)
+        it = items.item.get(item_id, {})
+        ref = {"id": int(item_id), "name": s["Display_lang"] if s else f"Item {item_id}",
+               "q": int(num(s["OverallQualityID"])) if s else 1,
+               "icon": icons.get(it.get("IconFileDataID", ""), "inv_misc_questionmark")}
+        return {**ref, "count": count} if count else ref
+
+    def reagent_list(rg) -> list[tuple[str, int]]:
+        out = []
+        if rg:
+            for i in range(8):
+                rid = rg.get(f"Reagent_{i}", "0")
+                if rid not in ("0", ""):
+                    out.append((rid, int(num(rg.get(f"ReagentCount_{i}")))))
+        return out
+
+    # Recipe items: an item whose "learn" effect is the recipe, or a spell that teaches it.
+    taught_by: dict[str, list[str]] = {}
+    for iid, effs in items.effects.items():
+        for e in effs:
+            if e["TriggerType"] != "6":
+                continue
+            taught_by.setdefault(e["SpellID"], []).append(iid)
+            for eff in db.effects.get(e["SpellID"], {}).values():
+                if eff.get("Effect") == "36" and eff.get("EffectTriggerSpell") not in ("", "0"):
+                    taught_by.setdefault(eff["EffectTriggerSpell"], []).append(iid)
+
+    def recipe_item(iid: str):
+        s = items.sparse[iid]
+        ref = item_ref(iid, 0)
+        req = int(num(s.get("RequiredSkillRank")))
+        if req:
+            ref["skill"] = req
+        return ref
 
     index = []
     for lid, line in sorted(lines.items(), key=lambda kv: kv[1]["DisplayName_lang"]):
-        recipes = []
+        name = line["DisplayName_lang"]
+        if "[DNT]" in name or line["ParentSkillLineID"] not in ("0", ""):
+            continue
+        slug = name.lower().replace(" ", "-")
+        recipes, ranks, specs, used_cats = [], [], [], {}
         for r in sla:
             if r["SkillLine"] != lid or not db.names.get(r["Spell"]):
                 continue
             sid = r["Spell"]
+            effs = db.effects.get(sid, {}).values()
             creates = None
-            for e in db.effects.get(sid, {}).values():
+            for e in effs:
                 if e.get("Effect") == "24" and e.get("EffectItemType") not in ("", "0"):
                     creates = item_ref(e["EffectItemType"], max(1, int(db.points(e))))
                     break
-            rg = reagents.get(sid)
-            mats = []
-            if rg:
-                for i in range(8):
-                    rid = rg.get(f"Reagent_{i}", "0")
-                    if rid not in ("0", ""):
-                        mats.append(item_ref(rid, int(num(rg.get(f"ReagentCount_{i}")))))
+            mats = reagent_list(reagents.get(sid))
             if not creates and not mats:
-                continue  # passive ranks/specializations, not recipes
-            recipes.append({
-                "spell": int(sid), "name": db.names[sid], "skill": int(num(r["MinSkillLineRank"])),
+                # Not a recipe: a rank of the profession ("Journeyman") or a specialization.
+                sub = spell.get(sid, {}).get("NameSubtext_lang", "")
+                desc = db.render(sid) if spell.get(sid, {}).get("Description_lang") else ""
+                step = next((e for e in effs if e.get("Effect") == "118" and e.get("EffectMiscValue_0") == lid), None)
+                if step and sub in RANK_NAMES and sub not in (x["name"] for x in ranks):
+                    ranks.append({"name": sub, "spell": int(sid), "desc": desc})
+                elif not step and db.names[sid] != name and desc and db.names[sid] not in (x["name"] for x in specs):
+                    specs.append({"name": db.names[sid], "spell": int(sid), "desc": desc})
+                continue
+            rec = {
+                "spell": int(sid), "name": db.names[sid],
                 "yellow": int(num(r["TrivialSkillLineRankLow"])), "grey": int(num(r["TrivialSkillLineRankHigh"])),
-                "creates": creates, "reagents": mats,
-                **({"new": True} if (lid, sid) not in era_recipes else {}),
-            })
-        # Skip test/one-off skill lines; real professions have many recipes.
-        if len(recipes) < 10 or "[DNT]" in line["DisplayName_lang"]:
-            continue
-        recipes.sort(key=lambda x: (x["yellow"] or x["skill"], x["name"]))
-        slug = line["DisplayName_lang"].lower().replace(" ", "-")
-        write_json(OUT / "professions" / f"{slug}.json", {"id": int(lid), "name": line["DisplayName_lang"], "recipes": recipes})
-        index.append({"id": int(lid), "slug": slug, "name": line["DisplayName_lang"],
-                      "kind": PROFESSION_CATEGORIES[line["CategoryID"]],
-                      "icon": icons.get(line["SpellIconFileID"], "inv_misc_questionmark"),
-                      "recipes": len(recipes), "new": sum(1 for x in recipes if x.get("new"))})
+                "creates": creates, "reagents": [item_ref(i, n) for i, n in mats],
+            }
+            cat = categories.get(r["TradeSkillCategoryID"])
+            if cat:
+                rec["cat"] = int(cat["ID"])
+                used_cats[cat["ID"]] = cat
+            if not creates:
+                rec["desc"] = db.render(sid)
+            t = totems.get(sid)
+            if t:
+                tools = [totem_names[c] for c in (t["RequiredTotemCategoryID_0"], t["RequiredTotemCategoryID_1"]) if c in totem_names]
+                tools += [items.sparse[i]["Display_lang"] for i in (t["Totem_0"], t["Totem_1"]) if i in items.sparse]
+                if tools:
+                    rec["tools"] = tools
+            if focus_names.get(focus.get(sid, "0")):
+                rec["station"] = focus_names[focus[sid]]
+            cd = db.cooldown_ms(sid)
+            if cd:
+                rec["cooldown"] = int(cd // 1000)
+            ups = int(num(r["NumSkillUps"]))
+            if ups != 1:
+                rec["skillups"] = ups
+            if r["AcquireMethod"] == "1":
+                rec["auto"] = True
+            learned = sorted({i for i in taught_by.get(sid, []) if i in items.sparse}, key=int)
+            if learned:
+                rec["learnedFrom"] = [recipe_item(i) for i in learned]
+            # The skill needed to learn it. The client's MinSkillLineRank is 1 for nearly every recipe (in
+            # Classic Era too; trainers hold the real value), so only a recipe item's requirement counts.
+            from_items = [x["skill"] for x in rec.get("learnedFrom", []) if x.get("skill")]
+            learn = max(min(from_items, default=0), int(num(r["MinSkillLineRank"])))
+            if learn > 1:
+                rec["learn"] = learn
+            old = era_sla.get((lid, sid))
+            if not old:
+                rec["new"] = True
+            else:
+                was = {}
+                old_mats = reagent_list(era_reagents.get(sid))
+                if sorted(old_mats) != sorted(mats):
+                    was["reagents"] = [item_ref(i, n) for i, n in old_mats]
+                for key, col in (("yellow", "TrivialSkillLineRankLow"), ("grey", "TrivialSkillLineRankHigh")):
+                    if int(num(old[col])) != rec[key]:
+                        was[key] = int(num(old[col]))
+                if was:
+                    rec["classic"] = was
+            recipes.append(rec)
+        gathering = slug in GATHERING
+        if len(recipes) < 3 and not gathering:
+            continue  # test and one-off skill lines
+        recipes.sort(key=lambda x: (x["yellow"] or x.get("learn", 0), x["name"]))
+        ranks.sort(key=lambda x: RANK_NAMES.index(x["name"]))
+        cats = sorted(used_cats.values(), key=lambda c: (int(num(c["OrderIndex"])), c["Name_lang"]))
+        payload = {
+            "id": int(lid), "slug": slug, "name": name, "kind": "gathering" if gathering else PROFESSION_CATEGORIES[line["CategoryID"]],
+            "icon": icons.get(line["SpellIconFileID"], "inv_misc_questionmark"), "desc": line["Description_lang"],
+            "ranks": ranks, "specs": specs,
+            "categories": [{"id": int(c["ID"]), "name": c["Name_lang"]} for c in cats],
+            "recipes": recipes,
+        }
+        if gathering:
+            # What the game files class as this profession's material: herbs, metal & stone, leather, meat.
+            mats = [iid for iid, it in items.item.items()
+                    if it.get("ClassID") == "7" and it.get("SubclassID") in GATHERED_TYPES[slug] and iid in items.sparse
+                    and not items.sparse[iid]["Display_lang"].startswith(("Test", "zz", "TEST"))]
+            payload["materials"] = {"type": ", ".join(subclasses.get(("7", sc), sc) for sc in GATHERED_TYPES[slug]),
+                                    "items": sorted((item_ref(i, 0) for i in mats), key=lambda x: x["name"])}
+        write_json(OUT / "professions" / f"{slug}.json", payload)
+        index.append({"id": int(lid), "slug": slug, "name": name, "kind": payload["kind"], "icon": payload["icon"],
+                      "recipes": len(recipes), "new": sum(1 for x in recipes if x.get("new")),
+                      "changed": sum(1 for x in recipes if x.get("classic"))})
+    order = {"primary": 0, "gathering": 1, "secondary": 2}
+    index.sort(key=lambda p: (order[p["kind"]], p["name"]))
+    for old in (OUT / "professions").glob("*.json"):
+        if old.stem != "index" and old.stem not in {p["slug"] for p in index}:
+            old.unlink()
     write_json(OUT / "professions" / "index.json", index)
     return len(index)

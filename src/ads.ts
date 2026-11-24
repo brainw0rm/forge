@@ -14,7 +14,6 @@
 // ads will go. Set VITE_AD_FALLBACK=house to show promos for the site's own features instead
 // (e.g. while AdSense is still reviewing the site).
 
-import { currentUser } from "./session";
 import { KOFI_URL } from "./support";
 
 type Kind = "leaderboard" | "rectangle" | "rail";
@@ -91,15 +90,13 @@ interface Promo {
   text: string;
   href: string;
   cta: string;
-  signedOutOnly?: boolean;
   external?: boolean;
 }
 
 const PROMOS: Promo[] = [
-  { title: "Save your builds", text: "Make a free account so your builds don't get lost.", href: "/signup", cta: "Create account", signedOutOnly: true },
-  { title: "Community builds", text: "See what other players are running and rate the good ones.", href: "/builds", cta: "Browse builds" },
-  { title: "What changed this build?", text: "We compare each new game build talent by talent.", href: "/changes", cta: "See changes" },
-  { title: "Classic → Forever", text: "See how each talent changed since Classic Era.", href: "/changes/classic/warrior", cta: "Compare" },
+  { title: "Crafting list", text: "Pick what to craft and get every reagent you need, crafted materials broken down.", href: "/list", cta: "Open list" },
+  { title: "New in Forever", text: "Hundreds of recipes weren't in Classic Era. See them per profession.", href: "/professions/blacksmithing?show=new", cta: "Browse recipes" },
+  { title: "What gives skill-ups?", text: "Enter your skill on any profession page and the recipes light up in their skill-up colors.", href: "/professions/tailoring", cta: "Try it" },
   ...(KOFI_URL
     ? [{ title: "Keep the forge lit", text: "Forever Forge is free and has no paywall. If it helps you, a coffee on Ko-fi helps it.", href: KOFI_URL, cta: "Support on Ko-fi", external: true }]
     : []),
@@ -118,10 +115,9 @@ export async function fillAds(root: ParentNode) {
   });
   const houses = root.querySelectorAll<HTMLElement>("[data-house]:empty");
   if (!houses.length) return;
-  const signedIn = !!(await currentUser());
   // Don't advertise the page you're already on. (External links count as the home page, which has its own Ko-fi note.)
   const here = location.pathname.split("/")[1];
-  const pool = PROMOS.filter((p) => !(p.signedOutOnly && signedIn) && p.href.split("/")[1] !== here);
+  const pool = PROMOS.filter((p) => p.href.split("/")[1] !== here);
   houses.forEach((el) => {
     const p = pool[rotation++ % pool.length];
     el.innerHTML = `<a class="house-ad" href="${p.href}" ${p.external ? `target="_blank" rel="noopener"` : "data-link"}>

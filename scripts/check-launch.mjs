@@ -23,9 +23,8 @@ else if (process.env.VITE_ADSENSE_CLIENT && !existsSync(new URL("../dist/ads.txt
 
 if (problems.length) {
   console.warn(`\nLaunch checklist (${problems.length}):\n${problems.map((p) => `  • ${p}`).join("\n")}\n`);
-  console.warn("Also set RESEND_API_KEY, MAIL_FROM and NOTIFY_SECRET on the Pages project, add SITE_URL/NOTIFY_SECRET");
-  console.warn("repository secrets for change alerts, and enable the AdSense consent message.");
-  console.warn("Optional: FEEDBACK_EMAIL on the Pages project gets a copy of every \"Report a bug\" submission.\n");
+  console.warn("With ads, also enable the AdSense consent message. Bug reports are emailed when RESEND_API_KEY,");
+  console.warn("MAIL_FROM and FEEDBACK_EMAIL are set on the Pages project.\n");
   if (process.argv.includes("--strict")) process.exit(1);
 } else {
   console.log("Launch checklist: all good.");
