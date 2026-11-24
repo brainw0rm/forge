@@ -33,7 +33,11 @@ export async function renderHome(root: HTMLElement) {
         </dl>
       </header>
       <div id="hits" aria-live="polite"></div>
-      ${professionGrid(list)}
+      <div class="wow-window book">
+        <img class="win-portrait" src="/favicon.svg" alt="" />
+        <header class="win-title"><h2>Professions</h2></header>
+        <div class="win-pad">${professionGrid(list)}</div>
+      </div>
       <section class="features">
         <a class="feature" href="/professions/tailoring" data-link>
           <b>Skill-up colors at your skill</b>

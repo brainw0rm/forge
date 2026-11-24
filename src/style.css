@@ -113,12 +113,25 @@ code { font-size: .9em; background: var(--surface-2); padding: 1px 5px; border-r
 .loading { padding: 100px 0; text-align: center; color: var(--muted); font-family: var(--display); font-size: 18px; }
 
 /* ---------------------------------------------------------- frames: the game's panel look */
-/* Dark panel, gold metal edge, a black line inside it, and a soft shadow: one recipe for every frame. */
-.frame, .codex, .panel, .ts-window, .feature, .banner, .house-ad, .modal, .menu, .skill-box, .site-nav.open-panel {
-  background: linear-gradient(180deg, var(--frame-2), var(--frame) 60%) padding-box, var(--gold-edge) border-box;
-  border: 2px solid transparent; border-radius: var(--radius);
-  box-shadow: inset 0 0 0 1px rgb(0 0 0 / .85), inset 0 2px 12px rgb(0 0 0 / .5), 0 10px 28px rgb(0 0 0 / .55);
+/* Dark panel, gold metal edge with black lines either side, a stud in each corner, a soft shadow:
+   one recipe for every frame. */
+.frame, .codex, .panel, .wow-window, .feature, .banner, .house-ad, .modal, .menu {
+  --stud: radial-gradient(circle, #fff1bf 0 1px, var(--metal) 1.6px, var(--metal-lo) 2.6px, transparent 3.2px);
+  background:
+    var(--stud) 4px 4px / 8px 8px no-repeat, var(--stud) calc(100% - 4px) 4px / 8px 8px no-repeat,
+    var(--stud) 4px calc(100% - 4px) / 8px 8px no-repeat, var(--stud) calc(100% - 4px) calc(100% - 4px) / 8px 8px no-repeat,
+    radial-gradient(120% 80% at 50% 0, rgb(60 80 150 / .18), transparent 60%) padding-box,
+    linear-gradient(180deg, #121935, #090d1d 70%) padding-box,
+    var(--gold-edge) border-box;
+  border: 3px solid transparent; border-radius: var(--radius);
+  box-shadow: 0 0 0 1px #000, inset 0 0 0 1px #000, inset 0 0 0 2px rgb(255 225 150 / .1), inset 0 6px 18px rgb(0 0 0 / .45), 0 12px 32px rgb(0 0 0 / .6);
 }
+
+/* Gold scrollbars, like the game's scroll frames. */
+* { scrollbar-color: var(--metal-lo) #04060d; }
+::-webkit-scrollbar { width: 12px; height: 12px; }
+::-webkit-scrollbar-track { background: #04060d; box-shadow: inset 0 0 0 1px var(--line); }
+::-webkit-scrollbar-thumb { background: linear-gradient(90deg, var(--metal-lo), var(--metal), var(--metal-lo)); border-radius: 6px; border: 2px solid #04060d; }
 
 /* ---------------------------------------------------------- header */
 .site-header {
@@ -325,10 +338,15 @@ ins { background: rgb(78 224 141 / .16); color: #b8f5d2; text-decoration: none; 
 
 /* ---------------------------------------------------------- panels with a title bar (recipe page, about, list) */
 .codex { padding: 0 0 14px; margin-bottom: 14px; overflow: hidden; }
-.codex > h2 {
-  font-size: 19px; padding: 10px 16px 9px; margin-bottom: 12px;
-  background: linear-gradient(180deg, rgb(255 209 0 / .1), transparent); border-bottom: 1px solid rgb(217 173 79 / .35);
+/* A banner title bar: gold text centered between two fading gold rules, like a game frame's header. */
+.codex > h2, .win-title {
+  display: flex; align-items: center; justify-content: center; gap: 12px; text-align: center;
+  font-size: 19px; padding: 9px 16px 8px; margin-bottom: 12px;
+  background: linear-gradient(180deg, #2a2210, #120e07 80%); border-bottom: 2px solid #000;
+  box-shadow: 0 1px 0 var(--metal-lo), inset 0 1px 0 rgb(255 225 150 / .15);
 }
+.codex > h2::before, .codex > h2::after { content: ""; flex: 1; max-width: 120px; height: 1px; background: linear-gradient(90deg, transparent, var(--metal)); }
+.codex > h2::after { background: linear-gradient(90deg, var(--metal), transparent); }
 .codex > :not(h2) { margin-left: 16px; margin-right: 16px; }
 .codex h3 { color: var(--gold-soft); }
 .codex .empty { border-color: var(--line); }
@@ -424,7 +442,7 @@ ins { background: rgb(78 224 141 / .16); color: #b8f5d2; text-decoration: none; 
 /* Profession tiles: like spellbook buttons, the icon in a gold frame. */
 .prof-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .prof-tile {
-  display: flex; align-items: center; gap: 12px; padding: 10px 12px; color: var(--text); border-radius: var(--radius);
+  display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; padding: 12px 6px 10px; color: var(--text); border-radius: var(--radius);
   background: linear-gradient(180deg, var(--frame-2), var(--frame)); border: 1px solid var(--line); box-shadow: inset 0 0 0 1px rgb(0 0 0 / .6);
   transition: border-color .15s, background .15s;
 }
@@ -434,30 +452,69 @@ ins { background: rgb(78 224 141 / .16); color: #b8f5d2; text-decoration: none; 
 .pt-name { font-family: var(--display); font-size: 16px; color: var(--gold); text-shadow: 0 1px 0 #000; line-height: 1.2; }
 .pt-meta { font-size: 12px; color: var(--muted); line-height: 1.35; }
 .pt-meta b { color: var(--st-new); font-weight: 600; }
+@media (min-width: 440px) { .prof-tile { flex-direction: row; text-align: left; gap: 12px; padding: 10px 12px; } }
 @media (min-width: 760px) { .prof-tiles { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; } .prof-tile img { width: 44px; height: 44px; } }
 
 /* ---------------------------------------------------------- one profession: the profession window */
-.prof-hero { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 14px; }
-@media (min-width: 760px) { .prof-hero { align-items: center; } }
-.prof-emblem { width: 52px; height: 52px; flex: none; border-radius: 50%; box-shadow: 0 0 0 2px #000, 0 0 0 4px var(--metal), 0 4px 10px rgb(0 0 0 / .7); }
-.prof-hero .eyebrow { margin-bottom: 2px; }
-.prof-hero .lede { margin-top: 4px; font-size: 14.5px; }
+/* The profession window: a round portrait overlapping the top-left corner, a title bar with a close
+   button, then the window's contents, like the game's frames. */
+.prof-page .crumbs { margin-bottom: 22px; }
+.wow-window { position: relative; padding: 0 0 4px; margin-top: 14px; }
+.win-portrait {
+  position: absolute; left: -6px; top: -16px; z-index: 2; width: 62px; height: 62px; border-radius: 50%;
+  box-shadow: 0 0 0 2px #000, 0 0 0 5px var(--metal), 0 0 0 6px #000, 0 6px 14px rgb(0 0 0 / .8);
+}
+.win-title { position: relative; min-height: 46px; padding-left: 70px; padding-right: 46px; margin-bottom: 0; border-radius: 3px 3px 0 0; justify-content: flex-start; }
+.win-title h1 { font-size: 22px; line-height: 1.2; }
+.win-close {
+  position: absolute; right: 8px; top: 50%; translate: 0 -50%; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 4px;
+  font-size: 14px; font-weight: 700; color: #ffd9c9; text-shadow: 0 1px 0 #000;
+  background: radial-gradient(circle at 40% 35%, #d8412c, #7d140c 70%); box-shadow: 0 0 0 1px #000, 0 0 0 2px var(--metal-lo), inset 0 1px 0 rgb(255 200 180 / .4);
+}
+.win-close:hover { text-decoration: none; filter: brightness(1.2); }
+.win-sub { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 16px; padding: 12px 14px; border-bottom: 1px solid rgb(217 173 79 / .25); }
+.win-sub .eyebrow { margin-bottom: 2px; }
+.win-sub .lede { margin-top: 2px; font-size: 14px; }
 .prof-stats { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 6px; font-size: 13px; color: var(--muted); }
 .prof-stats b { color: var(--gold); font-weight: 700; }
-/* Recipes / Ranks & info: a small switch in the profession's header, not a row of its own. */
-.prof-hero { flex-wrap: wrap; }
+#prof-body > .about-grid { padding: 14px; }
+.win-title h2 { font-size: 22px; }
+.win-pad { padding: 4px 14px 14px; }
+.book { margin-top: 34px; }
+.book .section-title { margin-top: 18px; font-size: 18px; }
+@media (min-width: 760px) { .win-pad { padding: 4px 18px 18px; } .win-title h2 { font-size: 26px; } }
+@media (min-width: 760px) {
+  .wow-window { margin-top: 18px; }
+  .win-portrait { width: 76px; height: 76px; left: -12px; top: -22px; }
+  .win-title { min-height: 50px; padding-left: 82px; }
+  .win-title h1 { font-size: 26px; }
+  .win-sub { padding: 12px 18px; }
+}
+/* Panels inside a window are insets, not frames of their own. */
+.wow-window .codex, .wow-window .ts-window { background: rgb(0 0 0 / .28); border: 1px solid var(--line); box-shadow: inset 0 0 0 1px rgb(0 0 0 / .6); border-radius: 4px; }
+.wow-window .codex > h2 { background: linear-gradient(180deg, rgb(255 209 0 / .08), transparent); box-shadow: none; border-bottom: 1px solid var(--hairline); }
+.wow-window .ts-window { border: 0; border-radius: 0; background: none; box-shadow: none; }
+
+/* Recipes / Ranks & info: a small switch in the window's header, not a row of its own. */
 .prof-title { flex: 1 1 260px; min-width: 0; }
 .prof-views { display: flex; gap: 4px; padding: 3px; border-radius: 6px; background: #04060d; box-shadow: inset 0 0 0 1px var(--line); }
 .prof-views a { padding: 7px 14px; border-radius: 4px; font-family: var(--display); font-size: 15px; color: var(--muted); }
 .prof-views a:hover { color: var(--gold-soft); text-decoration: none; }
 .prof-views a[aria-current="page"] { color: var(--gold); background: linear-gradient(180deg, var(--frame-3), var(--frame-2)); box-shadow: inset 0 0 0 1px var(--metal-lo); text-shadow: 0 1px 0 #000; }
 @media (min-width: 760px) { .prof-views { align-self: flex-end; } }
-.ts-window { padding: 0; overflow: hidden; }
+.ts-window { padding: 0; }
 .ts-top { display: grid; gap: 10px; padding: 12px; border-bottom: 1px solid rgb(217 173 79 / .3); background: linear-gradient(180deg, rgb(255 209 0 / .06), transparent); }
-.ts-skill { display: grid; grid-template-columns: auto 92px; align-items: center; gap: 6px 12px; }
-.ts-skill label { font-family: var(--display); color: var(--gold); font-size: 15px; text-shadow: 0 1px 0 #000; }
-.ts-skill input { text-align: center; font: 400 20px var(--display); color: var(--gold); padding: 5px; }
-.ts-skill .legend { grid-column: 1 / -1; font-size: 12.5px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 2px 10px; }
+.ts-skill { display: grid; gap: 6px 14px; align-items: center; }
+/* The skill as the game's status bar: blue fill in a gold-edged groove, the number typed right into it. */
+.skillbar {
+  position: relative; display: block; height: 30px; border-radius: 4px; overflow: hidden; cursor: text;
+  background: #02030a; box-shadow: 0 0 0 1px #000, 0 0 0 3px var(--metal-lo), 0 0 0 4px #000, inset 0 2px 6px rgb(0 0 0 / .9);
+}
+.skillbar-fill { position: absolute; inset: 0 auto 0 0; width: 0; background: linear-gradient(180deg, #5a86ff, #2550c8 45%, #0f2a7a); box-shadow: inset 0 1px 0 rgb(255 255 255 / .35); transition: width .25s; }
+.skillbar-text { position: relative; display: flex; align-items: center; justify-content: center; gap: 6px; height: 100%; font-family: var(--display); font-size: 15px; color: #fff; text-shadow: 0 1px 1px #000, 0 0 3px #000; }
+.skillbar input { width: 56px; height: 24px; padding: 0 4px; text-align: center; font: inherit; font-size: 15px; color: #fff; background: rgb(0 0 0 / .45); border: 1px solid rgb(255 255 255 / .25); box-shadow: none; }
+.skillbar input:focus { border-color: var(--gold); box-shadow: 0 0 0 2px rgb(255 209 0 / .3); }
+.ts-skill .legend { font-size: 12.5px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 2px 10px; }
 .legend .d { font-weight: 700; }
 .d-orange { color: var(--sk-o) !important; }
 .d-yellow { color: var(--sk-y) !important; }
@@ -470,7 +527,11 @@ ins { background: rgb(78 224 141 / .16); color: #b8f5d2; text-decoration: none; 
 .ts-body { display: grid; }
 .ts-count { padding: 8px 12px 0; color: var(--faint); font-size: 12.5px; }
 .ts-list { list-style: none; margin: 0; padding: 6px; }
-.ts-group { padding: 10px 8px 4px; font-family: var(--display); font-size: 14px; color: var(--gold-soft); text-shadow: 0 1px 0 #000; border-bottom: 1px solid var(--hairline); margin-bottom: 2px; }
+/* Category headers fold open and shut with +/−, like the game's recipe list. */
+.ts-group { display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 6px 4px; margin-bottom: 2px; text-align: left; cursor: pointer;
+  background: none; border: 0; border-bottom: 1px solid var(--hairline); font-family: var(--display); font-size: 14.5px; color: var(--gold-soft); text-shadow: 0 1px 0 #000; }
+.ts-group:hover { color: var(--gold); }
+.ts-toggle { display: grid; place-items: center; width: 16px; height: 16px; border-radius: 3px; font: 700 13px/1 var(--font); color: var(--gold); background: #04060d; box-shadow: 0 0 0 1px var(--metal-lo); }
 .ts-row { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 3px; color: var(--q, var(--text)); }
 .ts-row:hover { text-decoration: none; background: rgb(120 150 255 / .1); }
 .ts-row[aria-current="true"] { background: linear-gradient(90deg, rgb(255 209 0 / .18), rgb(255 209 0 / .04)); box-shadow: inset 2px 0 0 var(--gold); }
@@ -490,8 +551,7 @@ ins { background: rgb(78 224 141 / .16); color: #b8f5d2; text-decoration: none; 
   .ts-body { grid-template-columns: minmax(0, 380px) minmax(0, 1fr); }
   .ts-listwrap { border-right: 1px solid rgb(217 173 79 / .25); max-height: min(78vh, 920px); overflow-y: auto; scrollbar-width: thin; }
   .ts-detail { display: block; padding: 18px 22px; position: sticky; top: 0; align-self: start; }
-  .ts-skill { grid-template-columns: auto 92px 1fr; }
-  .ts-skill .legend { grid-column: auto; }
+  .ts-skill { grid-template-columns: minmax(280px, 420px) 1fr; }
 }
 .ts-detail-head { display: flex; gap: 14px; align-items: center; margin-bottom: 10px; }
 .ts-detail-head .ico { width: 52px; height: 52px; }

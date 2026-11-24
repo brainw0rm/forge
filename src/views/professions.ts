@@ -39,6 +39,8 @@ export async function renderProfessionList(root: HTMLElement) {
 // ------------------------------------------------------------------ one profession
 
 const PAGE = 200;
+/** The highest skill a rank (Artisan) reaches; the skill bar is drawn against it. */
+const SKILL_CAP = 300;
 const skillKey = (slug: string) => `ff-skill-${slug}`;
 function readSkill(slug: string): number | null {
   try {
@@ -132,22 +134,27 @@ export async function renderProfession(root: HTMLElement, slug: string, params: 
   root.innerHTML = `
     <section class="page prof-page">
       <nav class="crumbs"><a href="/professions" data-link>Professions</a> / ${esc(prof.name)}</nav>
-      <header class="prof-hero">
-        <img class="prof-emblem" src="${iconUrl(prof.icon)}" alt="" />
-        <div class="prof-title">
-          <p class="eyebrow">${KIND_LABEL[prof.kind]} profession</p>
+      <div class="wow-window">
+        <img class="win-portrait" src="${iconUrl(prof.icon)}" alt="" />
+        <header class="win-title">
           <h1>${esc(prof.name)}</h1>
-          <p class="lede">${esc(prof.desc)}</p>
-          <p class="prof-stats"><span><b>${prof.recipes.length}</b> recipes</span>${summary.new ? `<span><b>${summary.new}</b> new in Forever</span>` : ""}${
-            summary.changed ? `<span><b>${summary.changed}</b> changed from Classic</span>` : ""
-          }</p>
+          <a class="win-close" href="/professions" data-link aria-label="Close, back to all professions">✕</a>
+        </header>
+        <div class="win-sub">
+          <div class="prof-title">
+            <p class="eyebrow">${KIND_LABEL[prof.kind]} profession</p>
+            <p class="lede">${esc(prof.desc)}</p>
+            <p class="prof-stats"><span><b>${prof.recipes.length}</b> recipes</span>${summary.new ? `<span><b>${summary.new}</b> new in Forever</span>` : ""}${
+              summary.changed ? `<span><b>${summary.changed}</b> changed from Classic</span>` : ""
+            }</p>
+          </div>
+          <nav class="prof-views" aria-label="${esc(prof.name)}">
+            ${prof.recipes.length ? `<a href="/professions/${slug}" data-link ${tab === "recipes" ? `aria-current="page"` : ""}>Recipes</a>` : ""}
+            <a href="/professions/${slug}?tab=about" data-link ${tab === "about" ? `aria-current="page"` : ""}>Ranks &amp; info</a>
+          </nav>
         </div>
-        <nav class="prof-views" aria-label="${esc(prof.name)}">
-          ${prof.recipes.length ? `<a href="/professions/${slug}" data-link ${tab === "recipes" ? `aria-current="page"` : ""}>Recipes</a>` : ""}
-          <a href="/professions/${slug}?tab=about" data-link ${tab === "about" ? `aria-current="page"` : ""}>Ranks &amp; info</a>
-        </nav>
-      </header>
-      <div id="prof-body"></div>
+        <div id="prof-body"></div>
+      </div>
       <p class="data-note">From the ${meta.phase === "live" ? "game client" : "beta client"}, build ${esc(meta.build)}, compared with Classic Era ${esc(meta.classicBuild)}.
         Where recipe items drop or who sells them isn't in the client data.
         <button type="button" class="link-btn" data-report-bug data-kind="data">Something look wrong?</button></p>
@@ -165,8 +172,10 @@ export async function renderProfession(root: HTMLElement, slug: string, params: 
     <div class="ts-window">
       <div class="ts-top">
         <div class="ts-skill">
-          <label for="skill">Your skill</label>
-          <input id="skill" type="number" inputmode="numeric" min="0" max="450" placeholder="–" value="${skill ?? ""}" />
+          <label for="skill" class="skillbar" id="skillbar">
+            <span class="skillbar-fill" id="skillbar-fill"></span>
+            <span class="skillbar-text">${esc(prof.name)} <input id="skill" type="number" inputmode="numeric" min="0" max="450" placeholder="?" value="${skill ?? ""}" aria-label="Your ${esc(prof.name)} skill" /> / ${SKILL_CAP}</span>
+          </label>
           <p class="legend"><span class="d d-orange">Orange</span> always a skill-up <span class="d d-yellow">Yellow</span> usually <span class="d d-green">Green</span> sometimes <span class="d d-grey">Grey</span> never</p>
         </div>
         <div class="ts-filters">
@@ -202,6 +211,7 @@ export async function renderProfession(root: HTMLElement, slug: string, params: 
   const wide = matchMedia("(min-width: 980px)");
   let selected: number | null = Number(params.get("r")) || null;
   let shown = PAGE;
+  const collapsed = new Set<number>();
   const catName = new Map(prof.categories.map((c) => [c.id, c.name]));
   const catOrder = new Map(prof.categories.map((c, i) => [c.id, i]));
   const draw = () => {
@@ -217,9 +227,14 @@ export async function renderProfession(root: HTMLElement, slug: string, params: 
     body.querySelector("#recipes")!.innerHTML = visible.length
       ? visible
           .map((r) => {
-            const head = prof.categories.length && r.cat !== lastCat ? `<li class="ts-group">${esc(catName.get(r.cat ?? -1) ?? "Other")}</li>` : "";
+            const cat = r.cat ?? -1;
+            const head =
+              prof.categories.length && r.cat !== lastCat
+                ? `<li><button type="button" class="ts-group" data-cat="${cat}" aria-expanded="${!collapsed.has(cat)}">
+                    <span class="ts-toggle" aria-hidden="true">${collapsed.has(cat) ? "+" : "−"}</span>${esc(catName.get(cat) ?? "Other")}</button></li>`
+                : "";
             lastCat = r.cat;
-            return head + recipeRow(slug, r, skill, wide.matches && r.spell === selected);
+            return head + (collapsed.has(cat) ? "" : recipeRow(slug, r, skill, wide.matches && r.spell === selected));
           })
           .join("")
       : `<li class="empty"><h3>No recipes match</h3><p>Try another search or filter.</p></li>`;
@@ -233,11 +248,23 @@ export async function renderProfession(root: HTMLElement, slug: string, params: 
     if (f.source) qs.set("source", f.source);
     history.replaceState(null, "", `/professions/${slug}${qs.size ? `?${qs}` : ""}`);
   };
+  const drawSkill = () => {
+    const fill = body.querySelector<HTMLElement>("#skillbar-fill");
+    if (fill) fill.style.width = `${Math.min(100, ((skill ?? 0) / SKILL_CAP) * 100)}%`;
+  };
   const drawDetail = () => {
     const r = prof.recipes.find((x) => x.spell === selected);
     body.querySelector("#detail")!.innerHTML = r ? recipeDetail(slug, r, skill) : "";
   };
   body.querySelector("#recipes")!.addEventListener("click", (e) => {
+    const group = (e.target as Element).closest<HTMLButtonElement>("[data-cat]");
+    if (group) {
+      const cat = Number(group.dataset.cat);
+      if (collapsed.has(cat)) collapsed.delete(cat);
+      else collapsed.add(cat);
+      draw();
+      return;
+    }
     const row = (e.target as Element).closest<HTMLAnchorElement>("[data-spell]");
     if (!row || !wide.matches || (e as MouseEvent).metaKey || (e as MouseEvent).ctrlKey) return;
     e.preventDefault();
@@ -265,6 +292,7 @@ export async function renderProfession(root: HTMLElement, slug: string, params: 
     const v = (e.target as HTMLInputElement).value;
     skill = v === "" ? null : Math.max(0, Math.min(450, Number(v) || 0));
     writeSkill(slug, skill);
+    drawSkill();
     draw();
   });
   body.querySelector("#more")!.addEventListener("click", () => {
@@ -272,6 +300,7 @@ export async function renderProfession(root: HTMLElement, slug: string, params: 
     draw();
   });
   wide.addEventListener("change", draw);
+  drawSkill();
   draw();
   fillAds(root);
 }
