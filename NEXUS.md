@@ -12,18 +12,23 @@ build`; every push to main deploys. Rule: never extrapolate game numbers; show "
 
 ## Status
 - 2026-11-24: crafting relaunch. Talents, builds, accounts, gear sandbox, sets, flight map, leveling, legacy,
-  news and the 3D viewer were removed; their addresses answer 410 Gone. Look: "artisan's workshop" (iron, ember,
-  brass, parchment recipe cards).
+  news and the 3D viewer were removed; their addresses answer 410 Gone. Look: WoW Forever interface (night-blue sky,
+  gold-framed panels, game gold headings, profession window).
 - The D1 database still holds the old account tables (users, sessions, builds, ratings, watches, news); only
   `feedback` and `auth_attempts` (rate limit) are used now. Privacy page tells former users to email for deletion.
 - Runs on the Cloudflare Workers Free plan; AdSense closed (house promos). Contact: brainwormbrood@gmail.com.
 - Repo is public: commit emails must be the GitHub noreply address on every machine.
 
 ## Todo
+- [ ] Set REPORT_SECRET on the Pages project (signs the approve/reject links of player source reports; the
+      `source_reports` table exists since 2026-11-24): `openssl rand -hex 32 | npx wrangler pages secret put
+      REPORT_SECRET --project-name forever-forge`, then redeploy
 - [ ] Decide whether to delete the old account data from D1 (drop the account/build tables with a migration)
 - [ ] Remove the Resend/NOTIFY secrets that only served accounts and alerts (NOTIFY_SECRET on Pages, SITE_URL and
       NOTIFY_SECRET repository secrets); keep RESEND_API_KEY/MAIL_FROM/FEEDBACK_EMAIL for bug reports
 - [ ] Search Console: submit the new sitemap, watch the 410s drop out of the index
 - [ ] Recipe sources (trainer/vendor/drop) if a client or allowed source ships them
 - [ ] Skill-up path planner (cheapest recipes from skill A to B)
-- [x] Crafting companion relaunch with workshop look, mobile-first (2026-11-24)
+- [x] Crafting companion relaunch, mobile-first (2026-11-24)
+- [x] Recipe sources: Classic Era (CMaNGOS) + player reports; WoW Forever interface look with a profession
+      window, new medallion logo, dropdown fixes (2026-11-24)
